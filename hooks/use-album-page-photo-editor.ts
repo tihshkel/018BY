@@ -64,6 +64,7 @@ export function useAlbumPagePhotoEditor({
     if (!resolvedSchema.templateLibraryId) return false;
     const format = getPageFormatForLineGuide(resolvedSchema.lineGuideId);
     const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
+    // Как iOS e24a739: только явный layout.perPhotoCaptions.
     return Boolean(layout?.perPhotoCaptions);
   }, [resolvedSchema]);
 
@@ -72,10 +73,19 @@ export function useAlbumPagePhotoEditor({
     [resolvedSchema, templateHasPerPhotoCaptions],
   );
 
-  const showCaption = useMemo(
-    () => shouldShowAnyPhotoCaption(resolvedSchema, templateHasPerPhotoCaptions),
-    [resolvedSchema, templateHasPerPhotoCaptions],
-  );
+  const multiCaptionFields = useMemo(() => {
+    const fields = resolvedSchema?.fields ?? [];
+    return fields.filter((f) => /caption\d+/i.test(f.fieldId)).length > 1;
+  }, [resolvedSchema]);
+
+  const showCaption = useMemo(() => {
+    if (!shouldShowAnyPhotoCaption(resolvedSchema, templateHasPerPhotoCaptions)) {
+      return false;
+    }
+    // iOS тоже captionEnabled, но при 2+ caption-полях (TwoVertical) page-caption лишний.
+    if (multiCaptionFields) return false;
+    return true;
+  }, [resolvedSchema, templateHasPerPhotoCaptions, multiCaptionFields]);
 
   // Legacy page-level caption → per-photo captions[0] for designed photo pages.
   useEffect(() => {

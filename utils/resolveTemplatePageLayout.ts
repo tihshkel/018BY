@@ -158,6 +158,8 @@ export function buildFieldsFromTemplate(
 
   for (const block of layout.textBlocks ?? []) {
     if (block.type === 'caption') {
+      // Как iOS e24a739: perPhoto → photoCaptions; одна caption → values.caption;
+      // несколько caption без флага (TwoVertical) → schema.fields.
       if (layout.perPhotoCaptions) continue;
       if (useSingleCaptionValue) continue;
     }

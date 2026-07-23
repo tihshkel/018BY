@@ -116,7 +116,12 @@ function filterWeeklyPhotoConstraintSlots(
   mode: 'layout' | 'zoom' = 'layout',
 ): NormalizedLineSlot[] {
   return slots.filter((slot, index) => {
-    if ((slot.inputKind ?? 'line') === 'block') return false;
+    // Pregnancy: боковые block-ячейки (замеры) не режут полосу фото.
+    // holidays_birthday_60 «Привет, мир!» / возраст: вес/рост/место — тоже block,
+    // но обязаны ограничивать зону, иначе two_vertical налазает на поля (eventSafe 0.18–0.82).
+    if ((slot.inputKind ?? 'line') === 'block') {
+      if (lineGuideId !== 'holidays_birthday_60') return false;
+    }
     if (lineGuideId === 'pregnancy_60' && index === 5) return false;
     if (mode === 'zoom' && lineGuideId === 'pregnancy_60' && index === 4) return false;
     return true;

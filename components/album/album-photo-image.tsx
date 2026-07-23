@@ -2,22 +2,33 @@ import { Image, type ImageContentFit, type ImageStyle } from 'expo-image';
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-/** file:// для локальных путей — на Android expo-image иначе грузит медленно или с артефактами. */
+import { stripPhotoCacheBust } from '@/utils/persistAlbumPhoto';
+
+/**
+ * file:// для локальных путей — на Android expo-image иначе грузит медленно или с артефактами.
+ * Важно: убираем `?v=` cache-bust у локальных URI — Glide/Image.getSize на Android
+ * не открывают `file://…/photo.jpg?v=123` → белый/«размытый» слот после добавления фото.
+ */
 export function normalizeAlbumPhotoUri(uri: string): string {
   const trimmed = uri.trim();
   if (!trimmed) return trimmed;
+
+  const isRemote =
+    trimmed.startsWith('http://') || trimmed.startsWith('https://');
+  const withoutBust = isRemote ? trimmed : stripPhotoCacheBust(trimmed);
+
   if (
-    trimmed.startsWith('file://') ||
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('content://')
+    withoutBust.startsWith('file://') ||
+    withoutBust.startsWith('http://') ||
+    withoutBust.startsWith('https://') ||
+    withoutBust.startsWith('content://')
   ) {
-    return trimmed;
+    return withoutBust;
   }
-  if (trimmed.startsWith('/')) {
-    return `file://${trimmed}`;
+  if (withoutBust.startsWith('/')) {
+    return `file://${withoutBust}`;
   }
-  return trimmed;
+  return withoutBust;
 }
 
 export function prefetchAlbumPhotoUri(uri: string | null | undefined): void {
@@ -73,13 +84,16 @@ export function AlbumPhotoImageRaw({
     prefetchAlbumPhotoUri(normalizedUri);
   }, [normalizedUri, prefetch]);
 
+  // recyclingKey может нести `?v=` для сброса кэша после replace; source — чистый путь.
+  const imageRecyclingKey = recyclingKey ?? uri;
+
   return (
     <Image
       source={{ uri: normalizedUri }}
       style={[styles.image, style]}
       {...ALBUM_PHOTO_IMAGE_PROPS}
       contentFit={contentFit}
-      recyclingKey={recyclingKey ?? normalizedUri}
+      recyclingKey={imageRecyclingKey}
       onLoad={onLoad}
       onError={onError}
     />

@@ -169,6 +169,25 @@ const BIRTHDAY_FREE_PAGES = [
 
 const BIRTHDAY_CAPTION_PAGES = Array.from({ length: 7 }, (_, index) => 41 + index);
 
+/** Manual primary slots for holidays birthday — sparse expand режет зону по line-slots. */
+function buildHolidaysBirthdayPhotoSlots(): Record<string, PhotoPageLayouts> {
+  const slots: Record<string, PhotoPageLayouts> = {
+    '2': BIRTHDAY_HELLO_PHOTO_LAYOUT,
+  };
+  for (const page of BIRTHDAY_AGE_PAGES) {
+    slots[String(page)] = BIRTHDAY_AGE_PHOTO_LAYOUT;
+  }
+  // Свободные / caption-страницы — квадрат 21×21, поля 15 мм.
+  const freeLayout = blankPageLayouts(BLANK_PAGE_SAFE_21X21);
+  for (const page of BIRTHDAY_FREE_PAGES) {
+    slots[String(page)] = freeLayout;
+  }
+  for (const page of BIRTHDAY_CAPTION_PAGES) {
+    slots[String(page)] = freeLayout;
+  }
+  return slots;
+}
+
 /** Manual layouts for pregnancy memory blocks and photo-only pages. */
 export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   pregnancy_60: {
@@ -1600,6 +1619,8 @@ export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   diary_interior_brown: {
     '5': blankPageLayouts(),
   },
+  /** «Дни рождения» 21×21 — p2 «Привет, мир!» + age/free/caption через sparse. */
+  holidays_birthday_60: buildHolidaysBirthdayPhotoSlots(),
   family_blank: blankAlbumPages(20, BLANK_PAGE_SAFE_18X24),
   holidays_blank: blankAlbumPages(20, BLANK_PAGE_SAFE_18X24),
   family_blank_21x21: blankAlbumPages(20, BLANK_PAGE_SAFE_21X21),

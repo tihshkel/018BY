@@ -1,35 +1,37 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { getAlbumImageUrisForViewing } from '@/utils/albumImages';
-import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
+import { isRemotePhotoUri, stripPhotoCacheBust } from '@/utils/persistAlbumPhoto';
 
 /** Локальные URI, которые не переживают смену устройства. */
 export function isDeviceLocalMediaUri(uri: string): boolean {
   if (!uri || typeof uri !== 'string') return false;
   if (isRemotePhotoUri(uri)) return false;
+  const clean = stripPhotoCacheBust(uri);
   return (
-    uri.startsWith('file://') ||
-    uri.startsWith('/') ||
-    uri.startsWith('content://') ||
-    uri.startsWith('ph://') ||
-    uri.startsWith('assets-library://') ||
-    uri.startsWith('ph-upload://')
+    clean.startsWith('file://') ||
+    clean.startsWith('/') ||
+    clean.startsWith('content://') ||
+    clean.startsWith('ph://') ||
+    clean.startsWith('assets-library://') ||
+    clean.startsWith('ph-upload://')
   );
 }
 
 export async function localMediaUriExists(uri: string): Promise<boolean> {
   if (!uri?.trim()) return false;
   if (isRemotePhotoUri(uri)) return true;
+  const clean = stripPhotoCacheBust(uri);
   if (
-    uri.startsWith('ph://') ||
-    uri.startsWith('assets-library://') ||
-    uri.startsWith('ph-upload://') ||
-    uri.startsWith('content://')
+    clean.startsWith('ph://') ||
+    clean.startsWith('assets-library://') ||
+    clean.startsWith('ph-upload://') ||
+    clean.startsWith('content://')
   ) {
     // На другом устройстве / платформе почти наверняка недоступны.
     try {
       const info = await FileSystem.getInfoAsync(
-        uri.startsWith('/') ? `file://${uri}` : uri,
+        clean.startsWith('/') ? `file://${clean}` : clean,
       );
       return info.exists && !info.isDirectory;
     } catch {
@@ -37,7 +39,7 @@ export async function localMediaUriExists(uri: string): Promise<boolean> {
     }
   }
   try {
-    const info = await FileSystem.getInfoAsync(uri);
+    const info = await FileSystem.getInfoAsync(clean);
     return info.exists && !info.isDirectory;
   } catch {
     return false;

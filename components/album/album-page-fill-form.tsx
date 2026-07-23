@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AlbumCaptionTextInput } from '@/components/album/album-caption-text-input';
 import { PhotoBlockPicker } from '@/components/album/photo-block-picker';
 import {
   FamilyTreeForm,
@@ -10,7 +11,7 @@ import {
 } from '@/components/album/editors/special-page-forms';
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
-import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
+import { colors, spacing } from '@/constants/design-tokens';
 import type {
   AlbumPageSchema,
   FieldTextStyle,
@@ -110,12 +111,10 @@ export function AlbumPageFillForm({
                     <AppText variant="caption" style={styles.captionLabel}>
                       Подпись к фото {slotIndex + 1}
                     </AppText>
-                    <TextInput
-                      style={styles.captionInput}
+                    <AlbumCaptionTextInput
                       value={photoCaptions[slotIndex] ?? ''}
                       onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                       placeholder="Необязательно"
-                      placeholderTextColor={colors.placeholder}
                     />
                   </AppCard>
                 ))
@@ -131,12 +130,10 @@ export function AlbumPageFillForm({
           <AppText variant="caption" style={styles.captionLabel}>
             Подпись (необязательно)
           </AppText>
-          <TextInput
-            style={styles.captionInput}
+          <AlbumCaptionTextInput
             value={caption}
             onChangeText={onCaptionChange}
             placeholder="Короткая подпись"
-            placeholderTextColor={colors.placeholder}
           />
         </AppCard>
       ) : null}
@@ -156,16 +153,5 @@ const styles = StyleSheet.create({
   },
   captionLabel: {
     color: colors.textSecondary,
-  },
-  captionInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: sansFont('regular'),
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
   },
 });

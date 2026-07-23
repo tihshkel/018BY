@@ -29,7 +29,10 @@ local.properties
 *.hprof
 .cxx/
 *.keystore
+*.jks
 !debug.keystore
+android/keystore.properties
+@tihshkel__018by.jks
 
 # Python venv (PDF → PNG scripts)
 .venv/

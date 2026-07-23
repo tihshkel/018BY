@@ -53,6 +53,7 @@ import {
   appendBlankTemplateTextAnnotations,
   appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
+import { mapTemplateFrameToViewport } from '@/utils/templateTextLayout';
 import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
 import { shouldShowAnyPhotoCaption } from '@/utils/photoCaptions';
 
@@ -187,7 +188,26 @@ function resolveTemplateHasPerPhotoCaptions(
   if (!schema.templateLibraryId) return false;
   const format = getPageFormatForLineGuide(lineGuideId);
   const layout = getTemplateLayout(schema.templateLibraryId, format);
+  // Как iOS e24a739: только явный perPhotoCaptions (CaptionGallery / Timeline).
   return Boolean(layout?.perPhotoCaptions);
+}
+
+/** Blank TwoVertical / TwoHorizontal 21×21 — captionN как schema.fields. */
+function resolveBlankTemplateFieldCaptions(
+  schema: AlbumPageSchema,
+  values: PageValues,
+): (string | null)[] | undefined {
+  const captionFields = (schema.fields ?? [])
+    .filter((field) => /_caption\d+$/i.test(field.fieldId) || /caption\d+$/i.test(field.fieldId))
+    .sort((a, b) => {
+      const num = (id: string) => {
+        const match = id.match(/caption(\d+)/i);
+        return match ? Number(match[1]) : 0;
+      };
+      return num(a.fieldId) - num(b.fieldId);
+    });
+  if (captionFields.length === 0) return undefined;
+  return captionFields.map((field) => values.fields[field.fieldId] ?? null);
 }
 
 function resolveEffectivePhotoCaptions(
@@ -195,25 +215,95 @@ function resolveEffectivePhotoCaptions(
   lineGuideId: string,
   values: PageValues,
 ): (string | null)[] | undefined {
-  if (
-    !shouldShowAnyPhotoCaption(schema, resolveTemplateHasPerPhotoCaptions(schema, lineGuideId))
-  ) {
+  const perPhoto = resolveTemplateHasPerPhotoCaptions(schema, lineGuideId);
+  if (!shouldShowAnyPhotoCaption(schema, perPhoto)) {
     return undefined;
   }
-  if (values.photoCaptions?.some((c) => Boolean(c?.trim()))) {
+
+  if (perPhoto) {
+    if (values.photoCaptions?.some((c) => Boolean(c?.trim()))) {
+      return values.photoCaptions;
+    }
+    if (isBlankTemplateLineGuide(lineGuideId)) {
+      const fieldCaptions = resolveBlankTemplateFieldCaptions(schema, values);
+      if (fieldCaptions?.some((c) => Boolean(c?.trim()))) {
+        return fieldCaptions;
+      }
+    }
+    if (
+      (usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId) ||
+        (isBlankTemplateLineGuide(lineGuideId) && schema.captionEnabled)) &&
+      values.caption?.trim()
+    ) {
+      return [values.caption];
+    }
     return values.photoCaptions;
   }
+
+  // Не per-photo (FourPhotos / Single / Three…): одна page-caption под всей группой фото.
+  // TwoVertical / TwoHorizontal 21×21: несколько caption-полей → под каждым фото.
+  if (isBlankTemplateLineGuide(lineGuideId) && schema.captionEnabled) {
+    const fieldCaptions = resolveBlankTemplateFieldCaptions(schema, values);
+    if (fieldCaptions && fieldCaptions.length > 1 && fieldCaptions.some((c) => Boolean(c?.trim()))) {
+      return fieldCaptions;
+    }
+    // Legacy Android: раньше TwoVertical писал в photoCaptions[] без perPhotoCaptions.
+    if (
+      (values.photoCaptions?.filter((c) => Boolean(c?.trim())).length ?? 0) > 1
+    ) {
+      return values.photoCaptions;
+    }
+    if (values.caption?.trim()) {
+      return [values.caption];
+    }
+    const firstPhotoCaption = values.photoCaptions?.find((c) => Boolean(c?.trim()));
+    if (firstPhotoCaption?.trim()) {
+      return [firstPhotoCaption];
+    }
+    if (fieldCaptions?.some((c) => Boolean(c?.trim()))) {
+      return fieldCaptions;
+    }
+  }
+
   if (
-    (usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId) ||
-      (isBlankTemplateLineGuide(lineGuideId) && schema.captionEnabled)) &&
+    usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId) &&
     values.caption?.trim()
   ) {
     return [values.caption];
   }
+
   return values.photoCaptions;
 }
 
-/** Подписи под фото blank — те же viewport-bands, что у designed (следуют за pinch). */
+/** Подписи blank: те же textBlock-кадры, что у TemplateWireframePreview (пока нет pinch). */
+function resolveBlankCaptionLayoutsFromTemplate(params: {
+  schema: AlbumPageSchema;
+  values: PageValues;
+  lineGuideId: string;
+  editorContentRect: ReturnType<typeof getContentRect>;
+}): { x: number; y: number; width: number; height: number }[] | null {
+  const { schema, values, lineGuideId, editorContentRect } = params;
+  if (!schema.templateLibraryId || !isBlankTemplateLineGuide(lineGuideId)) {
+    return null;
+  }
+  if (isNonDefaultPhotoSlotTransform(values.photoGroupTransform)) {
+    return null;
+  }
+  const slotTransforms = Object.values(values.photoSlotTransforms ?? {});
+  if (slotTransforms.some((t) => isNonDefaultPhotoSlotTransform(t))) {
+    return null;
+  }
+
+  const format = getPageFormatForLineGuide(lineGuideId);
+  const layout = getTemplateLayout(schema.templateLibraryId, format);
+  const captionBlocks =
+    layout?.textBlocks?.filter((block) => block.type === 'caption') ?? [];
+  if (captionBlocks.length === 0) return null;
+
+  return captionBlocks.map((block) => mapTemplateFrameToViewport(block, editorContentRect));
+}
+
+/** Подписи под фото blank — превью-кадры шаблона; после pinch — bands под зонами фото. */
 function appendBlankPhotoCaptionsFollowingPhotos(params: {
   schema: AlbumPageSchema;
   values: PageValues;
@@ -271,18 +361,31 @@ function appendBlankPhotoCaptionsFollowingPhotos(params: {
     sourceHeight,
     contentRect: editorContentRect,
   };
-  const photoCaptionLayouts = resolvePhotoCaptionViewportLayouts(captionLayoutParams);
   const captionScale = resolvePhotoCaptionGroupScale(captionLayoutParams);
+  const perPhoto = resolveTemplateHasPerPhotoCaptions(schema, lineGuideId);
+  const filledCaptions = effectivePhotoCaptions.filter((c) => Boolean(c?.trim()));
+  const usePrimaryUnderGroup = !perPhoto && filledCaptions.length <= 1;
 
-  for (let i = 0; i < effectivePhotoCaptions.length; i += 1) {
-    const text = effectivePhotoCaptions[i]?.trim();
-    if (!text) continue;
-    const layout = photoCaptionLayouts[i];
-    if (!layout) continue;
-    const fieldStyle = values.fieldTextStyles?.[`caption${i + 1}`];
+  const templateCaptionLayouts = resolveBlankCaptionLayoutsFromTemplate({
+    schema,
+    values,
+    lineGuideId,
+    editorContentRect,
+  });
+
+  const pushCaption = (
+    index: number,
+    text: string,
+    layout: { x: number; y: number; width: number; height: number },
+    styleKey?: string,
+  ) => {
+    const fieldStyle =
+      (styleKey ? values.fieldTextStyles?.[styleKey] : undefined) ??
+      (index === 0 ? values.captionTextStyle : undefined) ??
+      values.fieldTextStyles?.[`caption${index + 1}`];
     const baseSize = fieldStyle?.fontSize ?? fontSize;
     annotations.push({
-      id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, i),
+      id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, index),
       type: 'text',
       page: schema.sourcePageNumber,
       content: text,
@@ -294,6 +397,45 @@ function appendBlankPhotoCaptionsFollowingPhotos(params: {
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
     });
+  };
+
+  // Паритет с превью шаблона: те же x/y/w/h caption textBlocks из манифеста.
+  if (templateCaptionLayouts?.length) {
+    if (usePrimaryUnderGroup) {
+      const text = filledCaptions[0]?.trim();
+      if (text && templateCaptionLayouts[0]) {
+        pushCaption(0, text, templateCaptionLayouts[0]);
+      }
+      return zIndex;
+    }
+
+    for (let i = 0; i < effectivePhotoCaptions.length; i += 1) {
+      const text = effectivePhotoCaptions[i]?.trim();
+      if (!text) continue;
+      const layout = templateCaptionLayouts[i];
+      if (!layout) continue;
+      pushCaption(i, text, layout);
+    }
+    return zIndex;
+  }
+
+  // После pinch / без textBlocks — подпись следует за фотозонами.
+  if (usePrimaryUnderGroup) {
+    const text = filledCaptions[0]?.trim();
+    if (!text) return zIndex;
+    const layout = resolvePrimaryPhotoCaptionLayout(captionLayoutParams);
+    if (!layout) return zIndex;
+    pushCaption(0, text, layout);
+    return zIndex;
+  }
+
+  const photoCaptionLayouts = resolvePhotoCaptionViewportLayouts(captionLayoutParams);
+  for (let i = 0; i < effectivePhotoCaptions.length; i += 1) {
+    const text = effectivePhotoCaptions[i]?.trim();
+    if (!text) continue;
+    const layout = photoCaptionLayouts[i];
+    if (!layout) continue;
+    pushCaption(i, text, layout);
   }
 
   return zIndex;

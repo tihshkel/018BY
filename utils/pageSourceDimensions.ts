@@ -1,5 +1,7 @@
 import { Image } from 'react-native';
 
+import { isRemotePhotoUri, stripPhotoCacheBust } from '@/utils/persistAlbumPhoto';
+
 export type PageSourceSize = {
   width: number;
   height: number;
@@ -36,7 +38,13 @@ const cache = new Map<string, PageSourceSize>();
 const SOURCE_SIZE_CACHE_MAX = 120;
 
 function isNetworkUri(uri: string): boolean {
-  return /^https?:\/\//i.test(uri);
+  return isRemotePhotoUri(uri);
+}
+
+/** Локальный путь без `?v=` — иначе Android Image.getSize не находит файл. */
+function uriForNativeSizeLookup(uri: string): string {
+  if (isNetworkUri(uri)) return uri;
+  return stripPhotoCacheBust(uri);
 }
 
 /** Известные размеры по пути/имени файла — без сетевого Image.getSize. */
@@ -259,12 +267,14 @@ export function setPageSourceSize(uri: string, size: PageSourceSize): void {
 }
 
 function resolveViaImageGetSize(uri: string): Promise<PageSourceSize | null> {
+  const lookupUri = uriForNativeSizeLookup(uri);
   return new Promise((resolve) => {
     Image.getSize(
-      uri,
+      lookupUri,
       (width, height) => {
         const size = { width, height };
         setPageSourceSize(uri, size);
+        if (lookupUri !== uri) setPageSourceSize(lookupUri, size);
         resolve(size);
       },
       () => resolve(null)
@@ -277,7 +287,7 @@ function resolveViaImageGetSize(uri: string): Promise<PageSourceSize | null> {
  * Для https:// (GitHub) не качаем картинку через Image.getSize — иначе сыпятся Network request failed.
  */
 export function resolvePageSourceSize(uri: string): Promise<PageSourceSize | null> {
-  const cached = cache.get(uri);
+  const cached = cache.get(uri) ?? cache.get(uriForNativeSizeLookup(uri));
   if (cached) return Promise.resolve(cached);
 
   const inferred = inferPageSourceSizeFromUri(uri);

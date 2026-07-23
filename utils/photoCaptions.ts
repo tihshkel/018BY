@@ -1,15 +1,5 @@
 import type { AlbumPageSchema } from '@/types/album-page-schema';
 
-export function schemaHasMultiPhotoVariants(schema: AlbumPageSchema | undefined): boolean {
-  return (schema?.photoBlocks ?? []).some((block) =>
-    (block.variants ?? []).some((variant) => (variant.slots ?? 0) > 1),
-  );
-}
-
-/**
- * Per-photo подписи: caption_photo_page / blank-шаблоны / free_photo_caption,
- * либо designed-страницы с captionEnabled и коллаж-вариантами (pregnancy «Для фото» и т.п.).
- */
 /** Страницы «только фото» — подписи нужны; на value/text+фото — нет. */
 function isPhotoCollageCaptionPage(schema: AlbumPageSchema): boolean {
   return (
@@ -26,6 +16,11 @@ function schemaHasUserValueFields(schema: AlbumPageSchema): boolean {
   );
 }
 
+/**
+ * Per-photo подписи: caption_photo_page / free_photo_caption / blank layout.perPhotoCaptions
+ * / designed (передаётся через templateHasPerPhotoCaptions).
+ * Не включать «любой multi-photo + captionEnabled» — иначе FourPhotos (1 подпись) ломается.
+ */
 export function shouldShowPerPhotoCaptions(
   schema: AlbumPageSchema | undefined,
   templateHasPerPhotoCaptions = false,
@@ -45,9 +40,6 @@ export function shouldShowPerPhotoCaptions(
     return true;
   }
   if (templateHasPerPhotoCaptions) return true;
-  if (schema.captionEnabled === true && schemaHasMultiPhotoVariants(schema)) {
-    return true;
-  }
   return false;
 }
 

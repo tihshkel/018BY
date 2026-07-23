@@ -18,13 +18,16 @@ import {
 import { getKids48EventDateLineNorm } from "@/constants/kids-48-event-date-slots";
 import { LINE_GUIDES } from "@/constants/line-guides";
 import { LINE_SLOTS, type NormalizedLineSlot } from "@/constants/line-slots";
+import type { NormalizedPhotoSlot } from "@/constants/photo-slots";
 import type { Annotation } from "@/types/annotation";
 import { resolveLineGuideId } from "@/utils/albumImages";
+import { refineFamilyTreeSlotForViewport } from "@/utils/familyTreeSlots";
 import {
     getContentRect,
     mapSourceNormToViewport,
     type ContentRect,
 } from "@/utils/imageContentRect";
+import { getPdfCirclePageData } from "@/utils/pdfCircleSlots";
 import {
     getEffectiveTemplateFontSize,
     getPregnancyWeeklyTypographyBandHeight,
@@ -1387,6 +1390,67 @@ function isDesignedAlbumWithInteriorBreathingRoom(lineGuideId: string): boolean 
 }
 
 /**
+ * Имена «Семейное дерево»: центр полосы = центр фото-круга (PDF x,y + калибровка).
+ * Старые LINE_SLOTS ошибочно сдвигали имена вправо (~+0.07), как будто x,y — left/top.
+ */
+function alignKidsFamilyTreeNameToCircle(
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  const pageData = getPdfCirclePageData("kids_48", 5);
+  const raw = pageData?.slots?.[slotIndex];
+  if (!raw) return norm;
+
+  const refined = refineFamilyTreeSlotForViewport("kids_48", 5, {
+    ...raw,
+    shape: "circle",
+  } as NormalizedPhotoSlot);
+
+  const BAND = 0.028;
+  /** ≥ BAND, иначе текст заезжает в круг (полоса от stroke−BAND). */
+  const GAP_BELOW_CIRCLE = 0.034;
+  const NAME_WIDTH_BY_ID: Record<string, number> = {
+    child: 0.124,
+    mother_great_grandmother: 0.14,
+    mother_great_grandfather: 0.14,
+    mother_grandmother: 0.14,
+    mother_grandfather: 0.136,
+    father_great_grandmother: 0.14,
+    father_great_grandfather: 0.14,
+    father_grandmother: 0.14,
+    father_grandfather: 0.14,
+    extra_01: 0.125,
+    extra_02: 0.115,
+    extra_03: 0.13,
+    extra_04: 0.14,
+    extra_05: 0.136,
+    extra_06: 0.131,
+  };
+  const diameter = Math.max(refined.width, refined.height);
+  const circleBottom = refined.y + diameter / 2;
+  const strokeY = Math.min(0.992, circleBottom + GAP_BELOW_CIRCLE);
+  const height = Math.min(BAND, Math.max(0.02, strokeY - 0.01));
+  const baseWidth =
+    (raw.slotId ? NAME_WIDTH_BY_ID[raw.slotId] : undefined) ?? 0.14;
+  const layoutNudge = KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX[slotIndex];
+  const width = layoutNudge?.width ?? baseWidth;
+  const cx = refined.x + (layoutNudge?.dx ?? 0);
+  const y =
+    strokeY - height + (layoutNudge?.dy ?? KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM);
+  const x = Math.max(0.02, Math.min(0.98 - width, cx - width / 2));
+
+  return {
+    ...norm,
+    x: clamp01(x),
+    y: clamp01(y),
+    width: Math.min(width, Math.max(0.04, 1 - x)),
+    height,
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+  };
+}
+
+/**
  * Отступ пользовательского текста от печатной внутрянки (подписи, края макета).
  * Не трогает block-ячейки — у них свои insets.
  */
@@ -1403,16 +1467,7 @@ function applyDesignedAlbumBreathingRoom(
   let next = norm;
 
   if (lineGuideId === "kids_48" && page === 5) {
-    const layoutNudge = KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX[slotIndex];
-    const xNudge = layoutNudge?.dx ?? 0;
-    const yNudge = layoutNudge?.dy ?? KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM;
-    const nextWidth = layoutNudge?.width ?? next.width;
-    next = {
-      ...next,
-      x: clamp01(next.x + xNudge),
-      y: clamp01(next.y + yNudge),
-      width: Math.min(nextWidth, Math.max(0.04, 1 - (next.x + xNudge))),
-    };
+    next = alignKidsFamilyTreeNameToCircle(next, slotIndex);
   }
 
   if ((next.inputKind ?? "line") === "block") {
@@ -2472,7 +2527,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     "kids-p1-photo-middle-band-v1",
     "kids-p1-answer-baseline-sink-v2",
     // Авто-инвалидация при правке layout имён / слотов p5
-    `kids-family-tree-names-v2:${JSON.stringify(KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX)}:${KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM}`,
+    `kids-family-tree-names-v4-under-circle:${JSON.stringify(KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX)}:${KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM}`,
     "kids-teeth-bottom-stroke-v6",
     "pregnancy-weekly-skip-dense-spacing-v1",
     "pregnancy-weekly-guide-stroke-v15",

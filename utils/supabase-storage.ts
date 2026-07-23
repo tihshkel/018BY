@@ -1,7 +1,7 @@
 import { getSupabase } from '@/lib/supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 
-import { persistAlbumPhotoUri } from '@/utils/persistAlbumPhoto';
+import { persistAlbumPhotoUri, stripPhotoCacheBust } from '@/utils/persistAlbumPhoto';
 import {
   canonicalizeProjectPageImages,
   isDeviceLocalMediaUri,
@@ -47,16 +47,17 @@ export async function uploadImageToStorage(
   }
 
   // iOS photo library / content → сначала в documentDirectory.
-  let uploadUri = localUri;
+  // Снимаем `?v=` — иначе getInfoAsync/readAsStringAsync на Android не находят файл.
+  let uploadUri = stripPhotoCacheBust(localUri);
   if (
-    localUri.startsWith('ph://') ||
-    localUri.startsWith('assets-library://') ||
-    localUri.startsWith('ph-upload://') ||
-    localUri.startsWith('content://')
+    uploadUri.startsWith('ph://') ||
+    uploadUri.startsWith('assets-library://') ||
+    uploadUri.startsWith('ph-upload://') ||
+    uploadUri.startsWith('content://')
   ) {
     try {
       uploadUri = await persistAlbumPhotoUri(
-        localUri,
+        uploadUri,
         `sync/${accessCode}/${projectId}/${index}`,
       );
     } catch (error) {
@@ -256,13 +257,15 @@ function createUriResolver(accessCode: string, projectId: string): UriResolver {
       if (uri.startsWith('https://') || uri.startsWith('http://')) {
         return { uri, changed: false };
       }
-      if (!isLocalMediaUri(uri)) return { uri, changed: false };
+      const cleanUri = stripPhotoCacheBust(uri);
+      if (!isLocalMediaUri(cleanUri)) return { uri, changed: false };
 
-      const cached = uriCache.get(uri);
+      const cached = uriCache.get(cleanUri) ?? uriCache.get(uri);
       if (cached) return { uri: cached, changed: true };
 
-      const url = await uploadImageToStorage(accessCode, projectId, uri, nextIndex++);
+      const url = await uploadImageToStorage(accessCode, projectId, cleanUri, nextIndex++);
       if (url) {
+        uriCache.set(cleanUri, url);
         uriCache.set(uri, url);
         return { uri: url, changed: true };
       }

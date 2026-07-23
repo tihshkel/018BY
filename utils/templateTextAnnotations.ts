@@ -170,8 +170,7 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
     );
   }
 
-  // Fixed-frame captions отключены: blank captions рисует pageValuesAdapter
-  // через resolvePhotoCaptionViewportLayouts (паритет с designed).
+  // Caption fields: pageValuesAdapter — textBlock-кадры как в wireframe (или bands после pinch).
 
   for (const element of values.freeElements ?? []) {
     if (element.type === 'text' && hasText(element.content)) {

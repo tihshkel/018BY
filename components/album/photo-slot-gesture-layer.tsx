@@ -23,7 +23,12 @@ import {
 } from '@/utils/photoSlotTransform';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
-import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
+import {
+  isManagedAlbumPhotoUri,
+  isRemotePhotoUri,
+  photoUriExists,
+  stripPhotoCacheBust,
+} from '@/utils/persistAlbumPhoto';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
 
@@ -255,9 +260,13 @@ function PhotoSlotFilled({
           style={styles.image}
           recyclingKey={uri}
           onError={() => {
-            if (!isRemotePhotoUri(uri)) {
-              onRemovePhoto?.();
-            }
+            // Не стираем слот при временном сбое decode/`?v=` —
+            // только если локальный managed-файл реально отсутствует.
+            if (isRemotePhotoUri(uri)) return;
+            if (!isManagedAlbumPhotoUri(uri)) return;
+            void photoUriExists(stripPhotoCacheBust(uri)).then((exists) => {
+              if (!exists) onRemovePhoto?.();
+            });
           }}
         />
       </Animated.View>

@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
+import { normalizeAlbumPhotoUri } from '@/components/album/album-photo-image';
 import type { Annotation } from '@/components/pdf-annotations';
 import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import {
@@ -537,7 +538,7 @@ function ReadOnlyPageAnnotationsInner({
               {innerStyle ? (
                 <View style={[styles.imageInner, photoClipStyle, innerStyle]}>
                   <Image
-                    source={{ uri: annotation.imageUri }}
+                    source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri) }}
                     style={[
                       styles.imageFill,
                       photoClipStyle,
@@ -548,14 +549,14 @@ function ReadOnlyPageAnnotationsInner({
                     transition={0}
                     fadeDuration={0}
                     allowDownscaling
-                    recyclingKey={annotation.id}
+                    recyclingKey={`${annotation.id}:${annotation.imageUri}`}
                     onLoad={handleAnnotationImageSettled}
                     onError={handleAnnotationImageFailed}
                   />
                 </View>
               ) : (
                 <Image
-                  source={{ uri: annotation.imageUri }}
+                  source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri) }}
                   style={[
                     styles.imageFill,
                     photoClipStyle,
@@ -566,7 +567,7 @@ function ReadOnlyPageAnnotationsInner({
                   transition={0}
                   fadeDuration={0}
                   allowDownscaling
-                  recyclingKey={annotation.id}
+                  recyclingKey={`${annotation.id}:${annotation.imageUri}`}
                   onLoad={handleAnnotationImageSettled}
                   onError={handleAnnotationImageFailed}
                 />

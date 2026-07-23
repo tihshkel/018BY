@@ -94,57 +94,58 @@ const TEETH_COUNT_SLOT = LINE(
 );
 
 /**
- * Подписи под всеми 15 кругами дерева.
- * Геометрия из pdf-circle-slots + viewport-offset/diameter как familyTreeSlots.ts.
+ * Калибровка viewport — зеркало utils/familyTreeSlots.ts (FAMILY_TREE_VIEWPORT_CALIBRATION).
+ * PDF x,y — ЦЕНТР круга; раньше имена ошибочно считали x,y левым верхом (+ diameter/2),
+ * из‑за этого подписи съезжали вправо/вниз относительно фото.
+ */
+const FAMILY_TREE_VIEWPORT_CALIBRATION = {
+  child: { dx: -0.001, dy: 0.0002, diameter: 0.1531 },
+  mother_great_grandmother: { dx: -0.001, dy: -0.0001, diameter: 0.1656 },
+  mother_great_grandfather: { dx: -0.0011, dy: 0, diameter: 0.1638 },
+  mother_grandmother: { dx: -0.001, dy: -0.0001, diameter: 0.1496 },
+  mother_grandfather: { dx: -0.0011, dy: -0.0001, diameter: 0.1407 },
+  father_great_grandmother: { dx: -0.0012, dy: 0.0001, diameter: 0.1496 },
+  father_great_grandfather: { dx: -0.0013, dy: 0, diameter: 0.1638 },
+  father_grandmother: { dx: -0.0011, dy: 0, diameter: 0.1496 },
+  father_grandfather: { dx: -0.0012, dy: -0.0001, diameter: 0.1549 },
+  extra_01: { dx: -0.001, dy: -0.0002, diameter: 0.1318 },
+  extra_02: { dx: -0.001, dy: -0.0002, diameter: 0.1211 },
+  extra_03: { dx: -0.0012, dy: -0.0001, diameter: 0.1478 },
+  extra_04: { dx: -0.0012, dy: -0.0001, diameter: 0.1496 },
+  extra_05: { dx: -0.0012, dy: -0.0002, diameter: 0.1407 },
+  extra_06: { dx: -0.0011, dy: -0.0001, diameter: 0.1407 },
+};
+const FAMILY_TREE_DEFAULT_DIAMETER_BLEED = 1.04;
+const FAMILY_TREE_DEFAULT_X_NUDGE = -0.0011;
+
+/**
+ * Подписи под всеми 15 кругами дерева — центр имени = центр фото-круга.
  */
 function buildPage5FamilyTreeSlots() {
   const BAND = 0.028;
-  /** Штрих чуть внутри низа круга — текст над штрихом, не «уезжает» вниз. */
-  const GAP_BELOW_CIRCLE = -0.004;
-  const NAME_WIDTH = 0.14;
-
-  const X_OFF = {
-    child: 0,
-    extra_06: 0.006,
-    mother_great_grandmother: 0,
-    mother_great_grandfather: 0,
-    mother_grandmother: 0,
-    mother_grandfather: 0,
-    extra_01: 0,
-    extra_02: 0,
-    father_great_grandmother: -0.003,
-    extra_05: -0.002,
-    father_grandmother: 0.014,
-    extra_03: 0.016,
-    extra_04: 0.012,
-    father_grandfather: 0.028,
-    father_great_grandfather: 0.04,
-  };
-  const Y_OFF = {
-    child: 0,
-    extra_06: 0.003,
-    mother_great_grandmother: 0,
-    mother_great_grandfather: 0,
-    mother_grandmother: 0,
-    mother_grandfather: 0,
-    extra_01: 0,
-    extra_02: 0,
-    father_great_grandmother: 0.002,
-    father_great_grandfather: 0.003,
-    father_grandmother: 0.005,
-    father_grandfather: 0.006,
-    extra_03: 0.006,
-    extra_04: 0.004,
-    extra_05: 0.003,
-  };
-  const FATHER_DIAMETER = {
-    father_great_grandmother: 1.06,
-    father_great_grandfather: 1.04,
-    father_grandmother: 1.07,
-    father_grandfather: 1.04,
-    extra_03: 1.07,
-    extra_04: 1.04,
-    extra_05: 1.06,
+  /**
+   * Текст рисуется в полосе [strokeY−BAND, strokeY].
+   * GAP должен быть ≥ BAND, иначе полоса заезжает внутрь круга.
+   * 0.034 ≈ BAND + 0.006 — небольшой зазор под фото, как на iOS.
+   */
+  const GAP_BELOW_CIRCLE = 0.034;
+  /** Ширины полос как в iOS SPECS e24a739 — центр пересчитан под фото. */
+  const NAME_WIDTH_BY_ID = {
+    child: 0.124,
+    mother_great_grandmother: 0.14,
+    mother_great_grandfather: 0.14,
+    mother_grandmother: 0.14,
+    mother_grandfather: 0.136,
+    father_great_grandmother: 0.14,
+    father_great_grandfather: 0.14,
+    father_grandmother: 0.14,
+    father_grandfather: 0.14,
+    extra_01: 0.125,
+    extra_02: 0.115,
+    extra_03: 0.13,
+    extra_04: 0.14,
+    extra_05: 0.136,
+    extra_06: 0.131,
   };
 
   let circles = [];
@@ -157,30 +158,29 @@ function buildPage5FamilyTreeSlots() {
   }
 
   if (!circles.length) {
+    // Fallback: центр + низ круга (не left/top).
     const SPECS = [
-      [0.512, 0.330, 0.124, 0, 0],
-      [0.293, 0.482, 0.14, 0, 0],
-      [0.459, 0.602, 0.14, 0, 0],
-      [0.26, 0.673, 0.14, 0, 0],
-      [0.459, 0.804, 0.136, 0, 0],
-      [0.748, 0.381, 0.14, -0.003, 0.002],
-      [0.929, 0.508, 0.14, 0.04, 0.003],
-      [0.733, 0.584, 0.14, 0.014, 0.005],
-      [0.906, 0.72, 0.14, 0.028, 0.006],
-      [0.288, 0.874, 0.125, 0, 0],
-      [0.414, 0.981, 0.115, 0, 0],
-      [0.69, 0.78, 0.13, 0.016, 0.006],
-      [0.837, 0.874, 0.14, 0.012, 0.004],
-      [0.752, 0.992, 0.136, -0.002, 0.003],
-      [0.584, 0.919, 0.131, 0.006, 0.003],
+      [0.4441, 0.2568, 0.124],
+      [0.2067, 0.3804, 0.14],
+      [0.3731, 0.5004, 0.14],
+      [0.1811, 0.5791, 0.14],
+      [0.3839, 0.7153, 0.136],
+      [0.6691, 0.2919, 0.14],
+      [0.8424, 0.413, 0.14],
+      [0.6537, 0.4904, 0.14],
+      [0.8261, 0.6295, 0.14],
+      [0.2192, 0.7922, 0.125],
+      [0.3501, 0.9183, 0.115],
+      [0.6113, 0.6852, 0.13],
+      [0.7579, 0.7857, 0.14],
+      [0.677, 0.9183, 0.136],
+      [0.5119, 0.8471, 0.131],
     ];
-    return SPECS.map(([cx, circleBottom, width, xOff, yOff], index) => {
-      const adjCx = cx + xOff;
-      const adjBottom = circleBottom + yOff;
-      const strokeY = Math.min(0.992, adjBottom + GAP_BELOW_CIRCLE);
+    return SPECS.map(([cx, circleBottom, width], index) => {
+      const strokeY = Math.min(0.992, circleBottom + GAP_BELOW_CIRCLE);
       const height = Math.min(BAND, Math.max(0.02, strokeY - 0.01));
       const y = strokeY - height;
-      const x = Math.max(0.02, Math.min(0.98 - width, adjCx - width / 2));
+      const x = Math.max(0.02, Math.min(0.98 - width, cx - width / 2));
       return {
         x,
         y,
@@ -197,21 +197,15 @@ function buildPage5FamilyTreeSlots() {
 
   return circles.map((slot, index) => {
     const id = slot.slotId;
-    let diameter = Math.max(slot.width, slot.height);
-    if (slot.branch === 'father') {
-      diameter *= FATHER_DIAMETER[id] ?? 1.05;
-    } else if (slot.branch === 'child') {
-      diameter *= 0.98;
-    } else {
-      diameter *= 1.1;
-    }
-    const vx = slot.x + (X_OFF[id] ?? 0);
-    const vy = slot.y + (Y_OFF[id] ?? 0);
-    const cx = vx + diameter / 2;
-    const circleBottom = vy + diameter;
+    const cal = FAMILY_TREE_VIEWPORT_CALIBRATION[id];
+    const cx = slot.x + (cal?.dx ?? FAMILY_TREE_DEFAULT_X_NUDGE);
+    const cy = slot.y + (cal?.dy ?? 0);
+    const diameter =
+      cal?.diameter ?? Math.max(slot.width, slot.height) * FAMILY_TREE_DEFAULT_DIAMETER_BLEED;
+    const circleBottom = cy + diameter / 2;
     const strokeY = Math.min(0.992, circleBottom + GAP_BELOW_CIRCLE);
     const height = Math.min(BAND, Math.max(0.02, strokeY - 0.01));
-    const width = id === 'child' ? 0.124 : NAME_WIDTH;
+    const width = NAME_WIDTH_BY_ID[id] ?? 0.14;
     const y = strokeY - height;
     const x = Math.max(0.02, Math.min(0.98 - width, cx - width / 2));
     return {

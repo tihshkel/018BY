@@ -248,7 +248,6 @@ export default function AlbumPagePreviewScreen() {
     primaryPhotoBlock?.variants[0];
   const isMultiSlotCollage = (primaryVariant?.slots ?? 0) > 1;
   const shouldMaskPdfPhotoPlaceholder =
-    isFinalPreview &&
     !isLocked &&
     primaryPhotoBlock != null &&
     hasFilledPhotos &&

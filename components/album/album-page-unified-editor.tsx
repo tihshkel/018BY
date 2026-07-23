@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AlbumCaptionTextInput } from '@/components/album/album-caption-text-input';
 import { AlbumPhotoSlotGrid } from '@/components/album/album-photo-slot-grid';
 import { FamilyTreePhotoPicker } from '@/components/album/family-tree-photo-picker';
 import { BirthdayFreePageEditor } from '@/components/album/birthday-free-page-editor';
@@ -15,7 +16,7 @@ import {
 } from '@/components/album/editors/special-page-forms';
 import { PageFormFields, TextFieldStyleToolbar } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
-import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
+import { colors, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, BirthdayCustomFieldValue, FieldTextStyle, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { usesTemplateLineTextEditing } from '@/utils/albumImages';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -320,14 +321,10 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                     onChange={(patch) => onFieldStyleChange(`caption${slotIndex + 1}`, patch)}
                   />
                 ) : null}
-                <TextInput
-                  style={styles.captionInput}
+                <AlbumCaptionTextInput
                   value={pageValues.photoCaptions?.[slotIndex] ?? ''}
                   onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                   placeholder="Необязательно"
-                  placeholderTextColor={colors.placeholder}
-                  autoCapitalize="none"
-                  autoCorrect={false}
                 />
               </AppCard>
             ));
@@ -346,14 +343,10 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
               onChange={onCaptionStyleChange}
             />
           ) : null}
-          <TextInput
-            style={styles.captionInput}
+          <AlbumCaptionTextInput
             value={pageValues.caption ?? ''}
             onChangeText={onCaptionChange}
             placeholder="Короткая подпись"
-            placeholderTextColor={colors.placeholder}
-            autoCapitalize="none"
-            autoCorrect={false}
           />
         </AppCard>
       ) : null}
@@ -382,16 +375,5 @@ const styles = StyleSheet.create({
   },
   captionLabel: {
     color: colors.textSecondary,
-  },
-  captionInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: sansFont('regular'),
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
   },
 });
