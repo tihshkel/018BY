@@ -247,7 +247,10 @@ export function filterProjectDataForExport(params: {
     const schema = getSchema(instance);
     if (!schema) continue;
 
-    const imageUri = resolveInstancePageImageUri(images, instance) ?? blankPageUri ?? null;
+    const imageUri =
+      resolveInstancePageImageUri(images, instance, lineGuideId) ??
+      blankPageUri ??
+      null;
     if (!imageUri) continue;
 
     filteredImages.push(imageUri);

@@ -421,6 +421,7 @@ export async function uploadProjectImagesBeforeSync(
       let workingUris = uris;
 
       // Шаблонные file:// → стабильные HTTPS (GitHub), иначе на другом устройстве фон мёртв.
+      // Дневники: шаблоны из бандла — в Storage не заливаем (тяжёлые PNG + белый фон на pull).
       try {
         const metaRaw = result[`@project_${projectId}`];
         if (metaRaw) {
@@ -430,6 +431,9 @@ export async function uploadProjectImagesBeforeSync(
             category?: string;
           };
           const albumId = meta.interiorType || meta.albumId || '';
+          if (albumId.startsWith('diary_interior_')) {
+            continue;
+          }
           if (albumId) {
             const canonical = await canonicalizeProjectPageImages({
               albumId,

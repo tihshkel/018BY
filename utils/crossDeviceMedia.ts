@@ -68,11 +68,46 @@ export async function canonicalizeProjectPageImages(params: {
   }
 
   // Blank interiors оставляем как есть (нормализуются отдельно).
-  if (
-    albumId.includes('blank') ||
-    albumId.startsWith('diary_interior_')
-  ) {
+  if (albumId.includes('blank')) {
     return { uris: imageUris, changed: false };
+  }
+
+  // Дневники: мёртвые file:// → bundled URI (не GitHub — дневников нет в remote pack).
+  if (albumId.startsWith('diary_interior_')) {
+    try {
+      const {
+        resolveAllDiaryInteriorPageUrisSync,
+      } = await import('@/utils/diaryPageImages');
+      const bundled = resolveAllDiaryInteriorPageUrisSync(albumId);
+      if (!bundled.length) {
+        return { uris: imageUris, changed: false };
+      }
+      let changed = false;
+      const next = imageUris.map((uri, index) => {
+        if (typeof uri !== 'string' || !isDeviceLocalMediaUri(uri)) {
+          return uri;
+        }
+        const replacement =
+          bundled[index] ?? bundled[Math.min(index, bundled.length - 1)];
+        if (replacement) {
+          changed = true;
+          return replacement;
+        }
+        return uri;
+      });
+      if (
+        bundled.length === imageUris.length &&
+        imageUris.every(
+          (uri) => typeof uri === 'string' && isDeviceLocalMediaUri(uri),
+        )
+      ) {
+        return { uris: bundled, changed: true };
+      }
+      return { uris: next, changed };
+    } catch (error) {
+      console.warn('[canonicalizeProjectPageImages] diary failed', error);
+      return { uris: imageUris, changed: false };
+    }
   }
 
   try {

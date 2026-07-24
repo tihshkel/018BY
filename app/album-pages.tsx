@@ -276,7 +276,11 @@ export default function AlbumPagesScreen() {
           title: project.getInstanceTitle(instance),
           subtitle: getPageSubtitle(instance, schema, values),
           status,
-          thumbnailUri: resolveInstancePageImageUri(project.images, instance),
+          thumbnailUri: resolveInstancePageImageUri(
+            project.images,
+            instance,
+            project.lineGuideId,
+          ),
           schema,
           pageValues: values,
           canShowMenu: canShowPageActions(schema, instance),

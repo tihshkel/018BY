@@ -132,7 +132,11 @@ export default function AlbumStructureGridScreen() {
         <View style={styles.grid}>
           {sectionInstances.map((instance) => {
             const title = project.getInstanceTitle(instance);
-            const thumb = resolveInstancePageImageUri(project.images, instance);
+            const thumb = resolveInstancePageImageUri(
+              project.images,
+              instance,
+              project.lineGuideId,
+            );
             return (
               <Pressable
                 key={instance.instanceId}

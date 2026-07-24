@@ -116,7 +116,11 @@ export default function AlbumPagePreviewScreen() {
   const values = instanceId ? project.pageValuesMap[instanceId] : undefined;
   const status = schema ? computePageStatus(schema, values) : "empty";
   const baseImageUri = instance
-    ? resolveInstancePageImageUri(project.images, instance)
+    ? resolveInstancePageImageUri(
+        project.images,
+        instance,
+        resolvedLineGuideId ?? project.lineGuideId,
+      )
     : undefined;
   const primaryPhotoBlock = schema?.photoBlocks?.[0];
   const selectedVariantId = useMemo(() => {
@@ -527,12 +531,29 @@ export default function AlbumPagePreviewScreen() {
                     setDisplayImageUri(baseImageUri);
                     return;
                   }
-                  // Мёртвый file:// с другого устройства → HTTPS шаблона.
+                  // Мёртвый file:// / белый фон дневника → bundled URI по sourcePageNumber.
                   const albumKey =
                     project.meta?.interiorType ||
                     project.meta?.albumId ||
                     interiorType ||
                     "";
+                  if (
+                    albumKey?.startsWith("diary_interior_") &&
+                    instance
+                  ) {
+                    void import("@/utils/diaryPageImages").then(
+                      ({ resolveDiaryInteriorPageUriSync }) => {
+                        const next = resolveDiaryInteriorPageUriSync(
+                          albumKey,
+                          instance.sourcePageNumber,
+                        );
+                        if (next && next !== imageUri) {
+                          setDisplayImageUri(next);
+                        }
+                      },
+                    );
+                    return;
+                  }
                   if (
                     albumKey &&
                     imageUri &&

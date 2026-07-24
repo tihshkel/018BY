@@ -258,7 +258,11 @@ export default function AlbumAddPageScreen() {
           instances: project.instances,
           getTitle: (instance) => project.getInstanceTitle(instance),
           getThumbnail: (instance) =>
-            resolveInstancePageImageUri(project.images, instance),
+            resolveInstancePageImageUri(
+              project.images,
+              instance,
+              project.lineGuideId,
+            ),
           sourcePageNumber: template.schema.sourcePageNumber,
           newPageTitle: template.schema.title,
           newThumbnailUri: template.thumbnailUri,

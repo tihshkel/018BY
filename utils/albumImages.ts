@@ -13,6 +13,8 @@ import {
   getBirthday48AssetPageNumber,
   isBirthday48Album,
 } from '@/utils/birthday48AssetRemap';
+import { DIARY_BROWN_PAGES, DIARY_PURPLE_PAGES } from '@/utils/diaryInteriorAssets.generated';
+import { isDiaryInteriorAlbumId } from '@/utils/diaryPageImages';
 import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
 
 /**
@@ -229,6 +231,19 @@ async function warmRemoteAlbumCache(
  * Локальный кеш прогревается в фоне (только первые страницы).
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
+  const interiorId = resolveInteriorAlbumId(albumId);
+  // Дневники: мгновенные bundled URI (как на iOS) — без ожидания Asset.download / сети.
+  if (isDiaryInteriorAlbumId(interiorId)) {
+    const { resolveAllDiaryInteriorPageUrisSync, resolveAllDiaryInteriorPageUris } =
+      await import('@/utils/diaryPageImages');
+    const sync = resolveAllDiaryInteriorPageUrisSync(interiorId);
+    if (sync.length > 0) {
+      resolveAllDiaryInteriorPageUris(interiorId).catch(() => {});
+      return sync;
+    }
+    return resolveAllDiaryInteriorPageUris(interiorId);
+  }
+
   const spec = getRemoteAlbumSpec(albumId);
   if (!spec) {
     return getAlbumImageUris(albumId);
@@ -352,6 +367,15 @@ export async function ensureAlbumPagesCachedForExport(
   onProgress?: (done: number, total: number) => void
 ): Promise<string[]> {
   const interiorId = resolveInteriorAlbumId(albumId, category);
+  if (isDiaryInteriorAlbumId(interiorId)) {
+    const { resolveAllDiaryInteriorPageUrisSync, resolveAllDiaryInteriorPageUris } =
+      await import('@/utils/diaryPageImages');
+    const sync = resolveAllDiaryInteriorPageUrisSync(interiorId);
+    const uris = sync.length > 0 ? sync : await resolveAllDiaryInteriorPageUris(interiorId);
+    if (uris.length > 0) onProgress?.(uris.length, uris.length);
+    return uris;
+  }
+
   const spec = getRemoteAlbumSpec(interiorId);
   if (!spec) {
     const uris = await getAlbumImageUris(interiorId);
@@ -391,6 +415,18 @@ export async function ensureAlbumPagesCachedForExport(
 }
 
 export async function getAlbumImageUris(albumId: string): Promise<string[]> {
+  const interiorId = resolveInteriorAlbumId(albumId);
+  if (isDiaryInteriorAlbumId(interiorId)) {
+    const { resolveAllDiaryInteriorPageUrisSync, resolveAllDiaryInteriorPageUris } =
+      await import('@/utils/diaryPageImages');
+    const sync = resolveAllDiaryInteriorPageUrisSync(interiorId);
+    if (sync.length > 0) {
+      resolveAllDiaryInteriorPageUris(interiorId).catch(() => {});
+      return sync;
+    }
+    return resolveAllDiaryInteriorPageUris(interiorId);
+  }
+
   const spec = getRemoteAlbumSpec(albumId);
   if (spec) {
     const maxParallel = 6;
@@ -636,6 +672,10 @@ export function getAlbumImages(albumId: string): any[] {
       return blankPageArray(HOLIDAY_BLANK_PAGE_COUNT);
     case 'holidays_birthday_60':
       return blankPageArray(48, true);
+    case 'diary_interior_brown':
+      return [...DIARY_BROWN_PAGES];
+    case 'diary_interior_purple':
+      return [...DIARY_PURPLE_PAGES];
     case 'family_blank':
       return blankPageArray(FAMILY_BLANK_PAGE_COUNT);
     case 'family_blank_21x21':
@@ -663,9 +703,9 @@ export function getAlbumPageCount(albumId: string): number {
     case 'holidays_birthday_60':
       return 48;
     case 'diary_interior_brown':
-      return 60;
+      return DIARY_BROWN_PAGES.length;
     case 'diary_interior_purple':
-      return 40;
+      return DIARY_PURPLE_PAGES.length;
     case 'family_blank':
       return FAMILY_BLANK_PAGE_COUNT;
     case 'family_blank_21x21':
