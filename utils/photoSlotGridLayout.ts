@@ -20,10 +20,10 @@ const FALLBACK_TWO: CollageSlotFrame[] = [
 ];
 
 const FALLBACK_FOUR: CollageSlotFrame[] = [
-  { slotIndex: 0, leftPercent: 1, topPercent: 1, widthPercent: 48, heightPercent: 48 },
-  { slotIndex: 1, leftPercent: 51, topPercent: 1, widthPercent: 48, heightPercent: 48 },
-  { slotIndex: 2, leftPercent: 1, topPercent: 51, widthPercent: 48, heightPercent: 48 },
-  { slotIndex: 3, leftPercent: 51, topPercent: 51, widthPercent: 48, heightPercent: 48 },
+  { slotIndex: 0, leftPercent: 1, topPercent: 1, widthPercent: 48, heightPercent: 42 },
+  { slotIndex: 1, leftPercent: 51, topPercent: 1, widthPercent: 48, heightPercent: 42 },
+  { slotIndex: 2, leftPercent: 1, topPercent: 55, widthPercent: 48, heightPercent: 42 },
+  { slotIndex: 3, leftPercent: 51, topPercent: 55, widthPercent: 48, heightPercent: 42 },
 ];
 
 function resolveTemplateId(variantId: string): string {

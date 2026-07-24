@@ -274,6 +274,11 @@ export function isBirthdayCaptionPhotoPage(page: number): boolean {
   return page >= 41 && page <= 47;
 }
 
+/** 2×2 + подписи под каждым фото («Свободная фотостраница» / CaptionGallery). */
+export function shouldReserveFourGridCaptionRows(lineGuideId: string, page: number): boolean {
+  return lineGuideId === 'holidays_birthday_60' && isBirthdayCaptionPhotoPage(page);
+}
+
 const BIRTHDAY_AGE_PAGES = [
   4,
   ...Array.from({ length: 17 }, (_, index) => 6 + index * 2),

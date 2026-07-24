@@ -176,11 +176,18 @@ export const TEMPLATE_THREE_EQUAL: PhotoLayoutTemplate = {
 /**
  * 2×2 — всегда на всю ширину safe zone (широкие landscape-ячейки).
  * Целевой 4:3; если по высоте не влезает — ужимаем только высоту (ещё шире визуально).
+ *
+ * `reserveCaptionRows`: межрядный зазор под подписи (CaptionGallery / «Фото + подписи»).
+ * Без этого gap≈0.022 — подписи верхнего ряда налазят на нижние фото.
  */
-function buildFourGridSlots(safeZone: SafeZone): TemplatePhotoSlot[] {
+function buildFourGridSlots(
+  safeZone: SafeZone,
+  options?: { reserveCaptionRows?: boolean },
+): TemplatePhotoSlot[] {
   const marginX = 0.015;
   const marginY = 0.02;
-  const gap = 0.022;
+  // CaptionGallery: photo bottom→next photo ≈ 0.11 page; relative to safe zone ~0.12.
+  const gap = options?.reserveCaptionRows ? 0.12 : 0.022;
   const availW = 1 - marginX * 2;
   const availH = 1 - marginY * 2;
 
@@ -267,6 +274,7 @@ export type SafeZone = {
 export function buildVariantLayoutFromTemplate(
   template: PhotoLayoutTemplate,
   safeZone: SafeZone,
+  options?: { reserveCaptionRows?: boolean },
 ): { variantId: string; slots: Array<{
   x: number;
   y: number;
@@ -278,7 +286,7 @@ export function buildVariantLayoutFromTemplate(
     template.variantId === 'three_hero'
       ? buildThreeHeroSlots(safeZone)
       : template.variantId === 'four_grid'
-        ? buildFourGridSlots(safeZone)
+        ? buildFourGridSlots(safeZone, options)
         : template.slots;
 
   const slots = templateSlots.map((s) => {
@@ -307,11 +315,12 @@ export function buildVariantLayoutFromTemplate(
 export function buildPageLayoutsFromTemplates(
   safeZone: SafeZone,
   templateIds: string[],
+  options?: { reserveCaptionRows?: boolean },
 ): { variants: ReturnType<typeof buildVariantLayoutFromTemplate>[] } {
   const variants = templateIds
     .map((id) => PHOTO_LAYOUT_TEMPLATES[id])
     .filter(Boolean)
-    .map((t) => buildVariantLayoutFromTemplate(t, safeZone));
+    .map((t) => buildVariantLayoutFromTemplate(t, safeZone, options));
   return { variants };
 }
 

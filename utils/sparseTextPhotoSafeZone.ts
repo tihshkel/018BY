@@ -21,6 +21,7 @@ import {
   isBirthdayCaptionPhotoPage,
   isPregnancyUpperBandPage,
   isPregnancyWeeklyMiddlePage,
+  shouldReserveFourGridCaptionRows,
   shouldSkipSparsePhotoExpansion,
   usesBlankPagePhotoFallback,
   type AlbumSparsePhotoConfig,
@@ -580,7 +581,8 @@ function resolveStrategySafeZone(
       let zone = constrainPhotoSafeZone(lineGuideId, page, blankSafe, config);
       // Free photo+caption pages: leave a band under frames so captions sit below photos.
       if (lineGuideId === 'holidays_birthday_60' && isBirthdayCaptionPhotoPage(page)) {
-        const captionReserve = 0.065;
+        // Полоса под нижним рядом подписей (верхний ряд закрывает межрядный gap four_grid).
+        const captionReserve = 0.08;
         const minHeight = config.minPhotoSafeHeight ?? 0.12;
         zone = {
           ...zone,
@@ -769,7 +771,9 @@ export function expandDesignedAlbumCollageVariants(
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
   const templateSet = getCollageTemplateSet(lineGuideId);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
+  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet], {
+    reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+  });
   if (expanded.variants.length === 0) return undefined;
 
   return applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded);
@@ -790,7 +794,9 @@ function buildDesignedAlbumEventPhotoLayouts(
   };
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, syntheticPrimary);
-  return buildPageLayoutsFromTemplates(safeZone, [...templateIds]);
+  return buildPageLayoutsFromTemplates(safeZone, [...templateIds], {
+    reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+  });
 }
 
 function isPortraitPhotoPin(slot: { width: number; height: number } | undefined): boolean {
@@ -821,7 +827,9 @@ export function expandManualSparseLayouts(
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
   const templateSet = getCollageTemplateSet(lineGuideId);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
+  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet], {
+    reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+  });
   if (expanded.variants.length <= 1) return undefined;
 
   return applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded);
@@ -852,7 +860,9 @@ export function expandCollageVariantsWithSparse(
       ? [...FULL_PHOTO_TEMPLATES]
       : COLLAGE_TEMPLATE_SETS.default);
 
-  const expanded = buildPageLayoutsFromTemplates(safeZone, templateIds);
+  const expanded = buildPageLayoutsFromTemplates(safeZone, templateIds, {
+    reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+  });
   if (expanded.variants.length <= 1) return layouts;
 
   if (!shouldSkipSparsePhotoExpansion(lineGuideId, page)) {

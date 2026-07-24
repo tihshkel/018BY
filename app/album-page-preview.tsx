@@ -658,7 +658,7 @@ export default function AlbumPagePreviewScreen() {
         disabled={isSavingPage || project.isSaving}
         loading={isSavingPage || project.isSaving}
       />
-      <AppButton title="Изменить" variant="outline" onPress={handleFill} />
+      <AppButton title="Редактировать" variant="outline" onPress={handleFill} />
       <AppButton
         title="Далее →"
         variant="ghost"
@@ -726,7 +726,7 @@ export default function AlbumPagePreviewScreen() {
               style={styles.editLink}
               onPress={handleFill}
             >
-              Изменить
+              Редактировать
             </AppText>
           ) : null
         }
