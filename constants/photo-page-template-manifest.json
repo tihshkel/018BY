@@ -187,7 +187,8 @@
         "minFilledRule": {
           "minPhotos": 2
         },
-        "pageType": "photo"
+        "pageType": "photo",
+        "perPhotoCaptions": true
       },
       "21x21": {
         "photoSlots": [
@@ -235,7 +236,8 @@
         "minFilledRule": {
           "minPhotos": 2
         },
-        "pageType": "photo"
+        "pageType": "photo",
+        "perPhotoCaptions": true
       }
     },
     "TwoHorizontalPhotosTemplate": {
@@ -323,7 +325,8 @@
         "minFilledRule": {
           "minPhotos": 2
         },
-        "pageType": "photo"
+        "pageType": "photo",
+        "perPhotoCaptions": true
       }
     },
     "ThreePhotosTemplate": {
@@ -721,8 +724,8 @@
               "id": "event1_photo",
               "type": "image",
               "required": false,
-              "x": 0.07,
-              "y": 0.105,
+              "x": 0.08,
+              "y": 0.09,
               "w": 0.34,
               "h": 0.22
             },
@@ -731,20 +734,20 @@
               "type": "date",
               "required": false,
               "maxLength": 30,
-              "x": 0.44,
-              "y": 0.105,
-              "w": 0.49,
-              "h": 0.04
+              "x": 0.46,
+              "y": 0.09,
+              "w": 0.46,
+              "h": 0.035
             },
             "description": {
               "id": "event1_description",
               "type": "longText",
               "required": false,
               "maxLength": 200,
-              "x": 0.44,
-              "y": 0.155,
-              "w": 0.49,
-              "h": 0.17
+              "x": 0.46,
+              "y": 0.135,
+              "w": 0.46,
+              "h": 0.175
             }
           },
           {
@@ -753,8 +756,8 @@
               "id": "event2_photo",
               "type": "image",
               "required": false,
-              "x": 0.07,
-              "y": 0.385,
+              "x": 0.08,
+              "y": 0.375,
               "w": 0.34,
               "h": 0.22
             },
@@ -763,20 +766,20 @@
               "type": "date",
               "required": false,
               "maxLength": 30,
-              "x": 0.44,
-              "y": 0.385,
-              "w": 0.49,
-              "h": 0.04
+              "x": 0.46,
+              "y": 0.375,
+              "w": 0.46,
+              "h": 0.035
             },
             "description": {
               "id": "event2_description",
               "type": "longText",
               "required": false,
               "maxLength": 200,
-              "x": 0.44,
-              "y": 0.435,
-              "w": 0.49,
-              "h": 0.17
+              "x": 0.46,
+              "y": 0.42,
+              "w": 0.46,
+              "h": 0.175
             }
           },
           {
@@ -785,8 +788,8 @@
               "id": "event3_photo",
               "type": "image",
               "required": false,
-              "x": 0.07,
-              "y": 0.665,
+              "x": 0.08,
+              "y": 0.66,
               "w": 0.34,
               "h": 0.22
             },
@@ -795,20 +798,20 @@
               "type": "date",
               "required": false,
               "maxLength": 30,
-              "x": 0.44,
-              "y": 0.665,
-              "w": 0.49,
-              "h": 0.04
+              "x": 0.46,
+              "y": 0.66,
+              "w": 0.46,
+              "h": 0.035
             },
             "description": {
               "id": "event3_description",
               "type": "longText",
               "required": false,
               "maxLength": 200,
-              "x": 0.44,
-              "y": 0.715,
-              "w": 0.49,
-              "h": 0.17
+              "x": 0.46,
+              "y": 0.705,
+              "w": 0.46,
+              "h": 0.175
             }
           }
         ],
@@ -818,40 +821,40 @@
             "type": "title",
             "required": false,
             "maxLength": 80,
-            "x": 0.07,
-            "y": 0.05,
-            "w": 0.86,
+            "x": 0.08,
+            "y": 0.03,
+            "w": 0.84,
             "h": 0.045
           },
           {
             "id": "caption1",
             "type": "caption",
             "required": false,
-            "maxLength": 70,
-            "x": 0.07,
-            "y": 0.33,
+            "maxLength": 48,
+            "x": 0.08,
+            "y": 0.32,
             "w": 0.34,
-            "h": 0.04
+            "h": 0.045
           },
           {
             "id": "caption2",
             "type": "caption",
             "required": false,
-            "maxLength": 70,
-            "x": 0.07,
-            "y": 0.61,
+            "maxLength": 48,
+            "x": 0.08,
+            "y": 0.605,
             "w": 0.34,
-            "h": 0.04
+            "h": 0.045
           },
           {
             "id": "caption3",
             "type": "caption",
             "required": false,
-            "maxLength": 70,
-            "x": 0.07,
+            "maxLength": 48,
+            "x": 0.08,
             "y": 0.89,
             "w": 0.34,
-            "h": 0.04
+            "h": 0.045
           }
         ],
         "minFilledRule": {
@@ -868,30 +871,30 @@
               "id": "event1_photo",
               "type": "image",
               "required": false,
-              "x": 0.07142857142857142,
-              "y": 0.12380952380952381,
-              "w": 0.34285714285714286,
-              "h": 0.20952380952380953
+              "x": 0.07,
+              "y": 0.1,
+              "w": 0.32,
+              "h": 0.215
             },
             "date": {
               "id": "event1_date",
               "type": "date",
               "required": false,
               "maxLength": 30,
-              "x": 0.4380952380952381,
-              "y": 0.12380952380952381,
-              "w": 0.49047619047619045,
-              "h": 0.0380952380952381
+              "x": 0.43,
+              "y": 0.1,
+              "w": 0.5,
+              "h": 0.036
             },
             "description": {
               "id": "event1_description",
               "type": "longText",
               "required": false,
               "maxLength": 200,
-              "x": 0.4380952380952381,
-              "y": 0.17142857142857143,
-              "w": 0.49047619047619045,
-              "h": 0.18095238095238095
+              "x": 0.43,
+              "y": 0.145,
+              "w": 0.5,
+              "h": 0.17
             }
           },
           {
@@ -900,30 +903,30 @@
               "id": "event2_photo",
               "type": "image",
               "required": false,
-              "x": 0.07142857142857142,
-              "y": 0.4095238095238095,
-              "w": 0.34285714285714286,
-              "h": 0.20952380952380953
+              "x": 0.07,
+              "y": 0.385,
+              "w": 0.32,
+              "h": 0.215
             },
             "date": {
               "id": "event2_date",
               "type": "date",
               "required": false,
               "maxLength": 30,
-              "x": 0.4380952380952381,
-              "y": 0.4095238095238095,
-              "w": 0.49047619047619045,
-              "h": 0.0380952380952381
+              "x": 0.43,
+              "y": 0.385,
+              "w": 0.5,
+              "h": 0.036
             },
             "description": {
               "id": "event2_description",
               "type": "longText",
               "required": false,
               "maxLength": 200,
-              "x": 0.4380952380952381,
-              "y": 0.45714285714285713,
-              "w": 0.49047619047619045,
-              "h": 0.18095238095238095
+              "x": 0.43,
+              "y": 0.43,
+              "w": 0.5,
+              "h": 0.17
             }
           },
           {
@@ -932,30 +935,30 @@
               "id": "event3_photo",
               "type": "image",
               "required": false,
-              "x": 0.07142857142857142,
-              "y": 0.6952380952380952,
-              "w": 0.34285714285714286,
-              "h": 0.20952380952380953
+              "x": 0.07,
+              "y": 0.67,
+              "w": 0.32,
+              "h": 0.215
             },
             "date": {
               "id": "event3_date",
               "type": "date",
               "required": false,
               "maxLength": 30,
-              "x": 0.4380952380952381,
-              "y": 0.6952380952380952,
-              "w": 0.49047619047619045,
-              "h": 0.0380952380952381
+              "x": 0.43,
+              "y": 0.67,
+              "w": 0.5,
+              "h": 0.036
             },
             "description": {
               "id": "event3_description",
               "type": "longText",
               "required": false,
               "maxLength": 200,
-              "x": 0.4380952380952381,
-              "y": 0.7428571428571429,
-              "w": 0.49047619047619045,
-              "h": 0.18095238095238095
+              "x": 0.43,
+              "y": 0.715,
+              "w": 0.5,
+              "h": 0.17
             }
           }
         ],
@@ -965,40 +968,40 @@
             "type": "title",
             "required": false,
             "maxLength": 80,
-            "x": 0.07142857142857142,
-            "y": 0.05714285714285714,
-            "w": 0.8571428571428571,
-            "h": 0.05714285714285714
+            "x": 0.07,
+            "y": 0.035,
+            "w": 0.86,
+            "h": 0.05
           },
           {
             "id": "caption1",
             "type": "caption",
             "required": false,
-            "maxLength": 70,
-            "x": 0.07142857142857142,
-            "y": 0.34285714285714286,
-            "w": 0.34285714285714286,
-            "h": 0.047619047619047616
+            "maxLength": 48,
+            "x": 0.07,
+            "y": 0.325,
+            "w": 0.32,
+            "h": 0.05
           },
           {
             "id": "caption2",
             "type": "caption",
             "required": false,
-            "maxLength": 70,
-            "x": 0.07142857142857142,
-            "y": 0.6285714285714286,
-            "w": 0.34285714285714286,
-            "h": 0.047619047619047616
+            "maxLength": 48,
+            "x": 0.07,
+            "y": 0.61,
+            "w": 0.32,
+            "h": 0.05
           },
           {
             "id": "caption3",
             "type": "caption",
             "required": false,
-            "maxLength": 70,
-            "x": 0.07142857142857142,
-            "y": 0.9142857142857143,
-            "w": 0.34285714285714286,
-            "h": 0.0380952380952381
+            "maxLength": 48,
+            "x": 0.07,
+            "y": 0.895,
+            "w": 0.32,
+            "h": 0.05
           }
         ],
         "minFilledRule": {

@@ -2,6 +2,15 @@
 export const SQUARE_BLANK_COVER_IDS = new Set<string>([
   'family_sq_01',
   'family_sq_02',
+  'family_sdfa1',
+  'family_sdfa2',
+  'family_sdfa3',
+  'family_sdfa4',
+  'family_sdfa5',
+  'family_sdfa6',
+  'family_sdfa7',
+  'album_rozovyy',
+  'album_pilot',
   'wedding_sa1',
   'wedding_sa2',
   'wedding_sa3',
@@ -11,5 +20,7 @@ export const SQUARE_BLANK_COVER_IDS = new Set<string>([
 
 export function usesSquareBlankInterior(coverType?: string | null): boolean {
   if (!coverType) return false;
-  return SQUARE_BLANK_COVER_IDS.has(coverType);
+  if (SQUARE_BLANK_COVER_IDS.has(coverType)) return true;
+  // Все семейные обложки SDFA* — квадратный блок 21×21.
+  return coverType.startsWith('family_sdfa');
 }

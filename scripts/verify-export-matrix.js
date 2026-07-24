@@ -98,6 +98,16 @@ assert(
   'export-pdf: always filterProjectDataForExport',
 );
 
+assert(
+  exportPdfSource.includes('isFloatingCaption') &&
+    exportPdfSource.includes('drawImageAnnotationsOnPdfPage'),
+  'export-pdf: floating caption layout + image/fill annotations',
+);
+assert(
+  read('utils/exportPdfImageAnnotations.ts').includes('drawRoundedRectFill'),
+  'exportPdfImageAnnotations: rounded fill pills for birthday captions',
+);
+
 const selectionSource = read('utils/exportPageSelection.ts');
 assert(
   selectionSource.includes('exportFormat'),

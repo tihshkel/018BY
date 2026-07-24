@@ -145,9 +145,9 @@ export default function SelectActionScreen() {
         }
       }
       
-      // Для семьи — пустые белые страницы
+      // Для семьи — пустой квадратный блок 21×21 см
       if (celebration === 'family') {
-        params.interiorType = 'family_blank';
+        params.interiorType = 'family_blank_21x21';
       }
 
       if (celebration === 'wedding') {

@@ -19,10 +19,11 @@ const FALLBACK_TWO: CollageSlotFrame[] = [
 ];
 
 const FALLBACK_FOUR: CollageSlotFrame[] = [
-  { slotIndex: 0, leftPercent: 2, topPercent: 2, widthPercent: 46, heightPercent: 46 },
-  { slotIndex: 1, leftPercent: 52, topPercent: 2, widthPercent: 46, heightPercent: 46 },
-  { slotIndex: 2, leftPercent: 2, topPercent: 52, widthPercent: 46, heightPercent: 46 },
-  { slotIndex: 3, leftPercent: 52, topPercent: 52, widthPercent: 46, heightPercent: 46 },
+  // Slightly narrower cells + gutters under each row for caption pills.
+  { slotIndex: 0, leftPercent: 4, topPercent: 2, widthPercent: 42, heightPercent: 36 },
+  { slotIndex: 1, leftPercent: 54, topPercent: 2, widthPercent: 42, heightPercent: 36 },
+  { slotIndex: 2, leftPercent: 4, topPercent: 52, widthPercent: 42, heightPercent: 36 },
+  { slotIndex: 3, leftPercent: 54, topPercent: 52, widthPercent: 42, heightPercent: 36 },
 ];
 
 function resolveTemplateId(variantId: string): string {

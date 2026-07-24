@@ -117,7 +117,13 @@ function isPregnancyWeeklyStructuredPage(lineGuideId, page) {
 }
 
 function isPregnancyRuledNotebookPage(lineGuideId, page) {
-  return lineGuideId === 'pregnancy_60' && (page === 53 || page === 60);
+  if (lineGuideId === 'pregnancy_60') {
+    return page === 53 || page === 60;
+  }
+  if (lineGuideId === 'pregnancy_a5') {
+    return page === 45;
+  }
+  return false;
 }
 
 function isPregnancy60WeeklyPage(page) {
@@ -318,6 +324,9 @@ function resolveTemplateTextVerticalRatios(slot, lineGuideId) {
       fontOffsetRatio: profile.lineFontOffsetRatio,
     };
   }
+  if (lineGuideId === 'pregnancy_a5' && slot.page === 44 && inputKind === 'block') {
+    return { centerRatio: 0.5, fontOffsetRatio: 0.55 };
+  }
   return {
     centerRatio: profile.blockCenterRatio,
     fontOffsetRatio: profile.blockFontOffsetRatio,
@@ -339,7 +348,9 @@ function getTemplateLineTextTop(slot, fontSize, lineGuideId, allSlots, fontId, f
   if (isPregnancy60WeeklyValueSlot(lineGuideId, slot)) {
     const inputKind = slot.inputKind ?? 'block';
     const fittedSize = fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId);
-    return slot.y + slot.lineHeight * 0.56 - fittedSize * 0.72;
+    const centerRatio = lineGuideId === 'pregnancy_a5' ? 0.52 : 0.56;
+    const fontOffsetRatio = lineGuideId === 'pregnancy_a5' ? 0.78 : 0.72;
+    return slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
   }
 
   const inputKind = slot.inputKind ?? 'line';

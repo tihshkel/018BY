@@ -1,6 +1,6 @@
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 import type { AlbumPageSchema } from '@/types/album-page-schema';
-import { getAlbumSections } from '@/constants/album-sections';
+import { resolveAlbumSectionsForInstances, getInstancesInSectionByOrder } from '@/constants/album-sections';
 import { computePageStatus } from '@/utils/pageStatus';
 
 export type AlbumProgress = {
@@ -39,14 +39,10 @@ export function computeSectionProgressList(
   pageValuesMap: Record<string, PageValues>,
   getSchema: (instance: PageInstance) => AlbumPageSchema | undefined
 ): SectionProgress[] {
-  const sections = getAlbumSections(lineGuideId);
+  const sections = resolveAlbumSectionsForInstances(lineGuideId, instances.length);
 
   return sections.map((section) => {
-    const sectionInstances = instances.filter(
-      (i) =>
-        i.sourcePageNumber >= section.pageRange[0] &&
-        i.sourcePageNumber <= section.pageRange[1]
-    );
+    const sectionInstances = getInstancesInSectionByOrder(instances, section);
 
     let filledCount = 0;
     for (const instance of sectionInstances) {
@@ -79,7 +75,9 @@ export function findNextPageToContinue(
   for (const target of priority) {
     const found = instances.find((instance) => {
       const schema = getSchema(instance);
-      if (!schema || schema.pageType === 'non_editable') return false;
+      if (!schema || schema.pageType === 'non_editable' || schema.editable === false) {
+        return false;
+      }
       const status = computePageStatus(schema, pageValuesMap[instance.instanceId]);
       return status === target;
     });

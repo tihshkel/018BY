@@ -65,33 +65,66 @@ export function useAlbumPagePhotoEditor({
     return Boolean(layout?.perPhotoCaptions);
   }, [resolvedSchema]);
 
-  // Legacy page-level caption → per-photo captions[0] for designed photo pages.
+  // Legacy page-level / schema caption fields → per-photo captions for blank templates.
   useEffect(() => {
     if (!showPerPhotoCaptions || !instanceId) return;
-    const legacy = pageValues.caption?.trim();
-    const legacyFieldCaption = Object.entries(pageValues.fields ?? {}).find(
-      ([fieldId, value]) => fieldId.endsWith('_caption') && Boolean(value?.trim()),
-    )?.[1]?.trim();
-    const source = legacy || legacyFieldCaption;
-    if (!source) return;
     const hasPerPhoto = (pageValues.photoCaptions ?? []).some((c) => Boolean(c?.trim()));
     if (hasPerPhoto) return;
+
+    const fromFields: (string | null)[] = [];
+    for (const [fieldId, value] of Object.entries(pageValues.fields ?? {})) {
+      const match = fieldId.match(/_caption(\d+)$/i);
+      if (!match) continue;
+      const text = value?.trim();
+      if (!text) continue;
+      fromFields[Number(match[1]) - 1] = text;
+    }
+    const legacy = pageValues.caption?.trim();
+    if (fromFields.some(Boolean)) {
+      commitPagePatch(instanceId, (prev) => {
+        if ((prev.photoCaptions ?? []).some((c) => Boolean(c?.trim()))) return prev;
+        const migrated: (string | null)[] = [];
+        for (const [fieldId, value] of Object.entries(prev.fields ?? {})) {
+          const match = fieldId.match(/_caption(\d+)$/i);
+          if (!match) continue;
+          const text = value?.trim();
+          if (!text) continue;
+          migrated[Number(match[1]) - 1] = text;
+        }
+        if (!migrated.some(Boolean)) return prev;
+        const nextFields = { ...prev.fields };
+        for (const fieldId of Object.keys(nextFields)) {
+          if (/_caption\d*$/i.test(fieldId)) delete nextFields[fieldId];
+        }
+        const photoCaptions = Array.from(
+          { length: Math.max(migrated.length, 1) },
+          (_, index) => migrated[index] ?? null,
+        );
+        const prevPageCaption = prev.caption?.trim();
+        return {
+          ...prev,
+          fields: nextFields,
+          photoCaptions,
+          caption:
+            prevPageCaption && prevPageCaption !== photoCaptions[0]?.trim()
+              ? prev.caption
+              : undefined,
+        };
+      });
+      return;
+    }
+
+    if (!legacy) return;
     commitPagePatch(instanceId, (prev) => {
       if ((prev.photoCaptions ?? []).some((c) => Boolean(c?.trim()))) return prev;
-      const caption =
-        prev.caption?.trim() ||
-        Object.entries(prev.fields ?? {}).find(
-          ([fieldId, value]) => fieldId.endsWith('_caption') && Boolean(value?.trim()),
-        )?.[1]?.trim();
-      if (!caption) return prev;
       const nextFields = { ...prev.fields };
       for (const fieldId of Object.keys(nextFields)) {
-        if (fieldId.endsWith('_caption')) delete nextFields[fieldId];
+        if (/_caption\d*$/i.test(fieldId)) delete nextFields[fieldId];
       }
       return {
         ...prev,
         fields: nextFields,
-        photoCaptions: [caption],
+        photoCaptions: [legacy],
         caption: undefined,
       };
     });

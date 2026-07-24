@@ -202,6 +202,68 @@ assert(
   'pageValuesAdapter: group transform applies to single-slot blocks',
 );
 
+assert(
+  adapterSource.includes('photo-caption-fill') &&
+    adapterSource.includes("fillColor: '#FFFFFF'") &&
+    adapterSource.includes('useBirthdayCaptionPill'),
+  'pageValuesAdapter: birthday white caption pills',
+);
+assert(
+  adapterSource.includes('Birthday pills must stay floating with the fill'),
+  'pageValuesAdapter: birthday caption pills never snap to OCR lines',
+);
+assert(
+  readFile('utils/designedAlbumPerPhotoCaptions.ts').includes("guide === 'holidays_birthday_60'"),
+  'designedAlbumPerPhotoCaptions: holidays_birthday_60',
+);
+assert(
+  readFile('utils/templateTextAnnotations.ts').includes('!isBlankTemplateLineGuide(lineGuideId)'),
+  'templateTextAnnotations: skip CaptionGallery frames for designed albums',
+);
+assert(
+  readFile('utils/exportPdfImageAnnotations.ts').includes('drawRoundedRectFill') &&
+    readFile('utils/exportPdfImageAnnotations.ts').includes('!ann.imageUri && ann.fillColor'),
+  'exportPdfImageAnnotations: draw white fill pills without imageUri',
+);
+assert(
+  readFile('app/export-pdf.tsx').includes('isFloatingCaption') &&
+    readFile('app/export-pdf.tsx').includes('maxFontSize: isFloatingCaption ? preferredFontSize'),
+  'export-pdf: floating captions lock fitted font size (pill parity)',
+);
+
+assert(
+  readFile('components/album/album-preview-photo-block-editor.tsx').includes('LiveSlotCaption') &&
+    readFile('components/album/album-preview-photo-block-editor.tsx').includes('photoCaptions'),
+  'preview photo editor: live captions follow group transform',
+);
+assert(
+  readFile('app/album-page-preview.tsx').includes('livePhotoCaptions') &&
+    readFile('app/album-page-preview.tsx').includes('id.includes("photo-caption")'),
+  'album-page-preview: hide static caption anns while live captions follow photos',
+);
+
+assert(
+  readFile('constants/photo-layout-templates.ts').includes('captionBandRel') &&
+    readFile('constants/photo-layout-templates.ts').includes('rowGap'),
+  'four_grid: reserves caption bands between rows',
+);
+
+assert(
+  readFile('utils/photoCaptionLayout.ts').includes('uniformHeight') &&
+    readFile('components/album/album-preview-photo-block-editor.tsx').includes(
+      'uniformBandPercent',
+    ),
+  'photo captions: uniform pill height across four_grid rows',
+);
+
+assert(
+  readFile('utils/photoBlockLayout.ts').includes('fitPhotoBlockLayoutForCaptions') &&
+    readFile('utils/photoBlockLayout.ts').includes('CAPTION_PHOTO_INSET_X_RATIO') &&
+    readFile('utils/pageValuesAdapter.ts').includes('fitPhotoBlockLayoutForCaptions') &&
+    readFile('utils/photoZoneLayout.ts').includes('fitPhotoBlockLayoutForCaptions'),
+  'photo captions: shrink/narrow photo frames when captions present',
+);
+
 const annotationsSource = readFile('components/pdf-annotations.tsx');
 assert(annotationsSource.includes('imageContentFit'), 'pdf-annotations: imageContentFit prop');
 assert(

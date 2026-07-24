@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -8,14 +8,21 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PhotoSlotCropPreview } from '@/components/album/photo-slot-crop-preview';
-import { colors, BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
+import { getAlbumFontFamilyName, normalizeAlbumFontId } from '@/constants/album-fonts';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
+import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
   computePhotoBlockLayout,
+  fitPhotoBlockLayoutForCaptions,
   type PhotoBlockLayout,
   type ViewportRect,
 } from '@/utils/photoBlockLayout';
+import {
+  getPhotoCaptionBandHeightPx,
+  getPhotoCaptionGapPx,
+} from '@/utils/photoCaptionLayout';
 import {
   applyPhotoSlotTransform,
   clampPhotoBlockTransform,
@@ -23,6 +30,10 @@ import {
   normalizePhotoSlotTransform,
   photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
+import {
+  TEMPLATE_CAPTION_MAX_FONT_SIZE,
+  TEMPLATE_CAPTION_MIN_FONT_SIZE,
+} from '@/utils/templateTextLayout';
 
 type AlbumPreviewPhotoBlockEditorProps = {
   blockId: string;
@@ -38,6 +49,9 @@ type AlbumPreviewPhotoBlockEditorProps = {
   coordinateHeight: number;
   sourceWidth?: number;
   sourceHeight?: number;
+  /** Under-photo captions — rendered inside the animated block so they follow pinch/pan live. */
+  photoCaptions?: (string | null)[];
+  textFontFamily?: string | null;
   onGroupTransformChange: (transform: PhotoSlotTransform) => void;
 };
 
@@ -89,9 +103,13 @@ export function AlbumPreviewPhotoBlockEditor({
   coordinateHeight,
   sourceWidth,
   sourceHeight,
+  photoCaptions,
+  textFontFamily,
   onGroupTransformChange,
 }: AlbumPreviewPhotoBlockEditorProps) {
   const [selected, setSelected] = useState(false);
+  const showCaptionPill = lineGuideId === 'holidays_birthday_60';
+  const fontFamily = getAlbumFontFamilyName(normalizeAlbumFontId(textFontFamily));
 
   const contentRect = useMemo(
     () =>
@@ -104,33 +122,35 @@ export function AlbumPreviewPhotoBlockEditor({
     [coordinateHeight, coordinateWidth, sourceHeight, sourceWidth],
   );
 
-  const layout = useMemo(
-    () =>
-      computePhotoBlockLayout({
-        lineGuideId,
-        sourcePageNumber,
-        variantId,
-        slotUris,
-        viewportWidth: coordinateWidth,
-        viewportHeight: coordinateHeight,
-        sourceWidth,
-        sourceHeight,
-        contentRect,
-        templateLibraryId,
-      }),
-    [
+  const layout = useMemo(() => {
+    const raw = computePhotoBlockLayout({
+      lineGuideId,
+      sourcePageNumber,
+      variantId,
+      slotUris,
+      viewportWidth: coordinateWidth,
+      viewportHeight: coordinateHeight,
+      sourceWidth,
+      sourceHeight,
+      contentRect,
+      templateLibraryId,
+    });
+    if (!raw) return null;
+    const hasCaptions = Boolean(photoCaptions?.some((caption) => Boolean(caption?.trim())));
+    return hasCaptions ? fitPhotoBlockLayoutForCaptions(raw) : raw;
+  }, [
       contentRect,
       coordinateHeight,
       coordinateWidth,
       lineGuideId,
+      photoCaptions,
       slotUris,
       sourceHeight,
       sourcePageNumber,
       sourceWidth,
       templateLibraryId,
       variantId,
-    ],
-  );
+    ]);
 
   const baseBlock = layout?.baseBlock;
 
@@ -427,6 +447,56 @@ export function AlbumPreviewPhotoBlockEditor({
 
   if (!layout || !baseBlock) return null;
 
+  const gapPercent = (getPhotoCaptionGapPx(coordinateHeight) / Math.max(baseBlock.height, 1)) * 100;
+  const desiredBandPercent =
+    (getPhotoCaptionBandHeightPx(coordinateHeight, lineGuideId) / Math.max(baseBlock.height, 1)) *
+    100;
+  const hasLiveCaptions = Boolean(photoCaptions?.some((caption) => Boolean(caption?.trim())));
+
+  // Одна высота для всех подписей: верхний ряд не должен быть «крошкой», нижний — «гигантом».
+  const rowGutters = layout.slots.map((slot) => {
+    const slotBottom = (slot.relative.y + slot.relative.height) * 100;
+    const nextRowTop = layout.slots
+      .filter(
+        (other) =>
+          other.slotIndex !== slot.slotIndex &&
+          other.relative.y > slot.relative.y + slot.relative.height * 0.5 &&
+          Math.abs(other.relative.x - slot.relative.x) < slot.relative.width * 0.5,
+      )
+      .reduce(
+        (minTop, other) => Math.min(minTop, other.relative.y * 100),
+        Number.POSITIVE_INFINITY,
+      );
+    if (!(Number.isFinite(nextRowTop) && nextRowTop > slotBottom)) return null;
+    return nextRowTop - gapPercent * 0.35 - (slotBottom + gapPercent);
+  });
+  const tightestGutter = rowGutters.reduce<number | null>((min, gutter) => {
+    if (gutter == null || !(gutter > 0)) return min;
+    if (min == null) return gutter;
+    return Math.min(min, gutter);
+  }, null);
+  const uniformBandPercent = Math.max(
+    5,
+    Math.min(desiredBandPercent, tightestGutter ?? desiredBandPercent),
+  );
+
+  const liveCaptionFrames = hasLiveCaptions
+    ? layout.slots.map((slot) => {
+        const text = photoCaptions?.[slot.slotIndex]?.trim();
+        if (!text) return null;
+
+        const slotBottom = (slot.relative.y + slot.relative.height) * 100;
+        return {
+          slotIndex: slot.slotIndex,
+          text,
+          leftPercent: slot.relative.x * 100,
+          topPercent: slotBottom + gapPercent,
+          widthPercent: slot.relative.width * 100,
+          heightPercent: uniformBandPercent,
+        };
+      })
+    : [];
+
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       {selected ? (
@@ -450,6 +520,22 @@ export function AlbumPreviewPhotoBlockEditor({
             blockId={blockId}
             slotTransforms={slotTransforms}
           />
+
+          {liveCaptionFrames.map((frame) => {
+            if (!frame) return null;
+            return (
+              <LiveSlotCaption
+                key={`caption-${frame.slotIndex}`}
+                text={frame.text}
+                leftPercent={frame.leftPercent}
+                topPercent={frame.topPercent}
+                widthPercent={frame.widthPercent}
+                heightPercent={frame.heightPercent}
+                fontFamily={fontFamily}
+                showPill={showCaptionPill}
+              />
+            );
+          })}
 
           {selected ? (
             <>
@@ -476,6 +562,59 @@ export function AlbumPreviewPhotoBlockEditor({
   );
 }
 
+function LiveSlotCaption({
+  text,
+  leftPercent,
+  topPercent,
+  widthPercent,
+  heightPercent,
+  fontFamily,
+  showPill,
+}: {
+  text: string;
+  leftPercent: number;
+  topPercent: number;
+  widthPercent: number;
+  heightPercent: number;
+  fontFamily: string | undefined;
+  showPill: boolean;
+}) {
+  const [bandHeight, setBandHeight] = useState(0);
+  const fontSize = Math.min(
+    TEMPLATE_CAPTION_MAX_FONT_SIZE,
+    Math.max(TEMPLATE_CAPTION_MIN_FONT_SIZE, bandHeight > 0 ? bandHeight * 0.52 : 12),
+  );
+  const pillRadius =
+    bandHeight > 0 ? resolveRectFillBorderRadius(bandHeight * 4, bandHeight, 0.42) : radii.sm;
+
+  return (
+    <View
+      pointerEvents="none"
+      onLayout={(event) => setBandHeight(event.nativeEvent.layout.height)}
+      style={[
+        styles.captionBand,
+        showPill && styles.captionPill,
+        showPill && { borderRadius: pillRadius },
+        {
+          left: `${leftPercent}%`,
+          top: `${topPercent}%`,
+          width: `${widthPercent}%`,
+          height: `${heightPercent}%`,
+        },
+      ]}
+    >
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        style={[styles.captionText, { fontSize, fontFamily }]}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 function BlockPhotos({
   layout,
   blockId,
@@ -485,8 +624,6 @@ function BlockPhotos({
   blockId: string;
   slotTransforms: Record<string, PhotoSlotTransform>;
 }) {
-  const isMultiSlotCollage = layout.slots.length > 1;
-
   return (
     <>
       {layout.slots.map((slot) => (
@@ -506,10 +643,8 @@ function BlockPhotos({
           <PhotoSlotCropPreview
             uri={slot.uri}
             transform={
-              isMultiSlotCollage
-                ? DEFAULT_PHOTO_SLOT_TRANSFORM
-                : slotTransforms[photoSlotTransformKey(blockId, slot.slotIndex)] ??
-                  DEFAULT_PHOTO_SLOT_TRANSFORM
+              slotTransforms[photoSlotTransformKey(blockId, slot.slotIndex)] ??
+              DEFAULT_PHOTO_SLOT_TRANSFORM
             }
           />
         </View>
@@ -534,6 +669,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     overflow: 'hidden',
     borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
+  },
+  captionBand: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    zIndex: 2,
+  },
+  captionPill: {
+    backgroundColor: colors.white,
+  },
+  captionText: {
+    color: '#3D3D3D',
+    textAlign: 'center',
+    width: '100%',
   },
   selectionBorder: {
     ...StyleSheet.absoluteFillObject,

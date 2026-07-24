@@ -44,6 +44,7 @@ import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   normalizePhotoSlotTransform,
 } from "@/utils/photoSlotTransform";
+import { resolveEffectivePhotoCaptions } from "@/utils/pageValuesAdapter";
 import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
 import {
   getAlbumImageUrisForViewing,
@@ -326,11 +327,19 @@ export default function AlbumPagePreviewScreen() {
 
   const displayAnnotations = useMemo(() => {
     if (!shouldMaskPdfPhotoPlaceholder) return annotations;
-    // Interactive photo layer redraws user photos; keep gender fills and placeholders.
-    return annotations.filter(
-      (item) => item.type !== "image" || !item.imageUri,
-    );
+    // Interactive photo layer redraws user photos + under-photo captions (live follow).
+    return annotations.filter((item) => {
+      if (item.type === "image" && item.imageUri) return false;
+      const id = item.id ?? "";
+      if (id.includes("photo-caption")) return false;
+      return true;
+    });
   }, [annotations, shouldMaskPdfPhotoPlaceholder]);
+
+  const livePhotoCaptions = useMemo(() => {
+    if (!schema || !values || !showPhotoBlockEditor) return undefined;
+    return resolveEffectivePhotoCaptions(schema, resolvedLineGuideId, values);
+  }, [resolvedLineGuideId, schema, showPhotoBlockEditor, values]);
 
   useEffect(() => {
     setReady(false);
@@ -484,7 +493,7 @@ export default function AlbumPagePreviewScreen() {
         {isFinalPreview
           ? showPhotoBlockEditor
             ? isMultiSlotCollage
-              ? "Нажмите на коллаж — рамка вокруг всех фото: углы меняют размер, перетаскивание — позицию на странице"
+              ? "Кадрирование каждого фото — при редактировании страницы. Нажмите на коллаж — рамка: углы меняют размер, перетаскивание — позицию на странице"
               : "Кадрирование задано при редактировании. Нажмите на фото — рамка: перетаскивание и углы меняют размер и позицию на странице"
             : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
           : showTemplateWireframe
@@ -598,6 +607,8 @@ export default function AlbumPagePreviewScreen() {
                       coordinateHeight={previewLayout.coordinateHeight}
                       sourceWidth={sourceImageSize?.width}
                       sourceHeight={sourceImageSize?.height}
+                      photoCaptions={livePhotoCaptions}
+                      textFontFamily={values?.textFontFamily}
                       onGroupTransformChange={photoEditor.handleGroupTransformChange}
                     />
                   ) : null
@@ -649,7 +660,7 @@ export default function AlbumPagePreviewScreen() {
   ) : isFinalPreview ? (
     <View style={styles.actions}>
       <AppButton title="Сохранить страницу" onPress={handleSave} />
-      <AppButton title="Изменить" variant="outline" onPress={handleFill} />
+      <AppButton title="Редактировать" variant="outline" onPress={handleFill} />
       <AppButton
         title="Далее →"
         variant="ghost"
@@ -717,7 +728,7 @@ export default function AlbumPagePreviewScreen() {
               style={styles.editLink}
               onPress={handleFill}
             >
-              Изменить
+              Редактировать
             </AppText>
           ) : null
         }

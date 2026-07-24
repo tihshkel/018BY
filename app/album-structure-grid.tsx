@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { AppButton, AppHeader, AppScreen, AppText } from '@/components/ui';
-import { getAlbumSections } from '@/constants/album-sections';
+import { resolveAlbumSectionsForInstances, getInstancesInSectionByOrder } from '@/constants/album-sections';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import { useAlbumProject } from '@/hooks/use-album-project';
 import {
@@ -55,8 +55,12 @@ export default function AlbumStructureGridScreen() {
   });
 
   const sections = useMemo(
-    () => getAlbumSections(project.lineGuideId),
-    [project.lineGuideId]
+    () =>
+      resolveAlbumSectionsForInstances(
+        project.lineGuideId,
+        project.instances.length,
+      ),
+    [project.lineGuideId, project.instances.length]
   );
 
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.sectionId ?? '');
@@ -64,11 +68,7 @@ export default function AlbumStructureGridScreen() {
   const sectionInstances = useMemo(() => {
     const section = sections.find((s) => s.sectionId === activeSectionId);
     if (!section) return project.instances;
-    return project.instances.filter(
-      (i) =>
-        i.sourcePageNumber >= section.pageRange[0] &&
-        i.sourcePageNumber <= section.pageRange[1]
-    );
+    return getInstancesInSectionByOrder(project.instances, section);
   }, [project.instances, sections, activeSectionId]);
 
   const openPagePreview = (instanceId: string) => {

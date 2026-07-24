@@ -17,6 +17,7 @@ export function getExportFormatOptions(
   const isBirthday = lineGuideId === 'holidays_birthday_60';
   const isSquare =
     category === 'kids' ||
+    category === 'family' ||
     lineGuideId === 'family_blank_21x21' ||
     isBirthday;
   const isPortraitBlank = lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';

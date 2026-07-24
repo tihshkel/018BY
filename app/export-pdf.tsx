@@ -207,20 +207,28 @@ function drawTextAnnotationOnPdfPage(params: {
 
   const viewportBoxHeight = ann.height || 20;
   const scaledBoxHeight = mapped.height;
-  // Timeline descriptions wrap at a shared size — do not shrink long titles alone.
+  const preferredFontSize = ann.fontSize || 16;
+  const isFloatingCaption = typeof ann.templateLineStart !== 'number';
+  // Floating captions (birthday pills, blank under-photo) already fitted in adapter —
+  // lock size so export does not upsize/rewrap and drift off the white pill.
   const fitted = fitTextToTemplateBlock({
     text,
     boxWidth: ann.width || mapped.width,
     boxHeight: viewportBoxHeight,
     fontId: ann.fontFamily,
-    preferredFontSize: ann.fontSize || 16,
-    preferSingleLine: false,
-    maxFontSize: 22,
+    preferredFontSize,
+    preferSingleLine: isFloatingCaption && !text.includes('\n'),
+    maxFontSize: isFloatingCaption ? preferredFontSize : 22,
+    minFontSize: isFloatingCaption ? Math.min(9, preferredFontSize) : undefined,
   });
   const scaledFontSize = fitted.fontSize * (scaledBoxHeight / viewportBoxHeight);
   const textAlign = ann.textAlign ?? 'left';
   const lineHeight = scaledFontSize * 1.15;
-  let lineBaselineY = mapped.y + mapped.height - scaledFontSize * 0.85;
+  const totalTextHeight = Math.max(lineHeight, fitted.lines.length * lineHeight);
+  // Center multi-line floating captions inside the annotation box (pill text band).
+  let lineBaselineY = isFloatingCaption
+    ? mapped.y + (mapped.height + totalTextHeight) / 2 - scaledFontSize * 0.85
+    : mapped.y + mapped.height - scaledFontSize * 0.85;
 
   for (const line of fitted.lines) {
     let drawX = mapped.x;

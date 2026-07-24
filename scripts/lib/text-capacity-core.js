@@ -527,7 +527,13 @@ function isPregnancyWeeklyStructuredPage(lineGuideId, page) {
 }
 
 function isPregnancyRuledNotebookPage(lineGuideId, page) {
-  return lineGuideId === 'pregnancy_60' && (page === 53 || page === 60);
+  if (lineGuideId === 'pregnancy_60') {
+    return page === 53 || page === 60;
+  }
+  if (lineGuideId === 'pregnancy_a5') {
+    return page === 45;
+  }
+  return false;
 }
 
 function refinePregnancyRuledNotebookLineNorms(lineGuideId, page, norms, guides) {

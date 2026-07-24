@@ -6,6 +6,7 @@ import {
 } from '@/constants/photo-slots';
 import {
   buildPageLayoutsFromTemplates,
+  fitSinglePhotoSlotToMaxAspect,
   isKidsSideBySideEventPage,
   KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS,
   KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS,
@@ -753,8 +754,12 @@ export function expandDesignedAlbumCollageVariants(
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
   const templateSet = getCollageTemplateSet(lineGuideId);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
+  let expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
   if (expanded.variants.length === 0) return undefined;
+
+  if (lineGuideId === 'pregnancy_a5' && isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
+    expanded = fitSinglePhotoSlotToMaxAspect(expanded, safeZone);
+  }
 
   return applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded);
 }

@@ -22,6 +22,7 @@ import {
   getFieldKeyboardTypeForField,
 } from '@/utils/albumFieldInput';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import { isPregnancyRuledNotebookPage } from '@/utils/textLineSlots';
 import { getBlankFieldDefaultTextAlign } from '@/utils/templateTextAnnotations';
 
 type PageFormFieldsProps = {
@@ -405,7 +406,9 @@ const AlbumFormField = memo(function AlbumFormField({
 
   const defaultAlign = isBlankTemplateLineGuide(lineGuideId)
     ? getBlankFieldDefaultTextAlign(field)
-    : field.fieldId.endsWith('_title') || field.label === 'Заголовок'
+    : field.fieldId.endsWith('_title') ||
+        field.label === 'Заголовок' ||
+        isPregnancyRuledNotebookPage(lineGuideId, sourcePageNumber)
       ? 'center'
       : 'left';
   const resolvedAlign = fieldStyle?.textAlign ?? defaultAlign;

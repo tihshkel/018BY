@@ -332,25 +332,27 @@ const PHOTO_LAYOUT_TEMPLATES = {
 };
 
 function buildFourGridSlots(safeZone) {
-  const marginX = 0.015;
-  const marginY = 0.02;
-  const gap = 0.022;
+  const marginX = 0.04;
+  const marginY = 0.015;
+  const photoGap = 0.028;
+  const captionBandRel = 0.12;
+  const rowGap = photoGap + captionBandRel;
   const availW = 1 - marginX * 2;
-  const availH = 1 - marginY * 2;
+  const availH = 1 - marginY * 2 - captionBandRel;
 
-  const colW = (availW - gap) / 2;
+  const colW = (availW - photoGap) / 2;
   const cellWPage = colW * safeZone.width;
   let cellHRel = (cellWPage * 0.75) / Math.max(safeZone.height, 0.01);
 
-  const neededH = cellHRel * 2 + gap;
+  const neededH = cellHRel * 2 + rowGap;
   if (neededH > availH) {
-    cellHRel = (availH - gap) / 2;
+    cellHRel = (availH - rowGap) / 2;
   }
 
-  const gridH = cellHRel * 2 + gap;
+  const gridH = cellHRel * 2 + rowGap;
   const left = marginX;
   const top = marginY + Math.max(0, (availH - gridH) / 2);
-  const right = left + colW + gap;
+  const right = left + colW + photoGap;
   const aspectW = cellWPage;
   const aspectH = cellHRel * safeZone.height;
   const aspectRatio = aspectH > 0 && aspectW / aspectH >= 1.45 ? [3, 2] : [4, 3];
@@ -358,8 +360,8 @@ function buildFourGridSlots(safeZone) {
   return [
     slot(left, top, colW, cellHRel, aspectRatio),
     slot(right, top, colW, cellHRel, aspectRatio),
-    slot(left, top + cellHRel + gap, colW, cellHRel, aspectRatio),
-    slot(right, top + cellHRel + gap, colW, cellHRel, aspectRatio),
+    slot(left, top + cellHRel + rowGap, colW, cellHRel, aspectRatio),
+    slot(right, top + cellHRel + rowGap, colW, cellHRel, aspectRatio),
   ];
 }
 
@@ -399,6 +401,47 @@ function buildPageLayoutsFromTemplates(safeZone, templateIds) {
     .filter(Boolean)
     .map((t) => buildVariantLayoutFromTemplate(t, safeZone));
   return { variants };
+}
+
+function fitSinglePhotoSlotToMaxAspect(layouts, safeZone, maxAspect = 3 / 2) {
+  const SINGLE_IDS = new Set(['one_large', 'one_horizontal']);
+  const verticalPad = Math.min(0.018, safeZone.height * 0.04);
+  const fitHeight = Math.max(0.12, safeZone.height - verticalPad * 2);
+  const fitZone = {
+    x: safeZone.x,
+    y: safeZone.y + verticalPad,
+    width: safeZone.width,
+    height: fitHeight,
+  };
+  return {
+    ...layouts,
+    variants: layouts.variants.map((variant) => {
+      if (!SINGLE_IDS.has(variant.variantId) || !variant.slots[0]) return variant;
+      const slot0 = variant.slots[0];
+      let width = Math.min(fitZone.width, fitZone.height * maxAspect);
+      let height = width / maxAspect;
+      if (height > fitZone.height) {
+        height = fitZone.height;
+        width = height * maxAspect;
+      }
+      const x = fitZone.x + (fitZone.width - width) / 2;
+      const y = fitZone.y + fitZone.height / 2;
+      return {
+        ...variant,
+        slots: [
+          {
+            ...slot0,
+            x,
+            y,
+            width,
+            height,
+            aspectRatio: [3, 2],
+          },
+          ...variant.slots.slice(1),
+        ],
+      };
+    }),
+  };
 }
 
 function buildHolidaysManualSlots() {
@@ -1120,8 +1163,12 @@ function expandDesignedAlbumCollageVariants(lineGuideId, page, layouts) {
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
   const templateSet = getCollageTemplateSet(lineGuideId);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
+  let expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
   if (expanded.variants.length === 0) return null;
+
+  if (lineGuideId === 'pregnancy_a5' && isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
+    expanded = fitSinglePhotoSlotToMaxAspect(expanded, safeZone);
+  }
 
   return {
     ...applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded),

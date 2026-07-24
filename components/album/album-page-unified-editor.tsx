@@ -137,7 +137,12 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
     [lineGuideId, primaryBlock, resolvedSchema.sourcePageNumber],
   );
 
-  const fields = resolvedSchema.fields ?? [];
+  const fields = useMemo(() => {
+    const all = resolvedSchema.fields ?? [];
+    if (!showPerPhotoCaptions) return all;
+    // Подписи идут через photoCaptions UI — не дублируем в форме полей.
+    return all.filter((field) => !/_caption\d*$/i.test(field.fieldId));
+  }, [resolvedSchema.fields, showPerPhotoCaptions]);
   const showTextStyleToolbar =
     usesTemplateLineTextEditing(lineGuideId) || isBlankTemplateLineGuide(lineGuideId);
   const formProps = {
@@ -334,10 +339,13 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           })()
         : null}
 
-      {showCaption && !showPerPhotoCaptions ? (
+      {showCaption &&
+      (!showPerPhotoCaptions || isBlankTemplateLineGuide(lineGuideId)) ? (
         <AppCard style={styles.captionCard}>
           <AppText variant="caption" style={styles.captionLabel}>
-            Подпись (необязательно)
+            {showPerPhotoCaptions
+              ? 'Общая подпись под фото (необязательно)'
+              : 'Подпись (необязательно)'}
           </AppText>
           {showTextStyleToolbar && onCaptionStyleChange ? (
             <TextFieldStyleToolbar

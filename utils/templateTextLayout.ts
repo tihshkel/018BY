@@ -13,8 +13,13 @@ export function mapTemplateFrameToViewport(
 
 export function estimateTemplateFontSize(frameHeight: number, viewportHeight: number): number {
   const pxHeight = frameHeight * viewportHeight;
-  return Math.max(12, Math.min(22, Math.round(pxHeight * 0.55)));
+  // Amatic/display fonts visually taller than the metric box — keep captions compact.
+  return Math.max(11, Math.min(18, Math.round(pxHeight * 0.42)));
 }
+
+/** Max auto font for photo captions under slots (Amatic must not clip). */
+export const TEMPLATE_CAPTION_MAX_FONT_SIZE = 15;
+export const TEMPLATE_CAPTION_MIN_FONT_SIZE = 9;
 
 /**
  * Avg glyph width / fontSize for blank-template wrapping (pdf-lib measured, +~12% slack).
@@ -57,7 +62,7 @@ export function fitTextToTemplateBlock(params: {
   const maxFontSize = params.maxFontSize ?? 28;
   const charWidthRatio = getTemplateBlockCharWidthRatio(params.fontId);
   const startFont = Math.min(
-    params.preferredFontSize ?? Math.max(12, Math.min(22, Math.round(params.boxHeight * 0.55))),
+    params.preferredFontSize ?? Math.max(11, Math.min(18, Math.round(params.boxHeight * 0.42))),
     maxFontSize,
   );
 

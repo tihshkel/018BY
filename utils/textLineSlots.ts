@@ -1400,6 +1400,11 @@ function applyDesignedAlbumBreathingRoom(
     return norm;
   }
 
+  // Линованный блокнот: OCR x/width = печатные линии, без доп. inset.
+  if (isPregnancyRuledNotebookPage(lineGuideId, page)) {
+    return norm;
+  }
+
   let next = norm;
 
   if (lineGuideId === "kids_48" && page === 5) {
@@ -1725,9 +1730,10 @@ const PREGNANCY_WEEKLY_CALIB: Readonly<
     pageWidth: 1796,
     pageHeight: 2528,
     boxRight: 1673,
-    lineHeightNorm: 0.055,
-    weight: { valueX: 1210, topY: 500 },
-    belly: { valueX: 1527, topY: 600 },
+    // Одна строка справа от печатной подписи (не высокая ячейка с центрированием).
+    lineHeightNorm: 0.03,
+    weight: { valueX: 1165, topY: 512 },
+    belly: { valueX: 1490, topY: 602 },
   },
 };
 
@@ -1882,7 +1888,14 @@ export function isPregnancyRuledNotebookPage(
   lineGuideId: string | undefined,
   page?: number,
 ): boolean {
-  return lineGuideId === "pregnancy_60" && (page === 53 || page === 60);
+  if (lineGuideId === "pregnancy_60") {
+    return page === 53 || page === 60;
+  }
+  // A5: «История родов» (письмо малышу в 48-стр. блоке нет).
+  if (lineGuideId === "pregnancy_a5") {
+    return page === 45;
+  }
+  return false;
 }
 
 /**
@@ -2483,6 +2496,9 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     "designed-interior-breathing-v1",
     "pregnancy-weekly-photo-band-v1",
     "pregnancy-weekly-value-center-v1",
+    "pregnancy-a5-weekly-value-inline-v1",
+    "pregnancy-a5-p44-beige-fills-v1",
+    "pregnancy-a5-p45-ruled-center-v1",
     "pregnancy-ruled-notebook-v1",
     "pregnancy-p60-letter-18lines-v1",
     "pregnancy-already-mom-clearance-v3",

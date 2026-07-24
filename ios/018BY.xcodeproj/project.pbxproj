@@ -20,8 +20,8 @@
 		7E2696DF2D844525BE603996 /* QuickAccessWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAF608283DA4ACD89479FF3 /* QuickAccessWidget.swift */; };
 		98FD2B3BD1D445FBAC952F5D /* MyProjectsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D9F24AE34134FF7A0FB099E /* MyProjectsWidget.swift */; };
 		A198F99A67DD48E694AD381C /* ReminderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A9236242840309A68B605 /* ReminderWidget.swift */; };
-		B1C2D3E4F5A6478990ABCDEF /* NotificationsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */; };
 		A63907214692FF69084533C7 /* libPods-018BY.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B951544750259968D400C55D /* libPods-018BY.a */; };
+		B1C2D3E4F5A6478990ABCDEF /* NotificationsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */; };
 		B90CEB7AA458B4FFF7115A7D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D3A42D22958AC2B6309C8E /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		C1799AAE31DB4E62ABF20DE8 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 183354FD0A744AACAA56C235 /* SwiftUI.framework */; };
@@ -264,6 +264,14 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		A9B8C7D6E5F4432109876543 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -295,14 +303,6 @@
 				1E4A9236242840309A68B605 /* ReminderWidget.swift */,
 			);
 			path = Reminder;
-			sourceTree = "<group>";
-		};
-		A9B8C7D6E5F4432109876543 /* Notifications */ = {
-			isa = PBXGroup;
-			children = (
-				A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */,
-			);
-			path = Notifications;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -605,7 +605,7 @@
 				CODE_SIGN_ENTITLEMENTS = 018BY/018BY.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 45;
+				CURRENT_PROJECT_VERSION = 46;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3JY55YHULX;
 				ENABLE_BITCODE = NO;
@@ -620,7 +620,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.1.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -651,7 +651,7 @@
 				CODE_SIGN_ENTITLEMENTS = 018BY/018BY.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 45;
+				CURRENT_PROJECT_VERSION = 46;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 3JY55YHULX;
 				INFOPLIST_FILE = 018BY/Info.plist;
@@ -661,7 +661,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.1.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -816,7 +816,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = 018BYWidgetExtension/018BYWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 45;
+				CURRENT_PROJECT_VERSION = 46;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3JY55YHULX;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -830,7 +830,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.1.8;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tihshkel.x018BY.018BYWidgetExtension;
@@ -858,7 +858,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = 018BYWidgetExtension/018BYWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 45;
+				CURRENT_PROJECT_VERSION = 46;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3JY55YHULX;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -876,7 +876,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 1.1.8;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tihshkel.x018BY.018BYWidgetExtension;

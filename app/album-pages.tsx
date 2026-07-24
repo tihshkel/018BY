@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AlbumSectionAccordion } from "@/components/album/album-section-accordion";
 import { AppButton, AppHeader, AppScreen, AppText } from "@/components/ui";
-import { getAlbumSections } from "@/constants/album-sections";
+import { resolveAlbumSectionsForInstances, getInstancesInSectionByOrder } from "@/constants/album-sections";
 import {
   colors,
   createShadow,
@@ -58,7 +58,10 @@ function getAlbumHeroSubtitle(celebration?: string, lineGuideId?: string): strin
       ? 'Соберите свадебный альбом 21×21 см — выберите шаблон для каждой страницы'
       : 'Соберите свадебный альбом 18×24 см — выберите шаблон для каждой страницы';
   }
-  if (celebration === 'family' || lineGuideId?.startsWith('family_blank')) {
+  if (celebration === 'family' || lineGuideId === 'family_blank_21x21') {
+    return 'Соберите семейный альбом 21×21 см — выберите шаблон для каждой страницы';
+  }
+  if (lineGuideId?.startsWith('family_blank')) {
     return 'Соберите семейный альбом — выберите шаблон для каждой страницы';
   }
   if (celebration === 'holidays' || lineGuideId === 'holidays_blank') {
@@ -170,8 +173,12 @@ export default function AlbumPagesScreen() {
   }, []);
 
   const sections = useMemo(
-    () => getAlbumSections(project.lineGuideId),
-    [project.lineGuideId],
+    () =>
+      resolveAlbumSectionsForInstances(
+        project.lineGuideId,
+        project.instances.length,
+      ),
+    [project.lineGuideId, project.instances.length],
   );
 
   const albumProgress = useMemo(
@@ -208,12 +215,10 @@ export default function AlbumPagesScreen() {
   const instancesBySection = useMemo(() => {
     const map = new Map<string, PageInstance[]>();
     for (const section of sections) {
-      const list = project.instances.filter(
-        (i) =>
-          i.sourcePageNumber >= section.pageRange[0] &&
-          i.sourcePageNumber <= section.pageRange[1],
+      map.set(
+        section.sectionId,
+        getInstancesInSectionByOrder(project.instances, section),
       );
-      map.set(section.sectionId, list);
     }
     return map;
   }, [sections, project.instances]);

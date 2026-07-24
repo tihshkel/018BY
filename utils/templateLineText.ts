@@ -1167,6 +1167,10 @@ function resolveTemplateTextVerticalRatios(
     if (isPregnancy60Page52WhiteBlockSlot(slot, lineGuideId)) {
       return { centerRatio: 0.5, fontOffsetRatio: 0.5 };
     }
+    // A5 p44: белые ячейки в бежевой панели — вертикальный центр, как p52.
+    if (lineGuideId === 'pregnancy_a5' && slot.page === 44) {
+      return { centerRatio: 0.5, fontOffsetRatio: 0.55 };
+    }
     const normHeight = slot.normHeight ?? 0;
     const normY = slot.normY ?? 0;
     if (normHeight <= 0.032) {
@@ -1709,8 +1713,12 @@ export function getTemplateLineTextTop(
       inputKind,
       lineGuideId,
     );
-    // Центр в бежевой ячейке (раньше вес = top, обхват = 0.38 — текст «уезжал» вверх).
-    return slot.y + slot.lineHeight * 0.56 - fittedSize * 0.72;
+    // Компактные строки a5 — ближе к baseline подписи; 60-стр. — центр бежевой ячейки.
+    const centerRatio =
+      lineGuideId === 'pregnancy_a5' ? 0.52 : 0.56;
+    const fontOffsetRatio =
+      lineGuideId === 'pregnancy_a5' ? 0.78 : 0.72;
+    return slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
   }
 
   const inputKind = slot.inputKind ?? 'line';

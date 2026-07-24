@@ -1,5 +1,5 @@
 /**
- * Page 44 «Анкета родов» — manual block slots from in albums/беременность A5/44.pdf.
+ * Page 44 «Анкета родов» — manual block slots from page_044.png white fills.
  * Replaces OCR line detection (wrong geometry for white-fill form).
  */
 
@@ -32,6 +32,9 @@ const FILL = (x, top, width, height, continuationGroup, hasLabel = false) => ({
  * 0 age, 1 weight_before, 2 weight_gain, 3 PDR, 4 birth date, 5 term,
  * 6 hospital, 7 admission, 8 weight, 9 height, 10 weekday, 11 time, 12 Ер/Кс,
  * 13 condition, 14 discharge, 15 days, 16–18 guests.
+ *
+ * Beige panel rows (page_044.png):
+ *   Вес/Рост ≈ y0.455 | День недели ≈ y0.497 | Время + Ер/Кс ≈ y0.541
  */
 const PAGE_44_SLOTS = [
   LINE(0.531, 0.1308, 0.336, 0.04, 1),
@@ -42,11 +45,12 @@ const PAGE_44_SLOTS = [
   LINE(0.782, 0.2749, 0.166, 0.046, 6),
   LINE(0.238, 0.3201, 0.709, 0.046, 7),
   LINE(0.776, 0.3668, 0.171, 0.05, 8),
-  FILL(0.3133, 0.4963, 0.11, 0.028, 11),
-  FILL(0.43, 0.4963, 0.106, 0.028, 12),
-  FILL(0.2211, 0.5402, 0.3154, 0.028, 13),
-  LINE(0.22, 0.562, 0.32, 0.026, 14),
-  FILL(0.566, 0.5397, 0.29, 0.028, 15, true),
+  // White input cells in beige panel (measured from page_044.png)
+  FILL(0.1826, 0.4549, 0.1147, 0.0265, 11),
+  FILL(0.4337, 0.4537, 0.0974, 0.0265, 12),
+  FILL(0.3185, 0.4968, 0.2127, 0.0265, 13),
+  FILL(0.2266, 0.5407, 0.3046, 0.0265, 14),
+  FILL(0.655, 0.5395, 0.22, 0.028, 15),
   LINE(0.376, 0.636, 0.571, 0.046, 16),
   LINE(0.541, 0.6825, 0.407, 0.046, 17),
   LINE(0.604, 0.729, 0.342, 0.047, 18),

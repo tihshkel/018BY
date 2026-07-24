@@ -4,11 +4,14 @@ import {
   appendBezierCurve,
   clip,
   endPath,
+  fill,
   lineTo,
   moveTo,
   popGraphicsState,
   pushGraphicsState,
   rgb,
+  setFillingColor,
+  type Color,
 } from 'pdf-lib';
 
 import { BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
@@ -45,25 +48,28 @@ function pushRectClip(page: PDFPage, mapped: { x: number; y: number; width: numb
   );
 }
 
-function pushRoundedRectClip(
-  page: PDFPage,
+function appendRoundedRectPathOperators(
   mapped: { x: number; y: number; width: number; height: number },
   radius: number,
 ) {
   const width = mapped.width;
   const height = mapped.height;
   const r = Math.max(0, Math.min(radius, width / 2, height / 2));
-  if (r <= 0) {
-    pushRectClip(page, mapped);
-    return;
-  }
-
   const x = mapped.x;
   const y = mapped.y;
-  const k = r * ELLIPSE_KAPPA;
 
-  page.pushOperators(
-    pushGraphicsState(),
+  if (r <= 0) {
+    return [
+      moveTo(x, y),
+      lineTo(x + width, y),
+      lineTo(x + width, y + height),
+      lineTo(x, y + height),
+      lineTo(x, y),
+    ];
+  }
+
+  const k = r * ELLIPSE_KAPPA;
+  return [
     moveTo(x + r, y),
     lineTo(x + width - r, y),
     appendBezierCurve(x + width - r + k, y, x + width, y + r - k, x + width, y + r),
@@ -80,8 +86,73 @@ function pushRoundedRectClip(
     appendBezierCurve(x + r - k, y + height, x, y + height - r + k, x, y + height - r),
     lineTo(x, y + r),
     appendBezierCurve(x, y + r - k, x + r - k, y, x + r, y),
+  ];
+}
+
+function pushRoundedRectClip(
+  page: PDFPage,
+  mapped: { x: number; y: number; width: number; height: number },
+  radius: number,
+) {
+  const r = Math.max(0, Math.min(radius, mapped.width / 2, mapped.height / 2));
+  if (r <= 0) {
+    pushRectClip(page, mapped);
+    return;
+  }
+
+  page.pushOperators(
+    pushGraphicsState(),
+    ...appendRoundedRectPathOperators(mapped, r),
     clip(),
     endPath(),
+  );
+}
+
+/** Fill a rounded rect directly (no clip) — reliable for white caption pills in PDF export. */
+function drawRoundedRectFill(
+  page: PDFPage,
+  mapped: { x: number; y: number; width: number; height: number },
+  radius: number,
+  color: Color,
+  opacity: number,
+) {
+  const r = Math.max(0, Math.min(radius, mapped.width / 2, mapped.height / 2));
+  if (r <= 0.5) {
+    page.drawRectangle({
+      x: mapped.x,
+      y: mapped.y,
+      width: mapped.width,
+      height: mapped.height,
+      color,
+      opacity,
+      borderWidth: 0,
+    });
+    return;
+  }
+
+  // Opacity via graphics state that drawRectangle embeds; approximate with high-level APIs
+  // for capsule-like pills (common birthday caption band).
+  if (opacity < 0.999) {
+    pushRoundedRectClip(page, mapped, r);
+    page.drawRectangle({
+      x: mapped.x,
+      y: mapped.y,
+      width: mapped.width,
+      height: mapped.height,
+      color,
+      opacity,
+      borderWidth: 0,
+    });
+    page.pushOperators(popGraphicsState());
+    return;
+  }
+
+  page.pushOperators(
+    pushGraphicsState(),
+    ...appendRoundedRectPathOperators(mapped, r),
+    setFillingColor(color),
+    fill(),
+    popGraphicsState(),
   );
 }
 
@@ -185,32 +256,16 @@ export async function drawImageAnnotationsOnPdfPage(
             clipMapped.height,
             ann.fillCornerRadiusRatio,
           );
-          if (radius > 0.5) {
-            pushRoundedRectClip(params.page, clipMapped, radius);
-            params.page.drawRectangle({
-              x: clipMapped.x,
-              y: clipMapped.y,
-              width: clipMapped.width,
-              height: clipMapped.height,
-              color: hexToRgb(ann.fillColor),
-              opacity: ann.fillOpacity ?? 1,
-              borderWidth: 0,
-            });
-            params.page.pushOperators(popGraphicsState());
-          } else {
-            params.page.drawRectangle({
-              x: clipMapped.x,
-              y: clipMapped.y,
-              width: clipMapped.width,
-              height: clipMapped.height,
-              color: hexToRgb(ann.fillColor),
-              opacity: ann.fillOpacity ?? 1,
-              borderWidth: 0,
-            });
-          }
+          drawRoundedRectFill(
+            params.page,
+            clipMapped,
+            radius,
+            hexToRgb(ann.fillColor),
+            ann.fillOpacity ?? 1,
+          );
         }
-      } catch {
-        // ignore single annotation failures
+      } catch (error) {
+        console.warn('[export] Failed to draw fill annotation', ann.id, error);
       }
       continue;
     }

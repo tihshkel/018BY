@@ -50,9 +50,9 @@ const ALBUM_SCENARIOS: AlbumScenario[] = [
     totalPages: 48,
   },
   {
-    id: 'family_blank',
-    name: 'Семейный blank 18×24',
-    params: { celebration: 'family', coverType: 'album_rozovyy', interiorType: 'family_blank' },
+    id: 'family_blank_21x21',
+    name: 'Семейный blank 21×21',
+    params: { celebration: 'family', coverType: 'album_rozovyy', interiorType: 'family_blank_21x21' },
     totalPages: 20,
   },
   {

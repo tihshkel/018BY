@@ -4,12 +4,36 @@ import {
   type PhotoZoneLayoutParams,
 } from '@/utils/photoZoneLayout';
 
-function captionBandHeight(viewportHeight: number, scale: number): number {
-  return Math.max(16, viewportHeight * 0.028) * scale;
+export {
+  fitPhotoBlockLayoutForCaptions,
+  fitPhotoRectForCaptions,
+} from '@/utils/photoBlockLayout';
+export { pageNeedsPhotoCaptionRoom } from '@/utils/designedAlbumPerPhotoCaptions';
+
+function captionBandHeight(viewportHeight: number, scale: number, lineGuideId?: string): number {
+  // Birthday pills under photos — taller, closer to printed «Цвет волос» fields.
+  if (lineGuideId === 'holidays_birthday_60') {
+    return Math.max(26, viewportHeight * 0.05) * scale;
+  }
+  // Enough room for Amatic captions without clipping descenders.
+  return Math.max(22, viewportHeight * 0.042) * scale;
 }
 
 function captionGap(viewportHeight: number, scale: number): number {
   return Math.max(8, viewportHeight * 0.014) * scale;
+}
+
+/** Band height under a photo at scale 1 (px) — for live captions inside photo block editor. */
+export function getPhotoCaptionBandHeightPx(
+  viewportHeight: number,
+  lineGuideId?: string,
+): number {
+  return captionBandHeight(viewportHeight, 1, lineGuideId);
+}
+
+/** Gap between photo and caption at scale 1 (px). */
+export function getPhotoCaptionGapPx(viewportHeight: number): number {
+  return captionGap(viewportHeight, 1);
 }
 
 /** Scale factor from collage group transform (1 when unset). */
@@ -23,8 +47,9 @@ function captionBandBelowRect(
   rect: ViewportRect,
   viewportHeight: number,
   scale: number,
+  lineGuideId?: string,
 ): ViewportRect {
-  const bandHeight = captionBandHeight(viewportHeight, scale);
+  const bandHeight = captionBandHeight(viewportHeight, scale, lineGuideId);
   const gap = captionGap(viewportHeight, scale);
   return {
     x: rect.x,
@@ -39,9 +64,37 @@ export function resolvePhotoCaptionViewportLayouts(
   params: PhotoZoneLayoutParams,
 ): ViewportRect[] {
   const scale = resolvePhotoCaptionGroupScale(params);
-  return resolvePhotoZoneViewportRects(params).map((rect) =>
-    captionBandBelowRect(rect, params.viewportHeight, scale),
+  const zones = resolvePhotoZoneViewportRects(params);
+  const gap = captionGap(params.viewportHeight, scale);
+  const desiredHeight = captionBandHeight(params.viewportHeight, scale, params.lineGuideId);
+
+  const gutterHeights = zones.map((rect, index) => {
+    const nextRow = zones.find(
+      (other, otherIndex) =>
+        otherIndex !== index &&
+        other.y >= rect.y + rect.height - 1 &&
+        other.x < rect.x + rect.width &&
+        other.x + other.width > rect.x,
+    );
+    if (!nextRow) return null;
+    return nextRow.y - gap * 0.35 - (rect.y + rect.height + gap);
+  });
+  const tightestGutter = gutterHeights.reduce<number | null>((min, gutter) => {
+    if (gutter == null || !(gutter > 0)) return min;
+    if (min == null) return gutter;
+    return Math.min(min, gutter);
+  }, null);
+  const uniformHeight = Math.max(
+    14 * scale,
+    Math.min(desiredHeight, tightestGutter ?? desiredHeight),
   );
+
+  return zones.map((rect) => ({
+    x: rect.x,
+    y: rect.y + rect.height + gap,
+    width: rect.width,
+    height: uniformHeight,
+  }));
 }
 
 /**
@@ -60,10 +113,17 @@ export function resolveGodparentsNameViewportLayouts(
   if (zones.length >= nameCount) {
     return zones
       .slice(0, nameCount)
-      .map((rect) => captionBandBelowRect(rect, params.viewportHeight, scale));
+      .map((rect) =>
+        captionBandBelowRect(rect, params.viewportHeight, scale, params.lineGuideId),
+      );
   }
 
-  const band = captionBandBelowRect(zones[0], params.viewportHeight, scale);
+  const band = captionBandBelowRect(
+    zones[0],
+    params.viewportHeight,
+    scale,
+    params.lineGuideId,
+  );
   if (nameCount === 1) return [band];
 
   const gap = Math.max(4, band.width * 0.04);
@@ -85,7 +145,7 @@ export function resolvePrimaryPhotoCaptionLayout(
   const scale = resolvePhotoCaptionGroupScale(params);
 
   if (zones.length === 1) {
-    return captionBandBelowRect(zones[0], params.viewportHeight, scale);
+    return captionBandBelowRect(zones[0], params.viewportHeight, scale, params.lineGuideId);
   }
 
   const minX = Math.min(...zones.map((rect) => rect.x));
@@ -97,5 +157,5 @@ export function resolvePrimaryPhotoCaptionLayout(
     width: Math.max(1, maxX - minX),
     height: Math.max(1, maxBottom - Math.min(...zones.map((rect) => rect.y))),
   };
-  return captionBandBelowRect(union, params.viewportHeight, scale);
+  return captionBandBelowRect(union, params.viewportHeight, scale, params.lineGuideId);
 }

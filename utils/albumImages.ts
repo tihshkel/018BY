@@ -571,6 +571,11 @@ export function resolveInteriorAlbumId(
   albumId: string | null | undefined,
   category?: string | null
 ): string {
+  // Раздел «Семья» — всегда пустой квадратный блок 21×21 (не 18×24).
+  if (category === 'family') {
+    return 'family_blank_21x21';
+  }
+
   if (albumId === 'family_blank_21x21') return 'family_blank_21x21';
   if (albumId === 'family_blank') return 'family_blank';
 
@@ -584,10 +589,6 @@ export function resolveInteriorAlbumId(
     return 'pregnancy_60';
   }
 
-  if (category === 'family') {
-    if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
-    return 'family_blank';
-  }
   if (category === 'wedding') {
     if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
     return 'family_blank';
@@ -602,7 +603,7 @@ export function resolveInteriorAlbumId(
   if (usesSquareBlankInterior(albumId)) {
     return 'family_blank_21x21';
   }
-  if (isFamilyCoverAlbumId(albumId)) return 'family_blank';
+  if (isFamilyCoverAlbumId(albumId)) return 'family_blank_21x21';
   if (isWeddingCoverAlbumId(albumId)) return 'family_blank';
   if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) return 'kids_48';
   if (albumId.startsWith('holiday_')) {

@@ -1,4 +1,4 @@
-import type { AlbumSectionDefinition } from '@/types/album-page-schema';
+import type { AlbumSectionDefinition, PageInstance } from '@/types/album-page-schema';
 
 export const KIDS_48_SECTIONS: AlbumSectionDefinition[] = [
   {
@@ -122,6 +122,46 @@ export function getSectionForPageNumber(
   return getAlbumSections(lineGuideId).find(
     (s) => pageNumber >= s.pageRange[0] && pageNumber <= s.pageRange[1]
   );
+}
+
+/**
+ * TOC/прогресс группируют по позиции в альбоме (`order`), не по `sourcePageNumber` шаблона.
+ * Иначе страница «Памятные моменты» (source 47), вставленная на 4-е место, попадает в секцию 46–48.
+ */
+export function resolveAlbumSectionsForInstances(
+  lineGuideId: string,
+  instanceCount: number,
+): AlbumSectionDefinition[] {
+  const sections = getAlbumSections(lineGuideId);
+  if (sections.length === 0 || instanceCount <= 0) return sections;
+
+  const last = sections[sections.length - 1];
+  if (instanceCount <= last.pageRange[1]) return sections;
+
+  const start = last.pageRange[0];
+  const title = /^Страницы\s+\d+/.test(last.title)
+    ? `Страницы ${start}–${instanceCount}`
+    : last.title;
+
+  return [
+    ...sections.slice(0, -1),
+    {
+      ...last,
+      pageRange: [start, instanceCount],
+      title,
+    },
+  ];
+}
+
+/** Страницы секции по display-порядку (instance.order). */
+export function getInstancesInSectionByOrder(
+  instances: PageInstance[],
+  section: AlbumSectionDefinition,
+): PageInstance[] {
+  const [start, end] = section.pageRange;
+  return instances
+    .filter((instance) => instance.order >= start && instance.order <= end)
+    .sort((a, b) => a.order - b.order);
 }
 
 export const INTRO_SEEN_KEY_PREFIX = '@album_intro_seen_';

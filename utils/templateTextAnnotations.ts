@@ -12,6 +12,8 @@ import {
   estimateTemplateFontSize,
   fitTextToTemplateBlock,
   mapTemplateFrameToViewport,
+  TEMPLATE_CAPTION_MAX_FONT_SIZE,
+  TEMPLATE_CAPTION_MIN_FONT_SIZE,
 } from '@/utils/templateTextLayout';
 
 type AppendParams = {
@@ -35,6 +37,9 @@ export function getBlankFieldDefaultTextAlign(field: {
   label?: string;
 }): 'left' | 'center' | 'right' {
   if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') return 'center';
+  if (/_caption\d*$/i.test(field.fieldId) || field.label?.startsWith('Подпись')) {
+    return 'center';
+  }
   // Body / «Текст» — left, so lines use the full template block width.
   return 'left';
 }
@@ -222,6 +227,12 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
     return { annotations, zIndex };
   }
 
+  // Designed albums (birthday и др.): кадры CaptionGallery не совпадают с PDF-слотами.
+  // Подписи рисует pageValuesAdapter через resolvePhotoCaptionViewportLayouts.
+  if (!isBlankTemplateLineGuide(lineGuideId)) {
+    return { annotations, zIndex };
+  }
+
   const format = getPageFormatForLineGuide(lineGuideId);
   const layout = getTemplateLayout(schema.templateLibraryId, format);
   if (!layout?.perPhotoCaptions) {
@@ -230,6 +241,9 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
 
   const captionBlocks =
     layout.textBlocks?.filter((block) => block.type === 'caption') ?? [];
+  if (captionBlocks.length === 0) {
+    return { annotations, zIndex };
+  }
 
   for (let i = 0; i < values.photoCaptions.length; i += 1) {
     const text = values.photoCaptions[i];
@@ -242,15 +256,20 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
 
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
     const fieldStyle = values.fieldTextStyles?.[`caption${i + 1}`];
-    const preferredFontSize =
+    const preferredFontSize = Math.min(
       fieldStyle?.fontSize ??
-      (estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
+        (estimateTemplateFontSize(block.h, viewportHeight) || fontSize),
+      TEMPLATE_CAPTION_MAX_FONT_SIZE,
+    );
     const fitted = fitTextToTemplateBlock({
       text: text!.trim(),
       boxWidth: rect.width,
       boxHeight: rect.height,
       fontId: textFontFamily,
       preferredFontSize,
+      minFontSize: TEMPLATE_CAPTION_MIN_FONT_SIZE,
+      maxFontSize: TEMPLATE_CAPTION_MAX_FONT_SIZE,
+      preferSingleLine: true,
     });
     if (fitted.lines.length === 0) continue;
 
@@ -258,8 +277,9 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
       id: stableAnnotationId('template-caption', lineGuideId, schema.sourcePageNumber, block.id, i),
       type: 'text',
       page: schema.sourcePageNumber,
+      // Fitted size wins: manual toolbar size must not overflow the caption frame.
       content: fitted.lines.join('\n'),
-      fontSize: fieldStyle?.fontSize ?? fitted.fontSize,
+      fontSize: fitted.fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       textAlign: fieldStyle?.textAlign ?? 'center',
