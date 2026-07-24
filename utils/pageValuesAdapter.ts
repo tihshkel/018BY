@@ -18,7 +18,12 @@ import {
 } from '@/utils/textLineSlots';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
-import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
+import {
+  computePhotoBlockLayout,
+  fitPhotoBlockLayoutForCaptions,
+  fitPhotoRectForCaptions,
+  resolvePhotoBlockSlotRects,
+} from '@/utils/photoBlockLayout';
 import {
   resolveGodparentsNameViewportLayouts,
   resolvePhotoCaptionGroupScale,
@@ -53,8 +58,16 @@ import {
   appendBlankTemplateTextAnnotations,
   appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
-import { mapTemplateFrameToViewport } from '@/utils/templateTextLayout';
-import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
+import {
+  fitTextToTemplateBlock,
+  mapTemplateFrameToViewport,
+  TEMPLATE_CAPTION_MAX_FONT_SIZE,
+  TEMPLATE_CAPTION_MIN_FONT_SIZE,
+} from '@/utils/templateTextLayout';
+import {
+  pageNeedsPhotoCaptionRoom,
+  usesDesignedAlbumPerPhotoCaptions,
+} from '@/utils/designedAlbumPerPhotoCaptions';
 import { shouldShowAnyPhotoCaption } from '@/utils/photoCaptions';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
@@ -210,7 +223,7 @@ function resolveBlankTemplateFieldCaptions(
   return captionFields.map((field) => values.fields[field.fieldId] ?? null);
 }
 
-function resolveEffectivePhotoCaptions(
+export function resolveEffectivePhotoCaptions(
   schema: AlbumPageSchema,
   lineGuideId: string,
   values: PageValues,
@@ -718,21 +731,27 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (!variant) continue;
 
     const isCircleTree = block.layoutKind === 'circle_tree';
+    const reserveCaptions =
+      !isCircleTree && pageNeedsPhotoCaptionRoom(schema, lineGuideId, values);
 
-    const blockLayout = isCircleTree
+    const blockLayoutRaw = isCircleTree
       ? null
       : computePhotoBlockLayout({
-      lineGuideId,
-      sourcePageNumber: schema.sourcePageNumber,
-      variantId: variant.variantId,
-      slotUris: blockValues.slots,
-      viewportWidth,
-      viewportHeight,
-      sourceWidth,
-      sourceHeight,
-      contentRect: editorContentRect,
-      templateLibraryId: schema.templateLibraryId,
-    });
+          lineGuideId,
+          sourcePageNumber: schema.sourcePageNumber,
+          variantId: variant.variantId,
+          slotUris: blockValues.slots,
+          viewportWidth,
+          viewportHeight,
+          sourceWidth,
+          sourceHeight,
+          contentRect: editorContentRect,
+          templateLibraryId: schema.templateLibraryId,
+        });
+    const blockLayout =
+      blockLayoutRaw && reserveCaptions
+        ? fitPhotoBlockLayoutForCaptions(blockLayoutRaw)
+        : blockLayoutRaw;
 
     if (blockLayout) {
       const useGroupTransform = isNonDefaultPhotoSlotTransform(values.photoGroupTransform)
@@ -823,7 +842,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       if (photoRect) {
         const transformKey = photoSlotTransformKey(block.blockId, i);
         const slotTransform = values.photoSlotTransforms?.[transformKey];
-        const rect = photoRect;
+        const rect = reserveCaptions ? fitPhotoRectForCaptions(photoRect) : photoRect;
 
         if (!uri && clipShape) {
           annotations.push({
@@ -1001,6 +1020,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       const photoCaptionLayouts = resolvePhotoCaptionViewportLayouts(captionLayoutParams);
       const captionScale = resolvePhotoCaptionGroupScale(captionLayoutParams);
 
+      const useBirthdayCaptionPill = lineGuideId === 'holidays_birthday_60';
+
       const appendCaption = (
         index: number,
         text: string,
@@ -1008,9 +1029,76 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         options?: { templateLineStart?: number },
       ) => {
         const fieldStyle = values.fieldTextStyles?.[`caption${index + 1}`];
-        const baseSize = fieldStyle?.fontSize ?? fontSize;
         // Under-photo captions must NOT set templateLineStart — otherwise preview/export
         // snap them to OCR line slots and they stop following photoGroupTransform.
+        const lineMeta =
+          typeof options?.templateLineStart === 'number'
+            ? { templateLineStart: options.templateLineStart, templateLineCount: 1 }
+            : {};
+
+        if (useBirthdayCaptionPill) {
+          const pillHeight = Math.max(layout.height, viewportHeight * 0.048 * captionScale);
+          const insetX = Math.min(layout.width * 0.04, 8);
+          const pill = {
+            x: layout.x + insetX,
+            y: layout.y,
+            width: Math.max(1, layout.width - insetX * 2),
+            height: pillHeight,
+          };
+          annotations.push({
+            id: stableAnnotationId(
+              'photo-caption-fill',
+              lineGuideId,
+              schema.sourcePageNumber,
+              index,
+            ),
+            type: 'image',
+            page: schema.sourcePageNumber,
+            ...pill,
+            fillColor: '#FFFFFF',
+            fillCornerRadiusRatio: 0.42,
+            sourcePageNumber: schema.sourcePageNumber,
+            zIndex: zIndex++,
+          });
+
+          const preferred = Math.min(
+            fieldStyle?.fontSize ?? fontSize,
+            TEMPLATE_CAPTION_MAX_FONT_SIZE,
+          );
+          const textInset = Math.max(6, pill.width * 0.06);
+          const fitted = fitTextToTemplateBlock({
+            text,
+            boxWidth: Math.max(1, pill.width - textInset * 2),
+            boxHeight: Math.max(1, pill.height * 0.72),
+            fontId: textFontFamily,
+            preferredFontSize: preferred,
+            minFontSize: TEMPLATE_CAPTION_MIN_FONT_SIZE,
+            maxFontSize: TEMPLATE_CAPTION_MAX_FONT_SIZE,
+            preferSingleLine: true,
+          });
+          if (fitted.lines.length === 0) return;
+
+          annotations.push({
+            id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, index),
+            type: 'text',
+            page: schema.sourcePageNumber,
+            content: fitted.lines.join('\n'),
+            fontSize: fitted.fontSize * captionScale,
+            fontFamily: textFontFamily,
+            color: '#3D3D3D',
+            textAlign: fieldStyle?.textAlign ?? 'center',
+            zIndex: zIndex++,
+            sourcePageNumber: schema.sourcePageNumber,
+            x: pill.x + textInset,
+            y: pill.y + (pill.height - fitted.fontSize * captionScale * 1.15) / 2,
+            width: Math.max(1, pill.width - textInset * 2),
+            height: Math.max(fitted.fontSize * captionScale * 1.2, pill.height * 0.7),
+            ...lineMeta,
+          });
+          return;
+        }
+
+        const baseSize = fieldStyle?.fontSize ?? fontSize;
         annotations.push({
           id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, index),
           type: 'text',
@@ -1023,9 +1111,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           zIndex: zIndex++,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
-          ...(typeof options?.templateLineStart === 'number'
-            ? { templateLineStart: options.templateLineStart, templateLineCount: 1 }
-            : {}),
+          ...lineMeta,
         });
       };
 

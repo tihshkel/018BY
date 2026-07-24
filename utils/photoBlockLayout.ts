@@ -23,6 +23,45 @@ export type PhotoBlockLayout = {
   slots: PhotoBlockSlotLayout[];
 };
 
+/** Horizontal inset so photos look slightly narrower when caption pills sit under them. */
+const CAPTION_PHOTO_INSET_X_RATIO = 0.055;
+/** Leave a clear band under the frame for the pill (relative to slot height). */
+const CAPTION_PHOTO_SHRINK_Y_RATIO = 0.12;
+
+/** Viewport photo frame: slightly narrower + shorter so caption pills sit cleanly under. */
+export function fitPhotoRectForCaptions(rect: ViewportRect): ViewportRect {
+  const insetX = Math.min(Math.max(rect.width * CAPTION_PHOTO_INSET_X_RATIO, 4), 18);
+  const shrinkH = Math.min(
+    Math.max(rect.height * CAPTION_PHOTO_SHRINK_Y_RATIO, 8),
+    rect.height * 0.22,
+  );
+  return {
+    x: rect.x + insetX,
+    y: rect.y,
+    width: Math.max(1, rect.width - insetX * 2),
+    height: Math.max(1, rect.height - shrinkH),
+  };
+}
+
+/**
+ * Relative collage slots: same inset/shrink as fitPhotoRectForCaptions.
+ * baseBlock stays unchanged so group pinch/pan handles keep the full collage frame.
+ */
+export function fitPhotoBlockLayoutForCaptions(layout: PhotoBlockLayout): PhotoBlockLayout {
+  return {
+    baseBlock: layout.baseBlock,
+    slots: layout.slots.map((slot) => ({
+      ...slot,
+      relative: {
+        x: slot.relative.x + slot.relative.width * CAPTION_PHOTO_INSET_X_RATIO,
+        y: slot.relative.y,
+        width: Math.max(0.02, slot.relative.width * (1 - CAPTION_PHOTO_INSET_X_RATIO * 2)),
+        height: Math.max(0.02, slot.relative.height * (1 - CAPTION_PHOTO_SHRINK_Y_RATIO)),
+      },
+    })),
+  };
+}
+
 type ComputePhotoBlockLayoutParams = {
   lineGuideId: string;
   sourcePageNumber: number;

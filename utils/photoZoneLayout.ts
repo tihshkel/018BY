@@ -1,7 +1,10 @@
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import type { ContentRect } from '@/utils/imageContentRect';
+import { pageNeedsPhotoCaptionRoom } from '@/utils/designedAlbumPerPhotoCaptions';
 import {
   computePhotoBlockLayout,
+  fitPhotoBlockLayoutForCaptions,
+  fitPhotoRectForCaptions,
   resolvePhotoBlockSlotRects,
   type ViewportRect,
 } from '@/utils/photoBlockLayout';
@@ -58,7 +61,7 @@ function resolveBlockPhotoZoneRects(
     return uri && uri.trim() ? uri : `__caption_slot_${slotIndex}`;
   });
 
-  const blockLayout = computePhotoBlockLayout({
+  const blockLayoutRaw = computePhotoBlockLayout({
     lineGuideId: params.lineGuideId,
     sourcePageNumber: params.schema.sourcePageNumber,
     variantId: variant.variantId,
@@ -70,6 +73,15 @@ function resolveBlockPhotoZoneRects(
     contentRect: params.contentRect,
     templateLibraryId: params.schema.templateLibraryId,
   });
+  const reserveCaptions = pageNeedsPhotoCaptionRoom(
+    params.schema,
+    params.lineGuideId,
+    params.values,
+  );
+  const blockLayout =
+    blockLayoutRaw && reserveCaptions
+      ? fitPhotoBlockLayoutForCaptions(blockLayoutRaw)
+      : blockLayoutRaw;
 
   if (blockLayout) {
     const groupTransform = params.values.photoGroupTransform;
@@ -100,7 +112,11 @@ function resolveBlockPhotoZoneRects(
       templateLibraryId: params.schema.templateLibraryId,
     });
     if (photoRect) {
-      return [applyOptionalTransform(photoRect, params.values.photoGroupTransform)];
+      const transformed = applyOptionalTransform(
+        photoRect,
+        params.values.photoGroupTransform,
+      );
+      return [reserveCaptions ? fitPhotoRectForCaptions(transformed) : transformed];
     }
   }
 
@@ -122,7 +138,8 @@ function resolveBlockPhotoZoneRects(
 
     const transformKey = photoSlotTransformKey(block.blockId, slotIndex);
     const slotTransform = params.values.photoSlotTransforms?.[transformKey];
-    rects.push(applyOptionalTransform(photoRect, slotTransform));
+    const transformed = applyOptionalTransform(photoRect, slotTransform);
+    rects.push(reserveCaptions ? fitPhotoRectForCaptions(transformed) : transformed);
   }
 
   return rects;

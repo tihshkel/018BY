@@ -51,6 +51,7 @@ import { isDeviceLocalMediaUri } from "@/utils/crossDeviceMedia";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
+import { resolveEffectivePhotoCaptions } from "@/utils/pageValuesAdapter";
 import {
   getPageFormatForLineGuide,
   isBlankTemplateLineGuide,
@@ -324,12 +325,19 @@ export default function AlbumPagePreviewScreen() {
     debounceMs: isFinalPreview ? 48 : 0,
   });
 
+  const livePhotoCaptions = useMemo(() => {
+    if (!schema || !values || !showPhotoBlockEditor) return undefined;
+    return resolveEffectivePhotoCaptions(schema, resolvedLineGuideId, values);
+  }, [resolvedLineGuideId, schema, showPhotoBlockEditor, values]);
+
   const displayAnnotations = useMemo(() => {
     if (!showPhotoBlockEditor) return annotations;
-    // Draggable collage editor redraws user photos; keep gender fills and placeholders.
-    return annotations.filter(
-      (item) => item.type !== "image" || !item.imageUri,
-    );
+    // Draggable collage editor redraws user photos + live captions; keep gender fills.
+    return annotations.filter((item) => {
+      if (item.id.includes("photo-caption")) return false;
+      if (item.type === "image" && item.imageUri) return false;
+      return true;
+    });
   }, [annotations, showPhotoBlockEditor]);
 
   useEffect(() => {
@@ -602,6 +610,8 @@ export default function AlbumPagePreviewScreen() {
                       coordinateHeight={previewLayout.coordinateHeight}
                       sourceWidth={annotationSourceSize.width}
                       sourceHeight={annotationSourceSize.height}
+                      photoCaptions={livePhotoCaptions}
+                      textFontFamily={values?.textFontFamily}
                       onGroupTransformChange={photoEditor.handleGroupTransformChange}
                     />
                   ) : null

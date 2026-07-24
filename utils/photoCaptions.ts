@@ -1,6 +1,6 @@
 import type { AlbumPageSchema } from '@/types/album-page-schema';
 
-/** Страницы «только фото» — подписи нужны; на value/text+фото — нет. */
+/** Страницы «только фото» — подписи нужны; на value/text+фото — нет (кроме holidays). */
 function isPhotoCollageCaptionPage(schema: AlbumPageSchema): boolean {
   return (
     schema.pageType === 'photo' ||
@@ -16,6 +16,23 @@ function schemaHasUserValueFields(schema: AlbumPageSchema): boolean {
   );
 }
 
+function isHolidaysBirthdayAlbum(schema: AlbumPageSchema): boolean {
+  return schema.lineGuideId === 'holidays_birthday_60';
+}
+
+/**
+ * Подписи под фото на value+фото — только «Праздники и события» (не как iOS во всех альбомах).
+ */
+function holidaysAllowsPhotoCaptions(schema: AlbumPageSchema): boolean {
+  if (!isHolidaysBirthdayAlbum(schema)) return false;
+  return (
+    schema.captionEnabled === true ||
+    schema.pageType === 'birthday_free_page' ||
+    schema.pageType === 'caption_photo_page' ||
+    schema.pageType === 'free_photo_caption'
+  );
+}
+
 /**
  * Per-photo подписи: caption_photo_page / free_photo_caption / blank layout.perPhotoCaptions
  * / designed (передаётся через templateHasPerPhotoCaptions).
@@ -26,7 +43,10 @@ export function shouldShowPerPhotoCaptions(
   templateHasPerPhotoCaptions = false,
 ): boolean {
   if (!schema) return false;
-  // kids date+photo / holidays value+photo / pregnancy weekly — без подписей.
+  if (holidaysAllowsPhotoCaptions(schema)) {
+    return true;
+  }
+  // kids date+photo / pregnancy weekly — без подписей.
   if (schemaHasUserValueFields(schema) && !isPhotoCollageCaptionPage(schema)) {
     return false;
   }
@@ -46,6 +66,9 @@ export function shouldShowPerPhotoCaptions(
 /** Рендер подписей под слотами фото (без line-slots / template textBlocks). */
 export function shouldRenderPhotoSlotCaptions(schema: AlbumPageSchema | undefined): boolean {
   if (!schema) return false;
+  if (holidaysAllowsPhotoCaptions(schema)) {
+    return true;
+  }
   if (schemaHasUserValueFields(schema) && !isPhotoCollageCaptionPage(schema)) {
     return false;
   }
@@ -61,14 +84,17 @@ export function shouldRenderPhotoSlotCaptions(schema: AlbumPageSchema | undefine
 }
 
 /**
- * Единый gate для UI и экспорта: смешанные страницы (value-поля + фото) — без подписей;
- * photo-only / blank perPhotoCaptions — подписи оставить.
+ * Единый gate: смешанные страницы (value + фото) без подписей везде,
+ * кроме holidays_birthday_60. Photo-only / blank perPhotoCaptions — как раньше.
  */
 export function shouldShowAnyPhotoCaption(
   schema: AlbumPageSchema | undefined,
   templateHasPerPhotoCaptions = false,
 ): boolean {
   if (!schema) return false;
+  if (holidaysAllowsPhotoCaptions(schema)) {
+    return true;
+  }
   if (schemaHasUserValueFields(schema) && !isPhotoCollageCaptionPage(schema)) {
     return false;
   }

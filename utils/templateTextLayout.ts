@@ -30,6 +30,9 @@ const TEMPLATE_BLOCK_CHAR_WIDTH_BY_FONT: Record<string, number> = {
 const TEMPLATE_BLOCK_CHAR_WIDTH_FALLBACK = 0.55;
 const TEMPLATE_BLOCK_LINE_HEIGHT = 1.15;
 
+export const TEMPLATE_CAPTION_MAX_FONT_SIZE = 15;
+export const TEMPLATE_CAPTION_MIN_FONT_SIZE = 9;
+
 /** Char-width ratio for blank template text blocks (preview + export parity). */
 export function getTemplateBlockCharWidthRatio(fontId?: string | null): number {
   const id = normalizeAlbumFontId(fontId);
