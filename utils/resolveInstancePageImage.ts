@@ -52,6 +52,7 @@ export function resolveInstancePageImageUri(
 /**
  * Фон для экспорта: шаблонные страницы — по sourcePageNumber в каталоге альбома,
  * пользовательские копии — по imageIndex в проекте.
+ * Для дневников предпочитаем уже материализованные templatePageUris (file://).
  */
 export function resolveExportPageImageUri(
   projectImages: readonly string[],
@@ -60,14 +61,44 @@ export function resolveExportPageImageUri(
   lineGuideId?: string | null,
 ): string | undefined {
   if (!instance.addedByUser && isDiaryInteriorAlbumId(lineGuideId)) {
-    const bundled = resolveDiaryInteriorPageUriSync(
-      lineGuideId,
-      instance.sourcePageNumber,
-    );
-    if (bundled) return bundled;
+    const templateIndex = instance.sourcePageNumber - 1;
+    if (
+      templatePageUris &&
+      templateIndex >= 0 &&
+      templateIndex < templatePageUris.length
+    ) {
+      const byTemplate = templatePageUris[templateIndex];
+      // Только disk-local: Metro/http sync даёт белый фон в snapshot PDF.
+      if (
+        byTemplate &&
+        (byTemplate.startsWith('file://') || byTemplate.startsWith('/'))
+      ) {
+        return byTemplate;
+      }
+    }
+    // Не падаем в resolveInstancePageImageUri (там sync Metro) — иначе белый snapshot.
+    return undefined;
   }
 
   if (instance.addedByUser) {
+    // Копии дневника: фон всё равно из шаблона sourcePageNumber, не из Metro projectImages.
+    if (isDiaryInteriorAlbumId(lineGuideId)) {
+      const templateIndex = instance.sourcePageNumber - 1;
+      if (
+        templatePageUris &&
+        templateIndex >= 0 &&
+        templateIndex < templatePageUris.length
+      ) {
+        const byTemplate = templatePageUris[templateIndex];
+        if (
+          byTemplate &&
+          (byTemplate.startsWith('file://') || byTemplate.startsWith('/'))
+        ) {
+          return byTemplate;
+        }
+      }
+      return undefined;
+    }
     return projectImages[instance.imageIndex] ?? undefined;
   }
 

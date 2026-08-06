@@ -30,6 +30,7 @@
     "visualize:line-slots": "node ./scripts/visualize-line-slots.js",
     "audit:line-slots": "node ./scripts/audit-line-slots.js",
     "verify:line-slots": "npm run generate:line-slots && npm run audit:line-slots",
+    "verify:diary-export": "node ./scripts/verify-diary-export-guards.mjs",
     "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
     "sync:app-logo": "node ./scripts/sync-app-logo.js",

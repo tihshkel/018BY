@@ -274,6 +274,14 @@ function shouldUsePageRendererForExport(params: {
   const { hasImageAnnotations, hasTemplateTextAnnotations, lineGuideId, schema } = params;
   if (schema?.pageType === 'travel_map_page') return true;
   if (isBlankTemplateLineGuide(lineGuideId)) return true;
+  // Дневник text-only: ViewShot давал белый фон + текст. Фон гарантируем через pdf-lib + file://.
+  // Страницы с фото по-прежнему через PageRenderer (после materialize file://).
+  if (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    !hasImageAnnotations
+  ) {
+    return false;
+  }
   if (hasImageAnnotations) return true;
   if (hasTemplateTextAnnotations && hasLineGuides(lineGuideId)) return true;
   return false;
@@ -575,6 +583,8 @@ export default function ExportPdfScreen() {
     lineGuideId?: string;
     sourceWidth?: number;
     sourceHeight?: number;
+    /** Дневник: фон уже в PDF, снимаем только оверлей (PNG + transparent). */
+    omitBackgroundImage?: boolean;
   } | null>(null);
   const pageRendererRef = useRef<PageRendererRef>(null);
   const [pageRendererReady, setPageRendererReady] = useState(false);
@@ -582,6 +592,8 @@ export default function ExportPdfScreen() {
     resolve: (uri: string | null) => void;
     reject: (error: Error) => void;
   } | null>(null);
+  /** Фон PageRenderer не загрузился — не снимать белый лист с текстом. */
+  const pageSnapshotBgErrorRef = useRef<(() => void) | null>(null);
   const captureSettingsRef = useRef<{ scale: number; quality: number }>({ scale: 1.35, quality: 0.92 });
 
   useEffect(() => {
@@ -860,6 +872,12 @@ export default function ExportPdfScreen() {
                 projectCategory,
               );
             } catch (templateError) {
+              // Дневники: без file:// фона PageRenderer снимает белый лист с текстом.
+              // Не глотаем ошибку — иначе экспорт «успешен», но страницы пустые.
+              const { isDiaryInteriorAlbumId } = await import('@/utils/diaryPageImages');
+              if (isDiaryInteriorAlbumId(interiorAlbumId) || projectCategory === 'diary') {
+                throw templateError;
+              }
               console.warn('[PDF Export] Каталог шаблонов не загружен до фильтра:', templateError);
             }
           }
@@ -919,6 +937,7 @@ export default function ExportPdfScreen() {
               viewportWidth: pagesViewportResolved.width,
               viewportHeight: pagesViewportResolved.height,
               sourceSizesByImageIndex,
+              templatePageUris,
               getSchema,
             });
             images = filtered.images.map((imageUri, index) => {
@@ -1011,7 +1030,16 @@ export default function ExportPdfScreen() {
 
       if (images.length === 0 && albumId) {
         try {
-          images = await getAlbumImageUris(albumId);
+          const { isDiaryInteriorAlbumId } = await import('@/utils/diaryPageImages');
+          const isDiary =
+            isDiaryInteriorAlbumId(albumId) ||
+            isDiaryInteriorAlbumId(lineGuideAlbumId) ||
+            projectCategory === 'diary';
+          // Дневники: getAlbumImageUris отдаёт Metro/sync — для PDF это белый фон.
+          // Сразу материализуем file:// через ensureAlbumPagesCachedForExport.
+          if (!isDiary) {
+            images = await getAlbumImageUris(albumId);
+          }
         } catch (error) {
           console.error(`[PDF Export] Ошибка при загрузке изображений альбома:`, error);
         }
@@ -1027,11 +1055,27 @@ export default function ExportPdfScreen() {
             }
           );
         } catch (error) {
+          const { isDiaryInteriorAlbumId } = await import('@/utils/diaryPageImages');
+          if (
+            isDiaryInteriorAlbumId(albumId) ||
+            isDiaryInteriorAlbumId(lineGuideAlbumId) ||
+            projectCategory === 'diary'
+          ) {
+            throw error;
+          }
           console.warn('[PDF Export] ensureAlbumPagesCachedForExport не удался:', error);
         }
       }
 
       if (images.length === 0) {
+        const { isDiaryInteriorAlbumId } = await import('@/utils/diaryPageImages');
+        if (
+          isDiaryInteriorAlbumId(albumId) ||
+          isDiaryInteriorAlbumId(lineGuideAlbumId) ||
+          projectCategory === 'diary'
+        ) {
+          throw new Error('Не удалось подготовить страницы дневника для экспорта');
+        }
         const blankPageUri = await getBlankInteriorPageUri(exportLineGuideId);
         if (blankPageUri) {
           images = [blankPageUri];
@@ -1050,6 +1094,54 @@ export default function ExportPdfScreen() {
         images = await ensurePageUrisCachedForExport(images, (done, total) => {
           setGenerationProgress({ current: done, total });
         });
+      }
+
+      // Дневник: после кеша всё ещё могут остаться Metro http — принудительно file://.
+      {
+        const { resolveDiaryInteriorId, materializeDiaryInteriorPageUri } =
+          await import('@/utils/diaryPageImages');
+        const diaryId = resolveDiaryInteriorId(
+          lineGuideAlbumId,
+          exportLineGuideId,
+          projectInteriorType,
+          albumId,
+          projectCategory === 'diary' ? 'diary_interior_brown' : null,
+        );
+        if (diaryId) {
+          images = await Promise.all(
+            images.map(async (uri, index) => {
+              if (uri?.startsWith('file://') || uri?.startsWith('/')) {
+                try {
+                  const info = await FileSystem.getInfoAsync(
+                    uri.startsWith('/') ? `file://${uri}` : uri,
+                  );
+                  if (info.exists) return uri;
+                } catch {
+                  /* rematerialize below */
+                }
+              }
+              const sourcePage =
+                exportPages[index]?.instance.sourcePageNumber ?? index + 1;
+              return (
+                (await materializeDiaryInteriorPageUri(diaryId, sourcePage)) ?? ''
+              );
+            }),
+          );
+          const bad = images.findIndex(
+            (uri) => !uri || !(uri.startsWith('file://') || uri.startsWith('/')),
+          );
+          if (bad >= 0) {
+            throw new Error(
+              `Страница дневника ${bad + 1} не подготовлена как file:// для экспорта`,
+            );
+          }
+          if (exportPages.length === images.length) {
+            exportPages = exportPages.map((bundle, index) => ({
+              ...bundle,
+              imageUri: images[index] ?? bundle.imageUri,
+            }));
+          }
+        }
       }
 
       const hasRemotePageUris = images.some((uri) => uri?.startsWith('http'));
@@ -1931,19 +2023,55 @@ export default function ExportPdfScreen() {
           }
         }
 
-        if (lineGuideAlbumId) {
-          const fallbackUri = await ensureRemoteAlbumPageCachedByIndex(
+        if (lineGuideAlbumId || exportLineGuideId || projectCategory === 'diary') {
+          const { resolveDiaryInteriorId, materializeDiaryInteriorPageUri } =
+            await import('@/utils/diaryPageImages');
+          const diaryId = resolveDiaryInteriorId(
             lineGuideAlbumId,
-            projectCategory,
-            pageIndex + 1
+            exportLineGuideId,
+            projectInteriorType,
+            albumId,
+            projectCategory === 'diary' ? 'diary_interior_brown' : null,
           );
-          if (fallbackUri) {
-            const bytes = await loadBytesWithRetry(
-              fallbackUri,
-              `страницу ${pageIndex + 1} (шаблон альбома)`
+          if (diaryId) {
+            try {
+              const sourcePage =
+                exportPages[pageIndex]?.instance.sourcePageNumber ?? pageIndex + 1;
+              const diaryUri = await materializeDiaryInteriorPageUri(
+                diaryId,
+                sourcePage,
+              );
+              if (diaryUri) {
+                const bytes = await loadBytesWithRetry(
+                  diaryUri,
+                  `страницу ${pageIndex + 1} (дневник file://)`,
+                );
+                if (bytes && bytes.length > 0) {
+                  return bytes;
+                }
+              }
+            } catch (diaryError) {
+              console.warn(
+                `[PDF Export] Не удалось материализовать дневник p${pageIndex + 1}:`,
+                diaryError,
+              );
+            }
+          }
+
+          if (lineGuideAlbumId) {
+            const fallbackUri = await ensureRemoteAlbumPageCachedByIndex(
+              lineGuideAlbumId,
+              projectCategory,
+              pageIndex + 1
             );
-            if (bytes && bytes.length > 0) {
-              return bytes;
+            if (fallbackUri) {
+              const bytes = await loadBytesWithRetry(
+                fallbackUri,
+                `страницу ${pageIndex + 1} (шаблон альбома)`
+              );
+              if (bytes && bytes.length > 0) {
+                return bytes;
+              }
             }
           }
         }
@@ -2230,6 +2358,13 @@ export default function ExportPdfScreen() {
               Boolean(ann.content?.trim()) &&
               typeof ann.templateLineStart === 'number',
           );
+          const isDiaryExportPage =
+            resolvedLineGuideId === 'diary_interior_brown' ||
+            resolvedLineGuideId === 'diary_interior_purple' ||
+            exportLineGuideId === 'diary_interior_brown' ||
+            exportLineGuideId === 'diary_interior_purple' ||
+            projectCategory === 'diary';
+
           const usePageRenderer = shouldUsePageRendererForExport({
             hasImageAnnotations,
             hasTemplateTextAnnotations,
@@ -2248,18 +2383,56 @@ export default function ExportPdfScreen() {
                 ? 30000
                 : 15000;
 
+          // Дневник + фото: фон всегда из file:// в PDF, ViewShot — только оверлей.
+          const diaryOverlayCapture = isDiaryExportPage && usePageRenderer;
+
           // PageRenderer — снапшот того же рендера, что в предпросмотре (фото и/или текст по слотам)
           let pageSnapshotUri: string | null = null;
           if (usePageRenderer) {
             try {
+              let captureImageUri = optimizedPageUri;
+              // Дневник: ViewShot требует disk-local file:// (не Metro http).
+              const { resolveDiaryInteriorId, materializeDiaryInteriorPageUri } =
+                await import('@/utils/diaryPageImages');
+              const captureDiaryId = resolveDiaryInteriorId(
+                resolvedLineGuideId,
+                exportLineGuideId,
+                lineGuideAlbumId,
+                projectInteriorType,
+                albumId,
+                projectCategory === 'diary' ? 'diary_interior_brown' : null,
+              );
+              if (captureDiaryId) {
+                // Всегда свежий file:// — не доверяем optimized/Metro URI.
+                const diaryUri = await materializeDiaryInteriorPageUri(
+                  captureDiaryId,
+                  sourcePageNumber,
+                );
+                if (!diaryUri) {
+                  throw new Error(
+                    `Не удалось материализовать фон дневника (стр. ${pageNumber})`,
+                  );
+                }
+                captureImageUri = diaryUri;
+              }
+
               pageSnapshotUri = await withTimeout({
                 label: `PageRenderer capture ${pageNumber}`,
                 timeoutMs: pageRendererTimeoutMs,
                 task: async () =>
                   new Promise<string | null>((resolve, reject) => {
                     pageSnapshotPromiseRef.current = { resolve, reject };
+                    pageSnapshotBgErrorRef.current = () => {
+                      if (pageSnapshotPromiseRef.current) {
+                        pageSnapshotPromiseRef.current.resolve(null);
+                        pageSnapshotPromiseRef.current = null;
+                      }
+                      pageSnapshotBgErrorRef.current = null;
+                      setRenderingPage(null);
+                      setPageRendererReady(false);
+                    };
                     setRenderingPage({
-                      imageUri: optimizedPageUri,
+                      imageUri: captureImageUri,
                       annotations: pageAnnotations,
                       pageNumber,
                       sourcePageNumber,
@@ -2267,12 +2440,14 @@ export default function ExportPdfScreen() {
                       lineGuideId: resolvedLineGuideId || undefined,
                       sourceWidth: pageSourceSize.width,
                       sourceHeight: pageSourceSize.height,
+                      omitBackgroundImage: diaryOverlayCapture,
                     });
                     setTimeout(() => {
                       if (pageSnapshotPromiseRef.current) {
                         pageSnapshotPromiseRef.current.resolve(null);
                         pageSnapshotPromiseRef.current = null;
                       }
+                      pageSnapshotBgErrorRef.current = null;
                       setRenderingPage(null);
                       setPageRendererReady(false);
                     }, pageRendererTimeoutMs - 500);
@@ -2280,6 +2455,7 @@ export default function ExportPdfScreen() {
               });
             } catch {
               pageSnapshotUri = null;
+              pageSnapshotBgErrorRef.current = null;
               setRenderingPage(null);
               setPageRendererReady(false);
             }
@@ -2287,6 +2463,70 @@ export default function ExportPdfScreen() {
 
           if (pageSnapshotUri) {
             try {
+              // Дневник+фото: сначала цветной фон file://, поверх — прозрачный оверлей аннотаций.
+              if (diaryOverlayCapture) {
+                const bgBytes = await loadPageBytesForExport(pageIndex);
+                if (!bgBytes) {
+                  throw new Error(
+                    `Не удалось загрузить фон дневника ${pageNumber} под оверлей.`,
+                  );
+                }
+                const page = pdfDoc.addPage([pageWidth, pageHeight]);
+                const isJpgBg = bgBytes[0] === 0xff && bgBytes[1] === 0xd8;
+                const embeddedBg = isJpgBg
+                  ? await pdfDoc.embedJpg(bgBytes)
+                  : await pdfDoc.embedPng(bgBytes);
+                const bgDims = embeddedBg.scale(1);
+                const bgAr = bgDims.width / bgDims.height;
+                const pageAr = pageWidth / pageHeight;
+                let bgW = pageWidth;
+                let bgH = pageHeight;
+                if (bgAr > pageAr) {
+                  bgH = pageWidth / bgAr;
+                } else {
+                  bgW = pageHeight * bgAr;
+                }
+                page.drawImage(embeddedBg, {
+                  x: (pageWidth - bgW) / 2,
+                  y: (pageHeight - bgH) / 2,
+                  width: bgW,
+                  height: bgH,
+                });
+
+                const overlayBytes = await loadImageAsBytes(pageSnapshotUri);
+                if (overlayBytes && overlayBytes.length > 0) {
+                  const isJpgOverlay =
+                    overlayBytes[0] === 0xff && overlayBytes[1] === 0xd8;
+                  const embeddedOverlay = isJpgOverlay
+                    ? await pdfDoc.embedJpg(overlayBytes)
+                    : await pdfDoc.embedPng(overlayBytes);
+                  const ovDims = embeddedOverlay.scale(1);
+                  const ovAr = ovDims.width / ovDims.height;
+                  let ovW = bgW;
+                  let ovH = bgH;
+                  if (ovAr > bgW / bgH) {
+                    ovH = bgW / ovAr;
+                  } else {
+                    ovW = bgH * ovAr;
+                  }
+                  page.drawImage(embeddedOverlay, {
+                    x: (pageWidth - ovW) / 2,
+                    y: (pageHeight - ovH) / 2,
+                    width: ovW,
+                    height: ovH,
+                  });
+                }
+
+                FileSystem.deleteAsync(pageSnapshotUri, { idempotent: true }).catch(() => {});
+                processedCount++;
+                interiorProcessedCount++;
+                setGenerationProgress({
+                  current: interiorProcessedCount,
+                  total: images.length,
+                });
+                continue;
+              }
+
               const snapshotUriForEmbed =
                 isElectronicExport
                   ? pageSnapshotUri
@@ -2363,6 +2603,12 @@ export default function ExportPdfScreen() {
           // Прямой путь — фон страницы + аннотации через pdf-lib (fallback и страницы без снапшота)
           let pageImageBytes = await loadPageBytesForExport(pageIndex);
           if (!pageImageBytes) {
+            // Дневник: белый blank + текст = исходный баг. Не подставляем заглушку.
+            if (isDiaryExportPage) {
+              throw new Error(
+                `Не удалось загрузить фон страницы дневника ${pageNumber}. Повторите экспорт.`,
+              );
+            }
             pageImageBytes = await loadBlankPageBytes();
           }
           if (!pageImageBytes) {
@@ -2398,6 +2644,11 @@ export default function ExportPdfScreen() {
             }
           }
           if (!embeddedImage) {
+            if (isDiaryExportPage) {
+              throw new Error(
+                `Не удалось встроить фон страницы дневника ${pageNumber}. Повторите экспорт.`,
+              );
+            }
             const addedBlank = await addBlankPdfPage();
             if (addedBlank) {
               processedCount++;
@@ -2543,6 +2794,18 @@ export default function ExportPdfScreen() {
           
         } catch (pageError) {
           console.error(`[PDF Export] Ошибка при обработке страницы ${pageNumber}:`, pageError);
+          const isDiaryPageError =
+            exportLineGuideId === 'diary_interior_brown' ||
+            exportLineGuideId === 'diary_interior_purple' ||
+            lineGuideAlbumId === 'diary_interior_brown' ||
+            lineGuideAlbumId === 'diary_interior_purple' ||
+            projectCategory === 'diary';
+          // Дневник: не маскируем сбой белой страницей — пользователь должен повторить экспорт.
+          if (isDiaryPageError) {
+            throw pageError instanceof Error
+              ? pageError
+              : new Error(`Ошибка экспорта страницы дневника ${pageNumber}`);
+          }
           const addedBlank = await addBlankPdfPage();
           if (addedBlank) {
             processedCount++;
@@ -3285,10 +3548,13 @@ export default function ExportPdfScreen() {
               sourcePageNumber={renderingPage.sourcePageNumber ?? renderingPage.pageNumber}
               sourceWidth={renderingPage.sourceWidth}
               sourceHeight={renderingPage.sourceHeight}
-              captureFormat="jpg"
+              captureFormat={renderingPage.omitBackgroundImage ? 'png' : 'jpg'}
               captureScale={captureSettingsRef.current.scale}
               captureQuality={captureSettingsRef.current.quality}
-              backgroundColor={colors.white}
+              backgroundColor={
+                renderingPage.omitBackgroundImage ? 'transparent' : colors.white
+              }
+              omitBackgroundImage={renderingPage.omitBackgroundImage}
               readOnly
               readySettleMs={
                 renderingPage.annotations.some((ann) => ann.type === 'image' && ann.imageUri)
@@ -3296,6 +3562,7 @@ export default function ExportPdfScreen() {
                   : 350
               }
               onReady={() => setPageRendererReady(true)}
+              onImageError={() => pageSnapshotBgErrorRef.current?.()}
             />
           </View>
         ) : null}

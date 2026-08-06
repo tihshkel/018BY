@@ -1,4 +1,5 @@
-﻿import { Image as RNImage, type ImageSourcePropType } from 'react-native';
+﻿import { Asset } from 'expo-asset';
+import { Image as RNImage, type ImageSourcePropType } from 'react-native';
 
 import { DIARY_BROWN_PAGES, DIARY_PURPLE_PAGES } from '@/utils/diaryInteriorAssets.generated';
 import { resolveImageSourceUri } from '@/utils/imageSourceUri';
@@ -10,6 +11,34 @@ const DIARY_PAGES: Record<string, readonly ImageSourcePropType[]> = {
 
 export function isDiaryInteriorAlbumId(albumId?: string | null): boolean {
   return albumId === 'diary_interior_brown' || albumId === 'diary_interior_purple';
+}
+
+/** Disk-local URI пригоден для ViewShot / FileSystem / ImageManipulator. */
+export function isDiskLocalExportUri(uri: string | null | undefined): uri is string {
+  if (!uri) return false;
+  return uri.startsWith('file://') || uri.startsWith('/');
+}
+
+/**
+ * Нормализует cover/album/interior id → diary_interior_brown|purple.
+ * Нужен, когда в экспорте приходит cover id, а category === 'diary'.
+ */
+export function resolveDiaryInteriorId(
+  ...candidates: Array<string | null | undefined>
+): 'diary_interior_brown' | 'diary_interior_purple' | null {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (candidate === 'diary_interior_purple' || candidate.includes('purple')) {
+      return 'diary_interior_purple';
+    }
+    if (candidate === 'diary_interior_brown' || candidate.includes('brown')) {
+      return 'diary_interior_brown';
+    }
+    if (candidate.startsWith('diary_interior_')) {
+      return 'diary_interior_brown';
+    }
+  }
+  return null;
 }
 
 export function getDiaryInteriorPageCount(albumId: string): number {
@@ -48,6 +77,7 @@ function normalizeBundledAssetUri(uri: string | null | undefined): string | null
 /**
  * Синхронный URI из Metro-бандла (список / превью).
  * Не зависит от @project_images_* — дневник всегда берёт макет по sourcePageNumber.
+ * Для PDF-экспорта не использовать — нужен materializeDiaryInteriorPageUri (file://).
  */
 export function resolveDiaryInteriorPageUriSync(
   albumId: string | null | undefined,
@@ -59,6 +89,47 @@ export function resolveDiaryInteriorPageUriSync(
     return normalizeBundledAssetUri(RNImage.resolveAssetSource(source)?.uri);
   } catch {
     return null;
+  }
+}
+
+function isDiskLocalFileUri(uri: string | null | undefined): uri is string {
+  return isDiskLocalExportUri(uri);
+}
+
+/**
+ * Диск-локальный file:// для экспорта / FileSystem / ImageManipulator.
+ * Preview может жить на Metro URI; snapshot PDF — нет (белый фон + текст).
+ * Context7 / expo-asset: после downloadAsync localUri указывает на файл в cache.
+ */
+export async function materializeDiaryInteriorPageUri(
+  albumId: string | null | undefined,
+  sourcePageNumber: number | null | undefined,
+): Promise<string | null> {
+  const source = getDiaryInteriorPageSource(albumId, sourcePageNumber);
+  if (typeof source !== 'number') return null;
+  try {
+    const [asset] = await Asset.loadAsync(source);
+    const raw = asset.localUri || asset.uri;
+    const uri = normalizeBundledAssetUri(raw);
+    if (isDiskLocalFileUri(uri)) return uri;
+
+    // Android drawable / asset: без схемы — ImageManipulator материализует в file://.
+    try {
+      const ImageManipulator = await import('expo-image-manipulator');
+      const result = await ImageManipulator.manipulateAsync(
+        raw || String(source),
+        [],
+        { format: ImageManipulator.SaveFormat.PNG },
+      );
+      const out = normalizeBundledAssetUri(result.uri);
+      if (isDiskLocalFileUri(out)) return out;
+    } catch {
+      // fall through
+    }
+    return null;
+  } catch {
+    const sync = resolveDiaryInteriorPageUriSync(albumId, sourcePageNumber);
+    return isDiskLocalFileUri(sync) ? sync : null;
   }
 }
 
@@ -75,7 +146,43 @@ export function resolveAllDiaryInteriorPageUrisSync(albumId: string): string[] {
   return [];
 }
 
-/** Полный список URI с прогревом Asset (фон / экспорт). */
+/**
+ * Все страницы дневника как file:// для PDF-экспорта.
+ * Sync Metro URI здесь недостаточно — PageRenderer/snapshot даёт белый фон.
+ */
+export async function resolveAllDiaryInteriorPageUrisForExport(
+  albumId: string,
+  onProgress?: (done: number, total: number) => void,
+): Promise<string[]> {
+  const pages = DIARY_PAGES[albumId];
+  if (!pages?.length) return [];
+
+  const uris: string[] = new Array(pages.length).fill('');
+  const maxParallel = 4;
+  let next = 0;
+  let done = 0;
+
+  const worker = async () => {
+    while (next < pages.length) {
+      const current = next;
+      next += 1;
+      uris[current] = (await materializeDiaryInteriorPageUri(albumId, current + 1)) ?? '';
+      done += 1;
+      onProgress?.(done, pages.length);
+    }
+  };
+
+  await Promise.all(Array.from({ length: maxParallel }, () => worker()));
+
+  if (!uris.every(Boolean)) {
+    throw new Error(
+      `Не удалось подготовить страницы дневника (${uris.filter(Boolean).length}/${pages.length}).`,
+    );
+  }
+  return uris;
+}
+
+/** Полный список URI с прогревом Asset (фон / список). Для экспорта — ForExport. */
 export async function resolveAllDiaryInteriorPageUris(
   albumId: string,
 ): Promise<string[]> {

@@ -2,7 +2,8 @@ import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-pa
 import type { Annotation } from '@/components/pdf-annotations';
 import { computePageStatus } from '@/utils/pageStatus';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
-import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
+import { isDiaryInteriorAlbumId } from '@/utils/diaryPageImages';
+import { resolveExportPageImageUri } from '@/utils/resolveInstancePageImage';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
@@ -218,6 +219,8 @@ export function filterProjectDataForExport(params: {
   viewportWidth: number;
   viewportHeight: number;
   sourceSizesByImageIndex?: Map<number, { width: number; height: number }>;
+  /** Материализованные шаблоны (file://) — критично для diary export. */
+  templatePageUris?: readonly string[];
   getSchema: (instance: PageInstance) => AlbumPageSchema | undefined;
 }): {
   images: string[];
@@ -234,6 +237,7 @@ export function filterProjectDataForExport(params: {
     viewportWidth,
     viewportHeight,
     sourceSizesByImageIndex,
+    templatePageUris,
     getSchema,
   } = params;
   const idSet = new Set(includedInstanceIds);
@@ -247,11 +251,25 @@ export function filterProjectDataForExport(params: {
     const schema = getSchema(instance);
     if (!schema) continue;
 
-    const imageUri =
-      resolveInstancePageImageUri(images, instance, lineGuideId) ??
-      blankPageUri ??
-      null;
-    if (!imageUri) continue;
+    const resolvedUri = resolveExportPageImageUri(
+      images,
+      instance,
+      templatePageUris,
+      lineGuideId,
+    );
+    // Дневники: белый blank вместо коричневого/фиолетового фона = «белый лист + текст».
+    // Не подставляем blankPageUri — лучше пропустить страницу / упасть выше при отсутствии template.
+    const imageUri = isDiaryInteriorAlbumId(lineGuideId)
+      ? resolvedUri ?? null
+      : resolvedUri ?? blankPageUri ?? null;
+    if (!imageUri) {
+      if (isDiaryInteriorAlbumId(lineGuideId)) {
+        throw new Error(
+          `Не удалось подготовить фон страницы дневника (source=${instance.sourcePageNumber}).`,
+        );
+      }
+      continue;
+    }
 
     filteredImages.push(imageUri);
     const targetPageNumber = filteredImages.length;

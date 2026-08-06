@@ -37,6 +37,11 @@ interface PageRendererProps {
   readySettleMs?: number;
   /** Средний слой между фоном и текстом (например, фото в финальном предпросмотре). */
   middleLayer?: React.ReactNode;
+  /**
+   * Экспорт дневника: не рисовать Image фона (фон уже встроен в PDF из file://).
+   * Снимаем только аннотации/фото поверх — исключает белый ViewShot.
+   */
+  omitBackgroundImage?: boolean;
 }
 
 /**
@@ -64,6 +69,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     waitForAnnotationImages = true,
     readySettleMs,
     middleLayer,
+    omitBackgroundImage = false,
   }, ref) => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const renderWidth = width ?? windowWidth;
@@ -109,22 +115,27 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         ? { width: sourceWidthProp, height: sourceHeightProp }
         : null,
     );
-  }, [imageUri]);
+    // Фон уже в PDF — считаем слой фона готовым сразу.
+    if (omitBackgroundImage) {
+      setIsImageLoaded(true);
+    }
+  }, [imageUri, omitBackgroundImage, sourceWidthProp, sourceHeightProp]);
 
   useEffect(() => {
     if (!sourceWidthProp || !sourceHeightProp) return;
     setSourceSize({ width: sourceWidthProp, height: sourceHeightProp });
   }, [sourceWidthProp, sourceHeightProp]);
 
-  // Android + disk cache: фон может отрисоваться без onLoad → аннотации не монтируются.
-  // Fallback: через короткое время всё равно показываем оверлей текста/фото.
+  // Preview: Android + disk cache иногда рисует фон без onLoad — короткий fallback.
+  // Export (waitForAnnotationImages): НЕ форсим ready без onLoad — иначе ViewShot
+  // снимает белый backgroundColor + текст (баг дневников Metro/file URI).
   useEffect(() => {
-    if (!imageUri || isImageLoaded) return;
+    if (!imageUri || isImageLoaded || waitForAnnotationImages) return;
     const timer = setTimeout(() => {
       setIsImageLoaded(true);
     }, 350);
     return () => clearTimeout(timer);
-  }, [imageUri, isImageLoaded]);
+  }, [imageUri, isImageLoaded, waitForAnnotationImages]);
 
   useEffect(() => {
     setLoadedAnnotationImageUris(new Set());
@@ -246,6 +257,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           },
         ]}
       >
+        {omitBackgroundImage ? null : (
         <Image
           key={`${imageUri}::${bgRetryKey}`}
           source={{ uri: imageUri }}
@@ -281,10 +293,17 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
               }, 250 * attempt);
               return;
             }
+            // Export: не помечаем «loaded» без фона — иначе белый snapshot с текстом.
+            // Preview: показываем аннотации даже без фона.
+            if (waitForAnnotationImages) {
+              onImageError?.();
+              return;
+            }
             setIsImageLoaded(true);
             onImageError?.();
           }}
         />
+        )}
 
         {isImageLoaded && middleLayer ? (
           <View style={styles.middleLayer} pointerEvents="box-none">

@@ -368,12 +368,10 @@ export async function ensureAlbumPagesCachedForExport(
 ): Promise<string[]> {
   const interiorId = resolveInteriorAlbumId(albumId, category);
   if (isDiaryInteriorAlbumId(interiorId)) {
-    const { resolveAllDiaryInteriorPageUrisSync, resolveAllDiaryInteriorPageUris } =
+    const { resolveAllDiaryInteriorPageUrisForExport } =
       await import('@/utils/diaryPageImages');
-    const sync = resolveAllDiaryInteriorPageUrisSync(interiorId);
-    const uris = sync.length > 0 ? sync : await resolveAllDiaryInteriorPageUris(interiorId);
-    if (uris.length > 0) onProgress?.(uris.length, uris.length);
-    return uris;
+    // Обязательно file:// (Asset.downloadAsync): Metro/sync URI в PageRenderer → белый фон.
+    return resolveAllDiaryInteriorPageUrisForExport(interiorId, onProgress);
   }
 
   const spec = getRemoteAlbumSpec(interiorId);
