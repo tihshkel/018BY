@@ -20,20 +20,45 @@ export type AlbumSparsePhotoConfig = {
   minPhotoSafeHeight?: number;
 };
 
-export const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.05,
-  y: 0.18,
-  width: 0.9,
-  height: 0.64,
+/**
+ * Единый стандарт: свободные страницы «только фото + подписи»
+ * (pregnancy / kids / holidays / diary) — шаблоны ≈ 80% листа.
+ * Blank / свадьба не используют эту зону.
+ */
+export const PHOTO_ONLY_PAGE_SAFE: SafeZone = {
+  x: 0.1,
+  y: 0.1,
+  width: 0.8,
+  height: 0.8,
 };
 
+/** Event / diary / kids / birthday free — тот же 80% стандарт. */
+export const EVENT_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
+
+/** Pregnancy weekly / mixed — зона между текстом, не 80% листа. */
 export const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  // Шире — ближе к ширине текстовых строк анкеты (поля ~1.5 см).
-  x: 0.08,
-  y: 0.26,
-  width: 0.84,
-  height: 0.5,
+  x: 0.05,
+  y: 0.14,
+  width: 0.9,
+  height: 0.76,
 };
+
+/** Крупная зона (≥ ~72%) — заполняем слоты без сжатия 4:3/3:4. */
+export function isLargePhotoSafeZone(safeZone: SafeZone): boolean {
+  return safeZone.width >= 0.72 && safeZone.height >= 0.72;
+}
+
+/** Альбомы, где на photo-only страницах раздуваем шаблоны до PHOTO_ONLY_PAGE_SAFE. */
+export function isDesignedFreePhotoExpandAlbum(lineGuideId: string): boolean {
+  return (
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'kids_48' ||
+    lineGuideId === 'holidays_birthday_60' ||
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
+  );
+}
 
 /** Printable zone for blank pages — 15 mm from trim (same as sparse zoom). */
 export function getBlankPagePhotoSafe(widthMm: number, heightMm: number): SafeZone {
@@ -98,15 +123,13 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
     eventSafe: EVENT_PHOTO_SAFE,
     sideBySideTwoPhotoPages: KIDS_SIDE_BY_SIDE,
     excludePages: KIDS_EXCLUDE,
-    // Рамки layout/export — умеренный band; max pinch — через getSparsePhotoZoomBounds (1.5 см).
-    photoBandMaxBottom: 0.86,
+    photoBandMaxBottom: 0.92,
   }),
   pregnancy_60: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 180,
     pageWidthMm: 180,
     pageHeightMm: 240,
-    // Низ зоны = поле 1.5 см (см. SPARSE_PHOTO_ZOOM_MARGIN_MM), не 0.86.
     photoBandMaxBottom: 0.95,
   }),
   pregnancy_a5: config({
@@ -117,13 +140,16 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
   holidays_birthday_60: config({
     eventSafe: EVENT_PHOTO_SAFE,
     excludePages: BIRTHDAY_EXCLUDE_PAGES,
+    photoBandMaxBottom: 0.92,
   }),
   diary_interior_brown: config({
     eventSafe: EVENT_PHOTO_SAFE,
+    photoBandMaxBottom: 0.92,
   }),
   diary_interior_purple: config({
     eventSafe: EVENT_PHOTO_SAFE,
     gapMm: 3,
+    photoBandMaxBottom: 0.92,
   }),
   family_blank: config({
     eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
@@ -275,10 +301,17 @@ export function isBirthdayCaptionPhotoPage(page: number): boolean {
 }
 
 /**
- * 2×2 + подписи под фото — только holidays_birthday_60.
+ * 2×2 + подписи под фото — целевые designed-альбомы на free/caption страницах.
  */
 export function shouldReserveFourGridCaptionRows(lineGuideId: string, _page?: number): boolean {
-  return lineGuideId === 'holidays_birthday_60';
+  return (
+    lineGuideId === 'holidays_birthday_60' ||
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'kids_48' ||
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
+  );
 }
 
 const BIRTHDAY_AGE_PAGES = [

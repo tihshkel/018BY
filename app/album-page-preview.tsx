@@ -8,6 +8,7 @@ import {
 import { Image as ExpoImage } from "expo-image";
 
 import { AlbumPreviewPhotoBlockEditor } from "@/components/album/album-preview-photo-block-editor";
+import { PagePreviewLoadingOverlay } from "@/components/album/page-preview-loading-overlay";
 import { prefetchAlbumPhotoUri } from "@/components/album/album-photo-image";
 import { NonEditableBanner } from "@/components/album/non-editable-banner";
 import { PageFontPicker } from "@/components/album/page-font-picker";
@@ -344,9 +345,9 @@ export default function AlbumPagePreviewScreen() {
     setReady(false);
   }, [instanceId, imageUri]);
 
-  const handlePageReady = useCallback(() => {
-    setReady(true);
-  }, []);
+  // PageRenderer в preview может вызвать onReady до отрисовки фона (fallback 350ms) —
+  // оверлей снимаем только после реального onLoad (onSourceSize) или ошибки.
+  const handlePageReady = useCallback(() => {}, []);
 
   const handleSourceSize = useCallback((size: { width: number; height: number }) => {
     setSourceImageSize((prev) => {
@@ -363,6 +364,12 @@ export default function AlbumPagePreviewScreen() {
       setReady(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (ready || !imageUri || showTemplateWireframe) return;
+    const timer = setTimeout(() => setReady(true), 6000);
+    return () => clearTimeout(timer);
+  }, [ready, imageUri, showTemplateWireframe]);
 
   useEffect(() => {
     if (!imageUri) {
@@ -586,7 +593,9 @@ export default function AlbumPagePreviewScreen() {
                     imageUri !== blankPageFallbackUri
                   ) {
                     setDisplayImageUri(blankPageFallbackUri);
+                    return;
                   }
+                  setReady(true);
                 }}
                 middleLayer={
                   showPhotoBlockEditor &&
@@ -626,9 +635,7 @@ export default function AlbumPagePreviewScreen() {
               </View>
             )}
             {!showTemplateWireframe && !ready && imageUri ? (
-              <View style={styles.loadingOverlay}>
-                <ActivityIndicator color={colors.primary} />
-              </View>
+              <PagePreviewLoadingOverlay />
             ) : null}
           </View>
         </View>
@@ -831,12 +838,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     overflow: "hidden",
     backgroundColor: colors.white,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.6)",
   },
   previewUnavailable: {
     flex: 1,

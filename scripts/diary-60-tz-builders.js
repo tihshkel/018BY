@@ -26,6 +26,8 @@ const {
   SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
+  GRANDMA_FIELDS,
+  GRANDPA_FIELDS,
   DREAMS_FIELDS,
   BROWN_DREAMS_FIELDS,
   TRAVEL_FIELDS,
@@ -433,11 +435,30 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
     );
   }
 
-  if (
-    template === 'GrandparentProfileTemplate_Grandma' ||
-    template === 'GrandparentProfileTemplate_Grandpa'
-  ) {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, GRANDPARENT_FIELDS);
+  if (template === 'GrandparentProfileTemplate_Grandma') {
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      {
+        ...tzEntry,
+        formHint: 'Анкета про бабушку: контакты, профессия, любимые вещи и пожелания.',
+      },
+      GRANDMA_FIELDS,
+    );
+  }
+
+  if (template === 'GrandparentProfileTemplate_Grandpa') {
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      {
+        ...tzEntry,
+        formHint: 'Анкета про дедушку: контакты, профессия, любимые вещи и пожелания.',
+      },
+      GRANDPA_FIELDS,
+    );
   }
 
   if (template === 'DiaryRulesTemplate') {

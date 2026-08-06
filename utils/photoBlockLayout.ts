@@ -24,9 +24,9 @@ export type PhotoBlockLayout = {
 };
 
 /** Horizontal inset so photos look slightly narrower when caption pills sit under them. */
-const CAPTION_PHOTO_INSET_X_RATIO = 0.055;
+const CAPTION_PHOTO_INSET_X_RATIO = 0.04;
 /** Leave a clear band under the frame for the pill (relative to slot height). */
-const CAPTION_PHOTO_SHRINK_Y_RATIO = 0.12;
+const CAPTION_PHOTO_SHRINK_Y_RATIO = 0.09;
 
 /** Viewport photo frame: slightly narrower + shorter so caption pills sit cleanly under. */
 export function fitPhotoRectForCaptions(rect: ViewportRect): ViewportRect {

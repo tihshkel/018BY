@@ -65,13 +65,31 @@ const HOBBY_FIELDS = [
   ['favoriteCompany', 'С кем тебе нравится проводить время?', 'text', 1],
 ];
 
-const PETS_FIELDS = [
-  ['petName', 'Кличка питомца', 'text', 1],
-  ['petType', 'Вид / порода', 'text', 1],
-  ['petAge', 'Возраст', 'text', 1],
-  ['petCharacter', 'Характер', 'text', 1],
-  ['petFood', 'Любимая еда', 'text', 1],
-  ['petStory', 'История знакомства', 'text', 3],
+/** Коричневый A5 стр. 17 — слоты сверены с PNG: хвосты на вопросах + полные линии ответа. */
+const BROWN_PETS_FIELDS = [
+  ['lovesAnimals', 'Ты любишь животных?', 'text', 1],
+  ['favoriteAnimals', 'Какие животные тебе нравятся больше всего?', 'text', 2],
+  ['hasPets', 'У тебя есть питомцы?', 'text', 1],
+  ['petNames', 'Напиши их клички', 'text', 1],
+  ['petBreed', 'Какая порода у твоих питомцев?', 'text', 1],
+  // «Расскажи историю…» — микро-хвост PDF отбрасываем; ответ на полной строке ниже.
+  ['howAppeared', 'Расскажи историю, как они у вас появились', 'text', 1],
+  ['howCare', 'Как ты ухаживаешь за своими питомцами?', 'text', 1],
+  ['wantPet', 'Если питомца у тебя нет, поделись, кого бы тебе хотелось завести', 'text', 2],
+];
+
+const PETS_FIELDS = BROWN_PETS_FIELDS;
+
+/** Фиолетовый A5 — поля из TZ PetsQuestionnaire. */
+const PURPLE_PETS_FIELDS = [
+  ['likesAnimals', 'Ты любишь животных?', 'text', 1],
+  ['favoriteAnimals', 'Какие животные тебе нравятся больше всего?', 'text', 1],
+  ['hasPets', 'У тебя есть питомцы?', 'text', 1],
+  ['petNames', 'Напиши их клички', 'text', 1],
+  ['petBreed', 'Какая порода у твоих питомцев?', 'text', 1],
+  ['petStory', 'Расскажи историю, как они у вас появились', 'text', 3],
+  ['petCare', 'Как ты ухаживаешь за своими питомцами?', 'text', 2],
+  ['futurePet', 'Если питомца у тебя нет, поделись, кого бы тебе хотелось завести', 'text', 1],
 ];
 
 const SOCIAL_NETWORKS_FIELDS = [
@@ -119,14 +137,32 @@ const MOOD_FIELDS = [
   ['tomorrowWish', 'Чего жду завтра', 'text', 2],
 ];
 
-const STYLE_FIELDS = [
-  ['style', 'Мой стиль', 'text', 1],
-  ['favoriteColors', 'Любимые цвета в одежде', 'text', 1],
-  ['favoriteBrands', 'Любимые бренды', 'text', 1],
-  ['favoriteOutfit', 'Любимый наряд', 'text', 1],
-  ['accessories', 'Любимые аксессуары', 'text', 1],
-  ['shopping', 'Где люблю покупать одежду', 'text', 2],
-  ['inspiration', 'Кто вдохновляет мой стиль', 'text', 2],
+/** Коричневый A5 стр. 26 — хвосты после вопросов + полные строки ответа. */
+const BROWN_STYLE_FIELDS = [
+  ['followsTrends', 'Ты следишь за модными трендами?', 'text', 2],
+  ['comfortableClothes', 'Какая одежда для тебя самая удобная?', 'text', 2],
+  // Длинный вопрос без хвоста — только одна полная линия ответа.
+  ['colorCombos', 'Какие сочетания цветов в одежде тебе нравятся?', 'text', 1],
+  ['homeClothes', 'Твоя любимая одежда для дома', 'text', 2],
+  ['partyClothes', 'Любимая одежда для праздника', 'text', 2],
+  ['friendsClothes', 'Любимая одежда для прогулки с друзьями', 'text', 2],
+  ['schoolClothes', 'Любимая одежда для школы', 'text', 2],
+  ['jewelry', 'Ты носишь украшения? Если да, то какие?', 'text', 3],
+];
+
+const STYLE_FIELDS = BROWN_STYLE_FIELDS;
+
+/** Фиолетовый A5 — поля из TZ Fashion/Style. */
+const PURPLE_STYLE_FIELDS = [
+  ['trendFollow', 'Следишь ли ты за модными тенденциями?', 'text', 1],
+  ['comfortableClothes', 'Какая одежда для тебя самая удобная?', 'text', 1],
+  ['favoriteColorCombos', 'Какие сочетания цветов тебе нравятся?', 'text', 1],
+  ['homeClothes', 'Любимая одежда для дома', 'text', 1],
+  ['holidayClothes', 'Любимая одежда для праздника', 'text', 1],
+  ['friendsWalkClothes', 'Любимая одежда для прогулки с друзьями', 'text', 1],
+  ['schoolClothes', 'Любимая одежда для школы', 'text', 1],
+  ['wearsJewelry', 'Носишь ли ты украшения?', 'text', 1],
+  ['fashionDreams', 'Твои модные мечты', 'text', 4],
 ];
 
 const FIRST_LOVE_FIELDS = [
@@ -157,15 +193,40 @@ const SUNDAY_SCHEDULE_FIELDS = [
   ['notes', 'Заметки', 'text', 1],
 ];
 
-const GRANDPARENT_FIELDS = [
-  ['name', 'Имя', 'text', 1],
-  ['birthDate', 'Дата рождения', 'date', 1],
-  ['phone', 'Телефон', 'text', 1],
-  ['hobby', 'Хобби', 'text', 1],
-  ['favoriteFood', 'Любимая еда', 'text', 1],
-  ['favoriteMemory', 'Любимое воспоминание со мной', 'text', 2],
-  ['wish', 'Пожелание', 'text', 2],
+const GRANDMA_FIELDS = [
+  ['name', 'Имя бабушки', 'text', 1],
+  ['birthDate', 'Дата рождения бабушки', 'date', 1],
+  ['phone', 'Номер телефона бабушки', 'text', 1],
+  ['zodiac', 'Знак зодиака бабушки', 'text', 1],
+  ['profession', 'Профессия бабушки', 'text', 1],
+  ['favoriteFlowers', 'Любимые цветы бабушки', 'text', 1],
+  ['favoriteAnimal', 'Любимое животное бабушки', 'text', 1],
+  ['favoriteColor', 'Любимый цвет бабушки', 'text', 1],
+  ['favoriteSeason', 'Любимое время года бабушки', 'text', 1],
+  ['hobby', 'Хобби бабушки', 'text', 1],
+  ['favoriteDrink', 'Любимый напиток бабушки', 'text', 1],
+  ['favoriteDish', 'Любимое блюдо бабушки', 'text', 1],
+  ['wishes', 'Пожелания бабушки хозяйке дневника', 'text', 4],
 ];
+
+const GRANDPA_FIELDS = [
+  ['name', 'Имя дедушки', 'text', 1],
+  ['birthDate', 'Дата рождения дедушки', 'date', 1],
+  ['phone', 'Номер телефона дедушки', 'text', 1],
+  ['zodiac', 'Знак зодиака дедушки', 'text', 1],
+  ['profession', 'Профессия дедушки', 'text', 1],
+  ['favoriteFlowers', 'Любимые цветы дедушки', 'text', 1],
+  ['favoriteAnimal', 'Любимое животное дедушки', 'text', 1],
+  ['favoriteColor', 'Любимый цвет дедушки', 'text', 1],
+  ['favoriteSeason', 'Любимое время года дедушки', 'text', 1],
+  ['hobby', 'Хобби дедушки', 'text', 1],
+  ['favoriteDrink', 'Любимый напиток дедушки', 'text', 1],
+  ['favoriteDish', 'Любимое блюдо дедушки', 'text', 1],
+  ['wishes', 'Пожелания дедушки хозяйке дневника', 'text', 4],
+];
+
+/** @deprecated identical printed template — use GRANDMA_FIELDS / GRANDPA_FIELDS */
+const GRANDPARENT_FIELDS = GRANDMA_FIELDS;
 
 const DREAMS_FIELDS = [
   ['dream1', 'Мечта №1', 'text', 2],
@@ -212,10 +273,19 @@ function buildWeeklyScheduleSpec(day1, day2, slots) {
 }
 
 function buildBrownWeeklyScheduleWithNoteSpec(slots) {
-  const total = slots?.length ?? 17;
-  const scheduleSlots = Array.from({ length: Math.max(8, total - 1) });
-  const scheduleSpec = buildWeeklyScheduleSpec('Пятница', 'Суббота', scheduleSlots);
-  const noteLines = Math.max(1, total - scheduleSpec.length);
+  const total = slots?.length ?? 16;
+  // Верхний блок — только воскресенье (6 линий); ниже — заметки на неделю.
+  const sundayLines = Math.min(6, Math.max(1, total - 1));
+  const noteLines = Math.max(1, total - sundayLines);
+  const scheduleSpec = [];
+  for (let i = 0; i < sundayLines; i += 1) {
+    scheduleSpec.push([
+      `sun_l${i + 1}`,
+      `Воскресенье: урок ${i + 1}`,
+      'text',
+      1,
+    ]);
+  }
   return [...scheduleSpec, ['weekNote', 'Заметки на неделю', 'text', noteLines]];
 }
 
@@ -225,15 +295,21 @@ module.exports = {
   PARENT_DAD_FIELDS,
   HOBBY_FIELDS,
   PETS_FIELDS,
+  BROWN_PETS_FIELDS,
+  PURPLE_PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
   FRIEND_SOCIAL_FIELDS,
   PURPLE_FRIEND_FIELDS,
   MOOD_FIELDS,
   STYLE_FIELDS,
+  BROWN_STYLE_FIELDS,
+  PURPLE_STYLE_FIELDS,
   FIRST_LOVE_FIELDS,
   SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
+  GRANDMA_FIELDS,
+  GRANDPA_FIELDS,
   DREAMS_FIELDS,
   TRAVEL_FIELDS,
   DIARY_RULES_FIELDS,

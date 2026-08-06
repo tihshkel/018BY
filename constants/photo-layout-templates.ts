@@ -101,12 +101,34 @@ export const TEMPLATE_KIDS_TWO_STACKED: PhotoLayoutTemplate = {
   ],
 };
 
+/** 2 vertical columns — широкие, не «башни» 3:4 на всю высоту. */
+function buildTwoVerticalSlots(safeZone: SafeZone): TemplatePhotoSlot[] {
+  const marginX = 0.02;
+  const marginY = 0.02;
+  const gap = 0.03;
+  const availW = 1 - marginX * 2;
+  const availH = 1 - marginY * 2;
+  const colW = (availW - gap) / 2;
+  // Цель ~4:5 от ширины колонки; если зона низкая — заполняем высоту.
+  const cellWPage = colW * safeZone.width;
+  let cellHRel = (cellWPage * 1.2) / Math.max(safeZone.height, 0.01);
+  if (cellHRel > availH) cellHRel = availH;
+  // Если зона высокая — не оставляем огромные поля: минимум ~78% высоты.
+  cellHRel = Math.max(cellHRel, Math.min(availH, availH * 0.78));
+  const top = marginY + Math.max(0, (availH - cellHRel) / 2);
+  return [
+    slot(marginX, top, colW, cellHRel, [4, 5]),
+    slot(marginX + colW + gap, top, colW, cellHRel, [4, 5]),
+  ];
+}
+
 /** 2 vertical columns on shared grid */
 export const TEMPLATE_TWO_VERTICAL: PhotoLayoutTemplate = {
   variantId: 'two_vertical',
+  // Runtime geometry: buildTwoVerticalSlots(safeZone)
   slots: [
-    slot(COL_X_LEFT, MARGIN_Y, COL_WIDTH, 1 - MARGIN_Y * 2, [3, 4]),
-    slot(COL_X_RIGHT, MARGIN_Y, COL_WIDTH, 1 - MARGIN_Y * 2, [3, 4]),
+    slot(COL_X_LEFT, MARGIN_Y, COL_WIDTH, 1 - MARGIN_Y * 2, [4, 5]),
+    slot(COL_X_RIGHT, MARGIN_Y, COL_WIDTH, 1 - MARGIN_Y * 2, [4, 5]),
   ],
 };
 
@@ -185,29 +207,22 @@ function buildFourGridSlots(
   options?: { reserveCaptionRows?: boolean },
 ): TemplatePhotoSlot[] {
   const marginX = 0.015;
-  const marginY = 0.02;
-  // CaptionGallery: photo bottom→next photo ≈ 0.11 page; relative to safe zone ~0.12.
-  const gap = options?.reserveCaptionRows ? 0.12 : 0.022;
+  const marginY = 0.015;
+  // CaptionGallery: межрядный зазор под подписи; иначе — плотная сетка на весь safe zone.
+  const gap = options?.reserveCaptionRows ? 0.11 : 0.022;
   const availW = 1 - marginX * 2;
   const availH = 1 - marginY * 2;
 
   const colW = (availW - gap) / 2;
-  const cellWPage = colW * safeZone.width;
-  let cellHRel = (cellWPage * 0.75) / Math.max(safeZone.height, 0.01);
-
-  const neededH = cellHRel * 2 + gap;
-  if (neededH > availH) {
-    cellHRel = (availH - gap) / 2;
-  }
-
-  const gridH = cellHRel * 2 + gap;
+  // Заполняем высоту (обширно), а не центрируем мелкие 4:3 ячейки.
+  const cellHRel = (availH - gap) / 2;
   const left = marginX;
-  const top = marginY + Math.max(0, (availH - gridH) / 2);
+  const top = marginY;
   const right = left + colW + gap;
-  const aspectW = cellWPage;
+  const aspectW = colW * safeZone.width;
   const aspectH = cellHRel * safeZone.height;
   const aspectRatio: [number, number] =
-    aspectH > 0 && aspectW / aspectH >= 1.45 ? [3, 2] : [4, 3];
+    aspectH > 0 && aspectW / aspectH >= 1.2 ? [4, 3] : [1, 1];
 
   return [
     slot(left, top, colW, cellHRel, aspectRatio),
@@ -274,7 +289,7 @@ export type SafeZone = {
 export function buildVariantLayoutFromTemplate(
   template: PhotoLayoutTemplate,
   safeZone: SafeZone,
-  options?: { reserveCaptionRows?: boolean },
+  options?: { reserveCaptionRows?: boolean; fillSafeZoneSlots?: boolean },
 ): { variantId: string; slots: Array<{
   x: number;
   y: number;
@@ -287,12 +302,18 @@ export function buildVariantLayoutFromTemplate(
       ? buildThreeHeroSlots(safeZone)
       : template.variantId === 'four_grid'
         ? buildFourGridSlots(safeZone, options)
-        : template.slots;
+        : template.variantId === 'two_vertical'
+          ? buildTwoVerticalSlots(safeZone)
+          : template.slots;
+
+  // Крупные зоны (~80%): заполняем ячейки без сжатия 4:3/3:4.
+  const fillSafeZoneSlots =
+    options?.fillSafeZoneSlots ?? (safeZone.width >= 0.72 && safeZone.height >= 0.72);
 
   const slots = templateSlots.map((s) => {
     const absX = safeZone.x + s.x * safeZone.width;
     let absW = s.width * safeZone.width;
-    const isSquare = s.aspectRatio?.[0] === 1 && s.aspectRatio?.[1] === 1;
+    const isSquare = !fillSafeZoneSlots && s.aspectRatio?.[0] === 1 && s.aspectRatio?.[1] === 1;
     let absH = isSquare ? Math.min(absW, s.height * safeZone.height) : s.height * safeZone.height;
     if (isSquare) {
       absW = absH;
@@ -305,7 +326,7 @@ export function buildVariantLayoutFromTemplate(
       y: centerY,
       width: absW,
       height: absH,
-      aspectRatio: s.aspectRatio,
+      aspectRatio: fillSafeZoneSlots ? undefined : s.aspectRatio,
     };
   });
 
@@ -315,7 +336,7 @@ export function buildVariantLayoutFromTemplate(
 export function buildPageLayoutsFromTemplates(
   safeZone: SafeZone,
   templateIds: string[],
-  options?: { reserveCaptionRows?: boolean },
+  options?: { reserveCaptionRows?: boolean; fillSafeZoneSlots?: boolean },
 ): { variants: ReturnType<typeof buildVariantLayoutFromTemplate>[] } {
   const variants = templateIds
     .map((id) => PHOTO_LAYOUT_TEMPLATES[id])

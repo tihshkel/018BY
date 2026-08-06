@@ -28,7 +28,9 @@ export function usesDesignedAlbumPerPhotoCaptions(
   return (
     guide === 'pregnancy_60' ||
     guide === 'pregnancy_a5' ||
-    guide === 'kids_48'
+    guide === 'kids_48' ||
+    guide === 'diary_interior_brown' ||
+    guide === 'diary_interior_purple'
   );
 }
 

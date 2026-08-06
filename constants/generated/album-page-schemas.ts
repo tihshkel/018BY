@@ -18467,48 +18467,48 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 37,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p37_d1_l1",
-          "label": "Пятница: урок 1",
+          "fieldId": "diary_interior_brown_p37_sun_l1",
+          "label": "Воскресенье: урок 1",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d1_l2",
-          "label": "Пятница: урок 2",
+          "fieldId": "diary_interior_brown_p37_sun_l2",
+          "label": "Воскресенье: урок 2",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d1_l3",
-          "label": "Пятница: урок 3",
+          "fieldId": "diary_interior_brown_p37_sun_l3",
+          "label": "Воскресенье: урок 3",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d2_l1",
-          "label": "Суббота: урок 1",
+          "fieldId": "diary_interior_brown_p37_sun_l4",
+          "label": "Воскресенье: урок 4",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d2_l2",
-          "label": "Суббота: урок 2",
+          "fieldId": "diary_interior_brown_p37_sun_l5",
+          "label": "Воскресенье: урок 5",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d2_l3",
-          "label": "Суббота: урок 3",
+          "fieldId": "diary_interior_brown_p37_sun_l6",
+          "label": "Воскресенье: урок 6",
           "type": "text",
           "required": false,
           "templateLineStart": 5,

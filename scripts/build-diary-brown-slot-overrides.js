@@ -118,21 +118,17 @@ def girl_profile_slots(pnum=6, y_min=0.225):
         s['inputKind'] = 'block' if s['width'] >= 0.62 else 'line'
     return slots
 
+def parent_profile_slots(pnum):
+  slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.20)
+  if len(slots) >= 17:
+    return slots[:12] + slots[13:17]
+  if len(slots) >= 16:
+    return slots[:16]
+  return slots
+
 def grandparent_profile_slots(pnum):
-    slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.24)
-    filtered = []
-    for s in slots:
-        if s['width'] < 0.35:
-            continue
-        if s['x'] < 0.24 and s['width'] < 0.55:
-            continue
-        filtered.append(s)
-    filtered = filtered[:9]
-    for i, s in enumerate(filtered):
-        s['continuationGroup'] = i + 1
-        s['hasLabel'] = False
-        s['inputKind'] = 'block' if s['width'] >= 0.62 else 'line'
-    return filtered
+    # Печатный макет идентичен анкете мамы/папы — те же 16 слотов.
+    return parent_profile_slots(pnum)
 
 def diary_owner_slots():
     return [{
@@ -145,26 +141,33 @@ def diary_owner_slots():
         'continuationGroup': 1,
     }]
 
-def parent_profile_slots(pnum):
-  slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.20)
-  if len(slots) >= 17:
-    return slots[:12] + slots[13:17]
-  if len(slots) >= 16:
-    return slots[:16]
-  return slots
+WEEKLY_TEXT_INSET = 0.042
+
+def apply_weekly_text_inset(slots):
+    """Отступ текста от левого края печатной линии (как на стр. 34–36)."""
+    out = []
+    for i, s in enumerate(slots):
+        slot = dict(s)
+        slot['x'] = round(slot['x'] + WEEKLY_TEXT_INSET, 4)
+        slot['width'] = round(max(0.05, slot['width'] - WEEKLY_TEXT_INSET), 4)
+        slot['inputKind'] = 'line'
+        slot['continuationGroup'] = i + 1
+        out.append(slot)
+    return out
 
 def weekly_with_note_slots():
-    slots = questionnaire_slots(37, y_gap=0.022, y_min=0.10)
+    slots = apply_weekly_text_inset(questionnaire_slots(37, y_gap=0.022, y_min=0.10))
     if len(slots) >= 15:
         slots = list(slots)
+        last = slots[-1]
         slots.append({
-            'x': 0.1126,
+            'x': last['x'],
             'y': 0.902,
-            'width': 0.7958,
+            'width': last['width'],
             'height': 0.032,
             'hasLabel': False,
-            'inputKind': 'block',
-            'continuationGroup': 16,
+            'inputKind': 'line',
+            'continuationGroup': len(slots) + 1,
         })
     return slots
 
@@ -195,6 +198,16 @@ def my_day_slots():
     smile_lines = sorted([(sy, x, w) for sy, x, w, h in strokes if w > 0.75 and sy > 0.72])[:4]
 
     slots = []
+    # Калиброванная линия даты под «Твой день» (OCR часто берёт более низкий штрих).
+    if date:
+        date = {
+            **date,
+            'x': 0.3376,
+            'y': 0.1416,
+            'width': 0.3252,
+            'height': 0.028,
+            'inputKind': 'line',
+        }
     slots.append({**date, 'hasLabel': False, 'continuationGroup': 1})
     for sy, x, w in story_lines:
         slots.append({
@@ -288,22 +301,17 @@ def hobby_slots():
     return filtered[:12]
 
 def friend_questionnaire_slots(pnum):
-    slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.11)
-    first_y = slots[0]['y'] if slots else 0.1643
-    name_y = round(max(0.118, first_y - 0.041), 4)
-    name_slot = {
-        'x': 0.1484,
-        'y': name_y,
-        'width': 0.789,
-        'height': 0.028,
-        'hasLabel': False,
-        'inputKind': 'block',
-        'continuationGroup': 0,
-    }
-    result = [name_slot] + slots
-    for i, s in enumerate(result):
+    """Единая сетка: нечётные = стр. 39, чётные = стр. 40 (сдвиг разворота в PDF)."""
+    ref = 39 if (pnum % 2 == 1) else 40
+    slots = questionnaire_slots(ref, y_gap=0.034, y_min=0.11)
+    for i, s in enumerate(slots):
         s['continuationGroup'] = i + 1
-    return result
+        if s.get('width', 0) >= 0.62:
+            s['inputKind'] = 'block'
+        else:
+            s['inputKind'] = 'line'
+        s['hasLabel'] = False
+    return slots
 
 MY_DAY = [16,20,23,25,28,33,45,46,47,48,49,50,51,52,53,54,55,56]
 WEEKLY = [34,35,36,37]
@@ -329,7 +337,11 @@ for p in MY_DAY:
     if p != 16:
         brown[str(p)] = my_day_slots()
 for p in WEEKLY:
-    brown[str(p)] = questionnaire_slots(p, y_gap=0.022, y_min=0.12)
+    if p == 37:
+        continue
+    brown[str(p)] = apply_weekly_text_inset(
+        questionnaire_slots(p, y_gap=0.022, y_min=0.12)
+    )
 brown['37'] = weekly_with_note_slots()
 for p in FRIENDS:
     brown[str(p)] = friend_questionnaire_slots(p)

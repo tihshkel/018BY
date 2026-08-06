@@ -350,6 +350,27 @@ export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   return BLANK_LINE_GUIDE_IDS.has(lineGuideId);
 }
 
+/**
+ * Коричневый «Твой день»: дата на линии под заголовком (вместо «(ДАТА)»).
+ * Калибровка по page_016 — штрих ≈0.1416 (OCR часто даёт ~0.165 и сажает текст ниже линии).
+ */
+export const BROWN_MY_DAY_DATE_UNDER_TITLE = {
+  writableX: 0.3376,
+  writableWidth: 0.3252,
+  strokeY: 0.1416,
+} as const;
+
+/** Страницы коричневого «Твой день» (дата под заголовком). */
+export const BROWN_MY_DAY_PAGES = [
+  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+] as const;
+
+const BROWN_MY_DAY_PAGE_SET = new Set<number>(BROWN_MY_DAY_PAGES);
+
+export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
+  return lineGuideId === 'diary_interior_brown' && BROWN_MY_DAY_PAGE_SET.has(Number(page));
+}
+
 export type EditorTool = 'text' | 'floatingText' | 'image' | 'drawing' | null;
 
 /** Два инструмента текста: поля макета + плавающий (беременность, дети, ДР, дневники). */

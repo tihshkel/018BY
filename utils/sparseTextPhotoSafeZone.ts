@@ -19,8 +19,10 @@ import {
   getSparsePhotoAlbumConfig,
   hasSparsePhotoConfig,
   isBirthdayCaptionPhotoPage,
+  isDesignedFreePhotoExpandAlbum,
   isPregnancyUpperBandPage,
   isPregnancyWeeklyMiddlePage,
+  PHOTO_ONLY_PAGE_SAFE,
   shouldReserveFourGridCaptionRows,
   shouldSkipSparsePhotoExpansion,
   usesBlankPagePhotoFallback,
@@ -140,7 +142,7 @@ function isBottomAnchoredPhotoSlot(primarySlot: { y: number }): boolean {
   return primarySlot.y >= 0.55;
 }
 
-/** Band-страницы: не pin к PDF — расширяем layouts в пустоту (в т.ч. mixed с нижней рамкой). */
+/** Band / photo-only (целевые альбомы): не pin к PDF — расширяем layouts в пустоту. */
 export function shouldExpandSparseBandLayouts(
   lineGuideId: string,
   page: number,
@@ -150,6 +152,10 @@ export function shouldExpandSparseBandLayouts(
   const strategy = classifyPhotoSafeZoneStrategy(lineGuideId, page);
   if (strategy === 'bottom_band' || strategy === 'upper_band') return true;
   if (strategy === 'mixed' && primarySlot && isBottomAnchoredPhotoSlot(primarySlot)) {
+    return true;
+  }
+  // Свободные photo+caption: не оставляем мелкий PDF-пин.
+  if (strategy === 'photo_only' && isDesignedFreePhotoExpandAlbum(lineGuideId)) {
     return true;
   }
   return false;
@@ -572,16 +578,19 @@ function resolveStrategySafeZone(
     case 'bottom_band':
       return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
     case 'photo_only': {
-      const blankSafe =
-        lineGuideId === 'family_blank' ||
-        lineGuideId === 'holidays_blank' ||
-        lineGuideId === 'family_blank_21x21'
-          ? config.eventSafe
+      // Blank / свадьба — свои поля печати; designed free — единые ~80%.
+      const baseSafe = usesBlankPagePhotoFallback(lineGuideId)
+        ? config.eventSafe
+        : isDesignedFreePhotoExpandAlbum(lineGuideId)
+          ? PHOTO_ONLY_PAGE_SAFE
           : BLANK_PAGE_PHOTO_SAFE;
-      let zone = constrainPhotoSafeZone(lineGuideId, page, blankSafe, config);
-      // Free photo+caption pages: leave a band under frames so captions sit below photos.
-      if (lineGuideId === 'holidays_birthday_60' && isBirthdayCaptionPhotoPage(page)) {
-        // Полоса под нижним рядом подписей (верхний ряд закрывает межрядный gap four_grid).
+      let zone = constrainPhotoSafeZone(lineGuideId, page, baseSafe, config);
+      // Запас под подписи снизу (four_grid gap + pill), без обрезки фраз.
+      const needsCaptionBand =
+        (lineGuideId === 'holidays_birthday_60' && isBirthdayCaptionPhotoPage(page)) ||
+        (isDesignedFreePhotoExpandAlbum(lineGuideId) &&
+          shouldReserveFourGridCaptionRows(lineGuideId, page));
+      if (needsCaptionBand) {
         const captionReserve = 0.08;
         const minHeight = config.minPhotoSafeHeight ?? 0.12;
         zone = {
@@ -646,6 +655,15 @@ export function resolveSparsePhotoSafeZone(
 
   if (isPregnancyUpperBandPage(lineGuideId, page)) {
     return buildUpperBandPhotoSafeZone(lineGuideId, page, config);
+  }
+
+  const strategy = classifyPhotoSafeZoneStrategy(lineGuideId, page);
+  // Photo-only целевых альбомов (в т.ч. kids_48): всегда ~80%, не PDF-пин.
+  if (strategy === 'photo_only' && isDesignedFreePhotoExpandAlbum(lineGuideId)) {
+    return (
+      resolveStrategySafeZone(lineGuideId, page, primarySlot, config) ??
+      constrainPhotoSafeZone(lineGuideId, page, PHOTO_ONLY_PAGE_SAFE, config)
+    );
   }
 
   // kids_48: strategy обычно не раздувает рамку layout (pinch — через zoom safe zone).
@@ -773,6 +791,7 @@ export function expandDesignedAlbumCollageVariants(
   const templateSet = getCollageTemplateSet(lineGuideId);
   const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet], {
     reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+    fillSafeZoneSlots: true,
   });
   if (expanded.variants.length === 0) return undefined;
 
@@ -785,17 +804,20 @@ function buildDesignedAlbumEventPhotoLayouts(
   page: number,
   templateIds: readonly string[] = STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS,
 ): PhotoPageLayouts {
-  const eventSafe = getSparsePhotoAlbumConfig(lineGuideId)?.eventSafe ?? EVENT_PHOTO_SAFE;
+  const eventSafe =
+    getSparsePhotoAlbumConfig(lineGuideId)?.eventSafe ??
+    (isDesignedFreePhotoExpandAlbum(lineGuideId) ? PHOTO_ONLY_PAGE_SAFE : EVENT_PHOTO_SAFE);
   const syntheticPrimary = {
     x: eventSafe.x + eventSafe.width / 2,
     y: eventSafe.y + eventSafe.height / 2,
     width: eventSafe.width,
-    height: eventSafe.height * 0.85,
+    height: eventSafe.height * 0.9,
   };
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, syntheticPrimary);
   return buildPageLayoutsFromTemplates(safeZone, [...templateIds], {
     reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+    fillSafeZoneSlots: true,
   });
 }
 
@@ -829,6 +851,7 @@ export function expandManualSparseLayouts(
   const templateSet = getCollageTemplateSet(lineGuideId);
   const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet], {
     reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+    fillSafeZoneSlots: true,
   });
   if (expanded.variants.length <= 1) return undefined;
 
@@ -862,6 +885,7 @@ export function expandCollageVariantsWithSparse(
 
   const expanded = buildPageLayoutsFromTemplates(safeZone, templateIds, {
     reserveCaptionRows: shouldReserveFourGridCaptionRows(lineGuideId, page),
+    fillSafeZoneSlots: true,
   });
   if (expanded.variants.length <= 1) return layouts;
 
@@ -890,6 +914,31 @@ export function resolveKidsPhotoPageLayouts(
 
   // «Этот альбом принадлежит» — фото между именем и датой/весом/ростом.
   if (page === 1) {
+    return filterFeasiblePhotoLayouts(buildKidsLandscapeEventPhotoLayouts(page));
+  }
+
+  // Свободные photo-only / caption: ~80% листа, не мелкий PDF-пин.
+  if (classifyPhotoSafeZoneStrategy(lineGuideId, page) === 'photo_only') {
+    const base =
+      pdf?.variants?.length
+        ? pdf
+        : {
+            variants: [
+              {
+                variantId: 'one_large',
+                slots: [
+                  {
+                    x: PHOTO_ONLY_PAGE_SAFE.x + PHOTO_ONLY_PAGE_SAFE.width / 2,
+                    y: PHOTO_ONLY_PAGE_SAFE.y + PHOTO_ONLY_PAGE_SAFE.height / 2,
+                    width: PHOTO_ONLY_PAGE_SAFE.width,
+                    height: PHOTO_ONLY_PAGE_SAFE.height * 0.9,
+                  },
+                ],
+              },
+            ],
+          };
+    const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, base);
+    if (expanded) return filterFeasiblePhotoLayouts(expanded);
     return filterFeasiblePhotoLayouts(buildKidsLandscapeEventPhotoLayouts(page));
   }
 

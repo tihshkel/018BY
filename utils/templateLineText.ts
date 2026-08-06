@@ -606,30 +606,44 @@ export function fitFontSizeToSlot(
   maxFontSizeOverride?: number,
 ): number {
   const profile = getTemplateTypographyProfile(lineGuideId);
+  const USER_MIN = 10;
+  const USER_MAX = 28;
 
-  // Дневник калиброван под fixed 16 pt. A+/A− — только явный размер ≠ дефолту,
-  // без клампа к lineHeight (на телефоне слот ~11 px и иначе всё схлопывается).
-  if (isDiaryInteriorLineGuide(lineGuideId) && profile.fixedLineFontSize != null) {
+  // Birthday: слоты на телефоне часто ~10–14 px — без отдельного диапазона A+/A− «мёртвые».
+  if (lineGuideId === 'holidays_birthday_60' && Number.isFinite(fontSize)) {
+    return Math.min(Math.max(fontSize, USER_MIN), USER_MAX);
+  }
+
+  // Альбомы с калиброванным дефолтом (16): A+/A− только при явном размере ≠ lock.
+  // Не клампим к lineHeight — иначе превью остаётся 16, а тулбар показывает 17+.
+  // Базовая линия (stroke) не прыгает: растём от baseline вверх (как iOS e24a739).
+  if (profile.fixedLineFontSize != null) {
     const locked = profile.fixedLineFontSize;
     if (Number.isFinite(fontSize) && fontSize !== locked) {
-      return Math.min(Math.max(fontSize, 10), 28);
+      const upper =
+        maxFontSizeOverride != null
+          ? Math.min(USER_MAX, maxFontSizeOverride)
+          : USER_MAX;
+      return Math.min(Math.max(fontSize, USER_MIN), upper);
+    }
+    if (maxFontSizeOverride != null && maxFontSizeOverride < locked) {
+      return maxFontSizeOverride;
     }
     return locked;
   }
 
-  // Birthday: A+/A− must change preview size. Slot height on phone is often ~10–14 px,
-  // so lineHeight clamps make the toolbar look broken.
-  if (lineGuideId === 'holidays_birthday_60' && Number.isFinite(fontSize)) {
-    return Math.min(Math.max(fontSize, 10), 28);
-  }
-
   if (inputKind === 'block') {
+    if (Number.isFinite(fontSize) && fontSize !== 16) {
+      return Math.min(
+        Math.max(fontSize, USER_MIN),
+        Math.min(USER_MAX, profile.blockMaxFontSize),
+      );
+    }
     return Math.min(fontSize, Math.max(13, lineHeight * 0.78), profile.blockMaxFontSize);
   }
 
-  const fixedMax = maxFontSizeOverride ?? profile.fixedLineFontSize;
-  if (fixedMax != null) {
-    return Math.min(fontSize, fixedMax);
+  if (Number.isFinite(fontSize) && fontSize > 16) {
+    return Math.min(Math.max(fontSize, USER_MIN), USER_MAX);
   }
 
   const maxFromSlot = Math.max(8, lineHeight * 0.76);
@@ -1029,6 +1043,15 @@ function resolveDiaryBrownBlockRatios(
   const template = getDiaryBrownPageTemplate(slot.page);
   if (!template) return null;
 
+  if (template === 'FriendQuestionnaireTemplate') {
+    // Чуть ниже к штриху: на скрине рукопись висела над линией.
+    const isWide = (slot.width ?? 0) >= 0.62;
+    return {
+      centerRatio: isWide ? 0.52 : 0.5,
+      fontOffsetRatio: isWide ? 0.97 : 0.95,
+    };
+  }
+
   const normY = slot.normY ?? 0;
   if (normY >= 0.74 && normY <= 0.93) {
     return { centerRatio: 0.58, fontOffsetRatio: 0.88 };
@@ -1089,7 +1112,12 @@ function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number |
   if (!template) return null;
 
   let offset = 0.92;
-  if (DIARY_BROWN_QUESTIONNAIRE_TEMPLATES.has(template)) {
+  if (template === 'PetsTemplate' || template === 'StyleTemplate') {
+    // Amatic визуально выше штриха — меньше offset = ниже к линии.
+    offset = 0.82;
+  } else if (template === 'FriendQuestionnaireTemplate') {
+    offset = 0.95;
+  } else if (DIARY_BROWN_QUESTIONNAIRE_TEMPLATES.has(template)) {
     offset = 0.93;
   } else if (template === DIARY_BROWN_MY_DAY_TEMPLATE) {
     // Date sits on printed «(ДАТА)» — lower Amatic so digits cover the placeholder.
@@ -2534,10 +2562,10 @@ export function distributeTextWithinContinuationGroup(params: {
 
   if (
     slotCount != null &&
-    slotCount > 1 &&
-    lineGuideId &&
-    isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page)
+    slotCount > 1
   ) {
+    // Любое многострочное поле (дневник style/pets и т.д.) — по templateLineCount,
+    // а не по OCR continuationGroup (хвост и полная строка часто в разных группах).
     return distributeTextWithinFieldLines({
       text,
       startSlotIndex,

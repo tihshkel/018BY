@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AlbumPreviewPhotoOverlay } from '@/components/album/album-preview-photo-overlay';
+import { PagePreviewLoadingOverlay } from '@/components/album/page-preview-loading-overlay';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { AppText } from '@/components/ui';
 import { colors, spacing } from '@/constants/design-tokens';
@@ -69,9 +70,14 @@ export function AlbumPageLivePreview({
     }
   }, []);
 
-  const handlePageReady = useCallback(() => {
-    setReady(true);
-  }, []);
+  // Не снимаем skeleton по premature onReady (350ms) — только после onLoad фона.
+  const handlePageReady = useCallback(() => {}, []);
+
+  useEffect(() => {
+    if (ready || !imageUri) return;
+    const timer = setTimeout(() => setReady(true), 6000);
+    return () => clearTimeout(timer);
+  }, [ready, imageUri]);
 
   const previewBlock = useMemo(
     () => (
@@ -134,11 +140,7 @@ export function AlbumPageLivePreview({
                 onReplacePhoto={photoOverlay.onReplacePhoto}
               />
             ) : null}
-            {!ready && imageUri ? (
-              <View style={styles.loadingOverlay}>
-                <ActivityIndicator color={colors.primary} />
-              </View>
-            ) : null}
+            {!ready && imageUri ? <PagePreviewLoadingOverlay /> : null}
           </View>
         </View>
       </View>
@@ -194,11 +196,5 @@ const styles = StyleSheet.create({
   pageCard: {
     overflow: 'hidden',
     backgroundColor: colors.white,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.6)',
   },
 });

@@ -7,6 +7,7 @@
 const RUNTIME_FILTERED_PAGES = {
   13: ['isBrownPage13AloneQuestionSpuriousSlot'],
   16: ['isBrownPage16PeachTitleSpuriousSlot', 'isBrownJournalTemplateSpuriousSlot'],
+  17: ['isBrownPage17QuestionRowSpuriousSlot'],
   31: [],
 };
 

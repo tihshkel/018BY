@@ -1,7 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useCallback, useRef, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, View, type GestureResponderEvent } from "react-native";
+import React, { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  View,
+  type GestureResponderEvent,
+} from "react-native";
 import Swipeable, { type SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated, {
   useAnimatedStyle,
@@ -18,6 +24,34 @@ import type { PageStatus } from "@/types/album-page-schema";
 
 /** Высота строки + отступ для расчёта позиции при перетаскивании */
 export const PAGE_LIST_ROW_HEIGHT = 88;
+
+function ThumbnailImage({ uri }: { uri: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [uri]);
+
+  return (
+    <View style={styles.thumbnailInner}>
+      {!loaded ? (
+        <View style={styles.thumbnailLoading}>
+          <ActivityIndicator size="small" color={colors.primary} />
+        </View>
+      ) : null}
+      <Image
+        source={{ uri }}
+        style={[styles.thumbnail, !loaded && styles.thumbnailHidden]}
+        contentFit="cover"
+        cachePolicy="disk"
+        recyclingKey={uri}
+        transition={120}
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+      />
+    </View>
+  );
+}
 
 type PageListItemProps = {
   title: string;
@@ -102,14 +136,7 @@ function PageCard({
         {thumbnailNode ? (
           thumbnailNode
         ) : thumbnailUri ? (
-          <Image
-            source={{ uri: thumbnailUri }}
-            style={styles.thumbnail}
-            contentFit="cover"
-            cachePolicy="disk"
-            recyclingKey={thumbnailUri}
-            transition={0}
-          />
+          <ThumbnailImage uri={thumbnailUri} />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
             <Ionicons name="image-outline" size={28} color={colors.tabInactive} />
@@ -367,6 +394,19 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: "100%",
     height: "100%",
+  },
+  thumbnailInner: {
+    width: "100%",
+    height: "100%",
+  },
+  thumbnailHidden: {
+    opacity: 0,
+  },
+  thumbnailLoading: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primarySurface,
   },
   thumbnailPlaceholder: {
     flex: 1,
