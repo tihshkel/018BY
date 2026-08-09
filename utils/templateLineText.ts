@@ -40,6 +40,7 @@ import {
   PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO,
   PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO,
   TEMPLATE_LINE_STROKE_CLEARANCE_RATIO,
+  PURPLE_MY_DAY_PAGES,
 } from '@/constants/album-text-margins';
 import {
   DIARY_BROWN_MY_DAY_TEMPLATE,
@@ -806,6 +807,71 @@ function getStrokeBaselineFontOffset(
     return PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO;
   }
   if (isDiaryInteriorLineGuide(lineGuideId)) {
+    const diarySlot = {
+      page: slot.page,
+      normY: slot.normY,
+      hasLabel: slot.hasLabel ?? false,
+    };
+    // Style/Pets: единый template offset (как анкета мамы). Иначе нижние строки
+    // ложно попадают в isBrownWishSlot / cover-band → текст прыгает по линии.
+    if (lineGuideId === 'diary_interior_brown') {
+      const brownTemplate = getDiaryBrownPageTemplate(slot.page);
+      if (brownTemplate === 'StyleTemplate' || brownTemplate === 'PetsTemplate') {
+        const pageTuned = resolveDiaryBrownLineFontOffset({
+          page: slot.page,
+          normY: slot.normY,
+          hasLabel: slot.hasLabel ?? false,
+          inputKind: slot.inputKind,
+        });
+        if (pageTuned != null) return pageTuned;
+      }
+    }
+    // Фиолетовое расписание (пн–вс): cover-band ловит отдельные строки → прыжки.
+    // Один offset на все линии, как на анкете мамы / Style / Pets.
+    if (
+      lineGuideId === 'diary_interior_purple' &&
+      typeof slot.page === 'number' &&
+      slot.page >= 24 &&
+      slot.page <= 27
+    ) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Хобби» (p8): cover-band ловит избранное (y≈0.47–0.62) → прыжки.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 8) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Твои питомцы» (p10): единый baseline, без cover-band прыжков.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 10) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Социальные сети» (p12): единый baseline.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 12) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Твое настроение» (p14): единый baseline.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 14) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Одежда и стиль» (p16): единый baseline.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 16) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Первая любовь» (p18): единый baseline.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 18) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Школьная жизнь» (p22): единый baseline.
+    if (lineGuideId === 'diary_interior_purple' && slot.page === 22) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
+    // Фиолетовый «Твой день»: единый baseline на линиях дня/улыбки.
+    if (
+      lineGuideId === 'diary_interior_purple' &&
+      typeof slot.page === 'number' &&
+      (PURPLE_MY_DAY_PAGES as readonly number[]).includes(slot.page)
+    ) {
+      return applyDiaryAmaticVisualSink(0.93, { androidDiaryLift: true });
+    }
     const isBrownCoverField =
       lineGuideId === 'diary_interior_brown' &&
       slot.normY != null &&
@@ -819,11 +885,6 @@ function getStrokeBaselineFontOffset(
     if (isBrownCoverField || isPurpleCoverField) {
       return 0.92;
     }
-    const diarySlot = {
-      page: slot.page,
-      normY: slot.normY,
-      hasLabel: slot.hasLabel ?? false,
-    };
     if (
       isBrownWishSlot(diarySlot, lineGuideId) ||
       isBrownCareerAnswerSlot(diarySlot, lineGuideId)
@@ -1113,8 +1174,8 @@ function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number |
 
   let offset = 0.92;
   if (template === 'PetsTemplate' || template === 'StyleTemplate') {
-    // Amatic визуально выше штриха — меньше offset = ниже к линии.
-    offset = 0.82;
+    // Как ParentProfile (анкета мамы): ровно на штрихе, единый offset на все строки.
+    offset = 0.93;
   } else if (template === 'FriendQuestionnaireTemplate') {
     offset = 0.95;
   } else if (DIARY_BROWN_QUESTIONNAIRE_TEMPLATES.has(template)) {

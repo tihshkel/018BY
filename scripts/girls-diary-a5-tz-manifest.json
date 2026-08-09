@@ -17,9 +17,9 @@
   },
   "3": {
     "title": "Правила этого дневника",
-    "template": "DiaryRulesTemplate",
-    "pageType": "structured",
-    "editable": true,
+    "template": "StaticPageTemplate",
+    "pageType": "non_editable",
+    "editable": false,
     "canDuplicate": false,
     "hasPhoto": false
   },

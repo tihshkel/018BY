@@ -140,7 +140,7 @@ function verifyPurpleA5() {
     assert((byPage[String(page)].fields?.length ?? 0) >= 16, `purple p${page} friend fields (>=16)`);
   }
 
-  for (const page of [2, 20, 21, 40]) {
+  for (const page of [2, 3, 20, 21, 40]) {
     const schema = byPage[String(page)];
     assert(schema.pageType === 'non_editable', `purple p${page} is non_editable static`);
     assert(schema.editable === false, `purple p${page} editable=false`);

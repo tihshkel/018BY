@@ -371,6 +371,17 @@ export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
   return lineGuideId === 'diary_interior_brown' && BROWN_MY_DAY_PAGE_SET.has(Number(page));
 }
 
+/** Фиолетовый «Твой день» (40 стр.). */
+export const PURPLE_MY_DAY_PAGES = [
+  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
+] as const;
+
+const PURPLE_MY_DAY_PAGE_SET = new Set<number>(PURPLE_MY_DAY_PAGES);
+
+export function isPurpleMyDayPage(lineGuideId: string, page: number): boolean {
+  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGE_SET.has(Number(page));
+}
+
 export type EditorTool = 'text' | 'floatingText' | 'image' | 'drawing' | null;
 
 /** Два инструмента текста: поля макета + плавающий (беременность, дети, ДР, дневники). */

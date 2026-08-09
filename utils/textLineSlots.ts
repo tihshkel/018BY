@@ -424,10 +424,16 @@ function isPurpleDaySpreadTitleSpuriousSlot(
 ): boolean {
   if (lineGuideId !== "diary_interior_purple" || slot.hasLabel) return false;
   if (!PURPLE_DAY_SPREAD_PAGES.has(page)) return false;
-  if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
-    return true;
-  }
-  if (slot.y >= 0.48 && slot.y <= 0.58 && slot.x < 0.15 && slot.width >= 0.65) {
+  // Короткие центрированные заголовки дней — не широкие линии письма
+  // (иначе первая строка вс/среды y≈0.18 отбрасывается → текст со 2-й).
+  if (slot.width >= 0.5) return false;
+  if (
+    slot.y >= 0.14 &&
+    slot.y <= 0.22 &&
+    slot.x >= 0.28 &&
+    slot.x <= 0.55 &&
+    slot.width <= 0.4
+  ) {
     return true;
   }
   if (
@@ -482,13 +488,15 @@ function refineBrownDaySpreadIllustrationNorm(
   const shortLineWidth = widths
     .filter((width) => width < maxWidth - 0.03)
     .sort((a, b) => a - b)[0];
+  // Нет «коротких» линий у doodle — не режем (иначе пустеют заметки вс p27).
+  if (shortLineWidth == null) return norm;
   const bottomStartIndex = Math.max(1, Math.floor(sortedBand.length * 0.5));
   if (normIndex < bottomStartIndex) return norm;
 
-  const targetWidth =
-    shortLineWidth != null
-      ? Math.min(shortLineWidth, BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH)
-      : BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH;
+  const targetWidth = Math.min(
+    shortLineWidth,
+    BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH,
+  );
   if (norm.width <= targetWidth + 0.01) return norm;
   return { ...norm, width: targetWidth };
 }
@@ -1097,7 +1105,8 @@ function isDiaryParentQuestionnairePage(
   page: number,
 ): boolean {
   return (
-    (lineGuideId === "diary_interior_brown" && (page === 7 || page === 8)) ||
+    (lineGuideId === "diary_interior_brown" &&
+      (page === 7 || page === 8 || page === 11 || page === 12)) ||
     (lineGuideId === "diary_interior_purple" && (page === 6 || page === 7))
   );
 }
@@ -2717,6 +2726,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     "diary-brown-myday-date-mood-v3",
     "diary-brown-friend-no-synthetic-name-v1",
     "diary-brown-friend-no-dayspread-v1",
+    "diary-brown-grandparents-16slots-v1",
     "birthday-pill-center-v1",
     "birthday-stroke-baseline-v1",
     "birthday-travel-pills-v1",

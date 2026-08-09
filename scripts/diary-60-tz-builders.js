@@ -9,10 +9,11 @@ const {
   PARENT_MOM_FIELDS,
   PARENT_DAD_FIELDS,
   HOBBY_FIELDS,
-  BROWN_HOBBY_FIELDS,
+  PURPLE_HOBBY_FIELDS,
   PETS_FIELDS,
   BROWN_PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
+  PURPLE_SOCIAL_NETWORKS_FIELDS,
   FRIEND_SOCIAL_FIELDS,
   PURPLE_FRIEND_FIELDS,
   BROWN_MOOD_FIELDS,
@@ -20,10 +21,12 @@ const {
   STYLE_FIELDS,
   BROWN_STYLE_FIELDS,
   PURPLE_STYLE_FIELDS,
+  FIRST_LOVE_FIELDS,
+  PURPLE_FIRST_LOVE_FIELDS,
+  SCHOOL_LIFE_FIELDS,
+  PURPLE_SCHOOL_LIFE_FIELDS,
   PURPLE_PETS_FIELDS,
   BROWN_FOOD_FIELDS,
-  FIRST_LOVE_FIELDS,
-  SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
   GRANDMA_FIELDS,
@@ -38,6 +41,7 @@ const {
   BROWN_WEEKLY_SCHEDULE_PAGES,
   buildWeeklyScheduleSpec,
   buildBrownWeeklyScheduleWithNoteSpec,
+  buildPurpleSundayScheduleSpec,
 } = require('./girls-diary-a5-field-specs');
 
 const FREE_PHOTO_NOTES_BLOCK = {
@@ -176,11 +180,12 @@ function buildDiaryOwnerFields(lineGuideId, pageNumber, slots) {
 function buildMyDayFields(lineGuideId, pageNumber, slots) {
   const maxLines = slots?.length ?? 12;
 
-  // Purple MyDay layout has no printed date — story starts at slot 0.
+  // Purple MyDay: полные линии «за сегодня» (8) + «улыбаться» (4).
+  // Mood — radio (на превью не рисуется в line-slots). Даты на макете нет.
   if (lineGuideId === 'diary_interior_purple') {
-    const storyCount = Math.min(5, Math.max(1, maxLines - 5));
-    const moodStart = Math.min(storyCount, maxLines - 1);
-    const smileStart = Math.min(moodStart + 1, maxLines - 1);
+    const dayStoryLines = Math.min(8, Math.max(1, maxLines - 4));
+    const smileStart = dayStoryLines;
+    const smileLines = Math.min(4, Math.max(1, maxLines - smileStart));
     return [
       buildField(
         lineGuideId,
@@ -189,7 +194,7 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         'Как прошёл сегодняшний день',
         'text',
         0,
-        storyCount,
+        dayStoryLines,
         slots,
       ),
       {
@@ -198,7 +203,7 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         type: 'radio',
         required: false,
         options: MOOD_OPTIONS,
-        templateLineStart: moodStart,
+        templateLineStart: 0,
         templateLineCount: 1,
       },
       buildField(
@@ -208,7 +213,7 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         'Вещи, которые заставили сегодня улыбаться',
         'text',
         smileStart,
-        Math.min(4, Math.max(1, maxLines - smileStart)),
+        smileLines,
         slots,
       ),
     ];
@@ -322,13 +327,11 @@ function buildWeeklyScheduleTwoDays(pageNumber, slots, lineGuideId, tzEntry, day
 }
 
 function buildWeeklyScheduleSunday(pageNumber, slots, lineGuideId, tzEntry) {
-  return buildStructuredFromSpec(
-    pageNumber,
-    slots,
-    lineGuideId,
-    tzEntry,
-    SUNDAY_SCHEDULE_FIELDS,
-  );
+  const spec =
+    lineGuideId === 'diary_interior_purple'
+      ? buildPurpleSundayScheduleSpec(slots)
+      : SUNDAY_SCHEDULE_FIELDS;
+  return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec);
 }
 
 function buildPhotoPage(pageNumber, slots, lineGuideId, tzEntry) {
@@ -467,7 +470,7 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
 
   if (template === 'HobbyTemplate' || template === 'HobbyQuestionnaireTemplate') {
     const hobbySpec =
-      lineGuideId === 'diary_interior_brown' ? BROWN_HOBBY_FIELDS : HOBBY_FIELDS;
+      lineGuideId === 'diary_interior_purple' ? PURPLE_HOBBY_FIELDS : HOBBY_FIELDS;
     return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, hobbySpec);
   }
 
@@ -478,7 +481,11 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'SocialNetworksTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SOCIAL_NETWORKS_FIELDS);
+    const socialSpec =
+      lineGuideId === 'diary_interior_purple'
+        ? PURPLE_SOCIAL_NETWORKS_FIELDS
+        : SOCIAL_NETWORKS_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, socialSpec);
   }
 
   if (template === 'MoodTemplate' || template === 'MoodQuestionnaireTemplate') {
@@ -494,11 +501,15 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'FirstLoveTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, FIRST_LOVE_FIELDS);
+    const loveSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_FIRST_LOVE_FIELDS : FIRST_LOVE_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, loveSpec);
   }
 
   if (template === 'SchoolLifeTemplate' || template === 'SchoolLifeQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SCHOOL_LIFE_FIELDS);
+    const schoolSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_SCHOOL_LIFE_FIELDS : SCHOOL_LIFE_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, schoolSpec);
   }
 
   if (template === 'DreamsTemplate') {
@@ -524,12 +535,27 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'ParentQuestionnaireTemplate') {
-    const spec = pageNumber === 6 ? PARENT_MOM_FIELDS : PARENT_DAD_FIELDS;
-    const formHint =
-      pageNumber === 6
-        ? 'Анкета про маму: контакты, профессия, любимые вещи и пожелания.'
-        : 'Анкета про папу: контакты, профессия, любимые вещи и пожелания.';
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, { ...tzEntry, formHint }, spec);
+    const isMom =
+      (lineGuideId === 'diary_interior_purple' && pageNumber === 6) ||
+      (lineGuideId === 'diary_interior_brown' && pageNumber === 7);
+    let spec = isMom ? PARENT_MOM_FIELDS : PARENT_DAD_FIELDS;
+    // Фиолетовый: в PDF 3 линии пожеланий (хвост + 2 полные), не 4.
+    if (lineGuideId === 'diary_interior_purple') {
+      const wishCount = Math.max(1, (slots?.length ?? 0) - 12);
+      spec = spec.map((row) =>
+        row[0] === 'wishes' ? [row[0], row[1], row[2], wishCount] : row,
+      );
+    }
+    const formHint = isMom
+      ? 'Анкета про маму: контакты, профессия, любимые вещи и пожелания.'
+      : 'Анкета про папу: контакты, профессия, любимые вещи и пожелания.';
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      { ...tzEntry, formHint },
+      spec,
+    );
   }
 
   if (template === 'WeeklyScheduleTwoDaysTemplate') {

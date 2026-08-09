@@ -20,8 +20,8 @@ const LINE = (x, y, width, height, continuationGroup = 1, inputKind = 'line') =>
 /** Page 3 — дата начала (коричневый макет). */
 const DIARY_RULES_PAGE_SLOTS = [LINE(0.09, 0.7644, 0.3126, 0.028, 1)];
 
-/** Page 3 — дата (фиолетовый макет: линия y≈0.219). */
-const PURPLE_DIARY_RULES_PAGE_SLOTS = [LINE(0.0895, 0.219, 0.5003, 0.028, 1)];
+/** Page 3 — «Правила» (фиолетовый): static, без слотов. */
+const PURPLE_DIARY_RULES_PAGE_SLOTS = [];
 
 /** Page 5 — «Твоя анкета» (фиолетовый дневник), 12 полей. */
 const PURPLE_GIRL_PROFILE_PAGE_SLOTS = [

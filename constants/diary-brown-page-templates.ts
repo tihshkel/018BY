@@ -22,6 +22,8 @@ export const DIARY_BROWN_QUESTIONNAIRE_TEMPLATES = new Set([
   'ParentProfileTemplate_Mom',
   'ParentProfileTemplate_Dad',
   'GrandparentProfileTemplate',
+  'GrandparentProfileTemplate_Grandma',
+  'GrandparentProfileTemplate_Grandpa',
   'FriendQuestionnaireTemplate',
   'HobbyTemplate',
   'DreamsTemplate',
