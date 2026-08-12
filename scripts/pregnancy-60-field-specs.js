@@ -234,13 +234,16 @@ function buildShoppingListFields(lineGuideId, pageNumber, slots) {
 }
 
 function buildTodoCheckboxField(lineGuideId, pageNumber, id, label) {
+  // radio + options → TodoCheckboxFormField (tap), not text input.
+  // type 'checkbox' falls through to TypedFormField and breaks the page.
   return {
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
     label,
-    type: 'checkbox',
+    type: 'radio',
     required: false,
     templateLineStart: 0,
     templateLineCount: 1,
+    options: ['Да', 'Нет'],
   };
 }
 

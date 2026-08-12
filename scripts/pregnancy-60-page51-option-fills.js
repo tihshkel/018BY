@@ -5,7 +5,8 @@
  */
 
 const TODO_CHECKBOX_FILL = '#E8C4A8';
-const TODO_CHECKED_OPTION = '1';
+// Must match TodoCheckboxFormField value ('Да') — same as shopping page fills.
+const TODO_CHECKED_OPTION = 'Да';
 
 /** Cover orange stroke and raster antialiasing — flush to visible border. */
 const CHECKBOX_BLEED = 0.0035;

@@ -1,4 +1,17 @@
 /* eslint-disable no-console */
+/**
+ * Generate line-slots / line-guides for album interiors.
+ *
+ * Full regen (all albums):
+ *   node scripts/generate-line-slots.js
+ *
+ * Diary-only (keeps pregnancy/kids/holidays from existing JSON — avoids coordinate churn):
+ *   ONLY_ALBUM=diary node scripts/generate-line-slots.js
+ *   npm run generate:line-slots:diary
+ *
+ * If a full regen wiped non-diary coords, restore from baseline commit:
+ *   npm run restore:non-diary-coords
+ */
 const fs = require('fs');
 const path = require('path');
 const { applyBirthday48LineSlots } = require('./birthday-48-line-slot-overrides');
@@ -538,9 +551,25 @@ function listPerPagePdfFiles(folderPath) {
 }
 
 function matchesOnlyAlbum(albumId) {
-  const only = process.env.ONLY_ALBUM;
+  // ONLY_ALBUM / ALBUMS: comma-separated ids, or shorthand "diary" for brown+purple.
+  // Example: ONLY_ALBUM=diary node scripts/generate-line-slots.js
+  // Keeps other albums in existing JSON (merged in main) so pregnancy/kids coords stay put.
+  const only = process.env.ONLY_ALBUM || process.env.ALBUMS;
   if (!only) return true;
-  return only.split(',').map((s) => s.trim()).includes(albumId);
+  const parts = only
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const expanded = new Set();
+  for (const p of parts) {
+    if (p === 'diary') {
+      expanded.add('diary_interior_brown');
+      expanded.add('diary_interior_purple');
+    } else {
+      expanded.add(p);
+    }
+  }
+  return expanded.has(albumId);
 }
 
 const ALBUM_FOLDERS = [
@@ -1227,14 +1256,14 @@ async function main() {
   const slotsJsonPath = path.join(projectRoot, 'constants', 'line-slots.json');
   const guidesJsonPath = path.join(projectRoot, 'constants', 'line-guides.json');
 
-  if (process.env.ONLY_ALBUM) {
+  if (process.env.ONLY_ALBUM || process.env.ALBUMS) {
     for (const [file, target] of [
       [slotsJsonPath, lineSlots],
       [guidesJsonPath, lineGuides],
     ]) {
       if (!fs.existsSync(file)) {
         console.warn(
-          `ONLY_ALBUM=${process.env.ONLY_ALBUM}: нет ${path.basename(file)} — остальные альбомы будут удалены из выхода. Сначала запустите полный generate:line-slots.`
+          `ONLY_ALBUM/ALBUMS: нет ${path.basename(file)} — остальные альбомы будут удалены из выхода. Сначала запустите полный generate:line-slots.`
         );
         continue;
       }

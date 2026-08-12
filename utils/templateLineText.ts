@@ -615,10 +615,10 @@ export function fitFontSizeToSlot(
     return Math.min(Math.max(fontSize, USER_MIN), USER_MAX);
   }
 
-  // Альбомы с калиброванным дефолтом (16): A+/A− только при явном размере ≠ lock.
-  // Не клампим к lineHeight — иначе превью остаётся 16, а тулбар показывает 17+.
-  // Базовая линия (stroke) не прыгает: растём от baseline вверх (как iOS e24a739).
-  if (profile.fixedLineFontSize != null) {
+  // Diary-only: lock fixedLineFontSize + A+/A− без clamp к lineHeight.
+  // Pregnancy/kids с fixedLineFontSize=16 идут через общий fixedMax ниже — иначе
+  // baseline чужих альбомов прыгает вместе с правками дневников.
+  if (isDiaryInteriorLineGuide(lineGuideId) && profile.fixedLineFontSize != null) {
     const locked = profile.fixedLineFontSize;
     if (Number.isFinite(fontSize) && fontSize !== locked) {
       const upper =
@@ -631,6 +631,11 @@ export function fitFontSizeToSlot(
       return maxFontSizeOverride;
     }
     return locked;
+  }
+
+  const fixedMax = maxFontSizeOverride ?? profile.fixedLineFontSize;
+  if (fixedMax != null) {
+    return Math.min(fontSize, fixedMax);
   }
 
   if (inputKind === 'block') {
@@ -2623,10 +2628,12 @@ export function distributeTextWithinContinuationGroup(params: {
 
   if (
     slotCount != null &&
-    slotCount > 1
+    slotCount > 1 &&
+    (isDiaryInteriorLineGuide(lineGuideId) ||
+      isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page))
   ) {
-    // Любое многострочное поле (дневник style/pets и т.д.) — по templateLineCount,
-    // а не по OCR continuationGroup (хвост и полная строка часто в разных группах).
+    // Diary + pregnancy weekly: по templateLineCount поля.
+    // Kids/birthday — по continuationGroup ниже (как до diary-утечки).
     return distributeTextWithinFieldLines({
       text,
       startSlotIndex,

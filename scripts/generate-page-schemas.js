@@ -2,6 +2,11 @@
 /**
  * Генерация схем страниц альбомов из LINE_SLOTS, labels и audit pageType.
  * node scripts/generate-page-schemas.js
+ *
+ * Scope (чтобы не затирать pregnancy/kids при правках дневников):
+ *   ONLY_ALBUM=diary node scripts/generate-page-schemas.js
+ *   ALBUMS=diary_interior_purple,diary_interior_brown node scripts/generate-page-schemas.js
+ * При фильтре остальные альбомы берутся из текущего album-page-schemas.ts.
  */
 const fs = require('fs');
 const path = require('path');
@@ -26,6 +31,45 @@ const ALBUM_IDS = [
   'family_blank_21x21',
 ];
 
+function resolveAlbumFilter() {
+  const only = process.env.ONLY_ALBUM || process.env.ALBUMS;
+  if (!only) return null;
+  const expanded = new Set();
+  for (const p of only.split(',').map((s) => s.trim()).filter(Boolean)) {
+    if (p === 'diary') {
+      expanded.add('diary_interior_brown');
+      expanded.add('diary_interior_purple');
+    } else {
+      expanded.add(p);
+    }
+  }
+  return expanded;
+}
+
+function matchesAlbumFilter(albumId, filter) {
+  if (!filter) return true;
+  return filter.has(albumId);
+}
+
+function loadExistingSchemas(projectRoot) {
+  const schemasPath = path.join(projectRoot, 'constants', 'generated', 'album-page-schemas.ts');
+  if (!fs.existsSync(schemasPath)) return {};
+  const raw = fs.readFileSync(schemasPath, 'utf8');
+  const match = raw.match(
+    /export const ALBUM_PAGE_SCHEMAS[^=]*=\s*(\{[\s\S]*\})\s*as Record/
+  );
+  if (!match) {
+    console.warn('Could not parse existing album-page-schemas.ts for merge');
+    return {};
+  }
+  try {
+    // eslint-disable-next-line no-new-func
+    return Function(`"use strict"; return (${match[1]});`)();
+  } catch (e) {
+    console.warn('Failed to eval existing schemas for merge:', e.message);
+    return {};
+  }
+}
 const PAGE_COUNTS = {
   pregnancy_60: 60,
   pregnancy_a5: 48,
@@ -449,7 +493,7 @@ function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override
   );
 }
 
-function generateSchemas(projectRoot) {
+function generateSchemas(projectRoot, albumFilter = null) {
   const lineSlots = loadLineSlots(projectRoot);
   const auditReports = loadAuditReports(projectRoot);
   const overrides = loadOverrides(projectRoot);
@@ -460,6 +504,8 @@ function generateSchemas(projectRoot) {
   const result = {};
 
   for (const lineGuideId of ALBUM_IDS) {
+    if (!matchesAlbumFilter(lineGuideId, albumFilter)) continue;
+
     const albumSlots = lineSlots[lineGuideId] ?? {};
     const pageCount = PAGE_COUNTS[lineGuideId] ?? Object.keys(albumSlots).length;
     const albumOverrides = overrides[lineGuideId] ?? {};
@@ -582,7 +628,16 @@ export function getAlbumPageSchema(
 
 function main() {
   const projectRoot = path.join(__dirname, '..');
-  const schemas = generateSchemas(projectRoot);
+  const albumFilter = resolveAlbumFilter();
+  const generated = generateSchemas(projectRoot, albumFilter);
+  let schemas = generated;
+  if (albumFilter) {
+    const existing = loadExistingSchemas(projectRoot);
+    schemas = { ...existing, ...generated };
+    console.log(
+      `ONLY_ALBUM/ALBUMS filter active — regenerated: ${[...albumFilter].join(', ')}; kept others from existing schemas`
+    );
+  }
   writeOutput(projectRoot, schemas);
 }
 

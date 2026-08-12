@@ -273,8 +273,13 @@ function buildFormFieldEntries(fields: AlbumPageField[]): FormFieldEntry[] {
   return entries;
 }
 
+/** Checked values: 'Да' (current) and legacy '1' from old checkbox fills. */
+function isTodoCheckedValue(value: string): boolean {
+  return value === 'Да' || value === '1';
+}
+
 function TodoCheckboxFormField({ field, value, onChange }: TypedFormFieldProps) {
-  const checked = value === 'Да';
+  const checked = isTodoCheckedValue(value);
 
   return (
     <Pressable

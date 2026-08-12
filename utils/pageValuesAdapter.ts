@@ -666,7 +666,12 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   const optionFillTargets = getOptionFillTargets(lineGuideId, schema.sourcePageNumber);
   for (const target of optionFillTargets) {
     const selected = values.fields[target.fieldId]?.trim();
-    if (selected !== target.option) continue;
+    // Todo checkboxes: form stores 'Да'; legacy builds stored '1'.
+    const matches =
+      selected === target.option ||
+      (target.option === 'Да' && selected === '1') ||
+      (target.option === '1' && selected === 'Да');
+    if (!matches) continue;
 
     const rect = isRectFillTarget(target)
       ? mapRectFillToViewport(
