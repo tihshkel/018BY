@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 
 export type AlbumProjectSnapshotMeta = {
@@ -21,7 +23,7 @@ export type AlbumProjectSnapshot = {
 };
 
 /** Сколько проектов держать в RAM — иначе Android деградирует после многих альбомов. */
-const MAX_SNAPSHOTS = 3;
+const MAX_SNAPSHOTS = Platform.OS === 'android' ? 1 : 3;
 
 const snapshots = new Map<string, AlbumProjectSnapshot>();
 const snapshotOrder: string[] = [];

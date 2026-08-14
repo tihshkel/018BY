@@ -4,7 +4,7 @@ import React, {
   useImperativeHandle,
   useMemo,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { AlbumPageFillForm } from '@/components/album/album-page-fill-form';
 import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
@@ -74,7 +74,9 @@ export const AlbumPageFormEditor = forwardRef<
   const isKidsMonthTemplatePage =
     schema.lineGuideId === 'kids_48' &&
     (schema.pageType === 'month_page' || isKidsMonthPage(schema.sourcePageNumber));
-  const debounceMs = isBlankTemplatePage ? 500 : isKidsMonthTemplatePage ? 450 : 350;
+  const debounceMs =
+    (isBlankTemplatePage ? 500 : isKidsMonthTemplatePage ? 450 : 350) +
+    (Platform.OS === 'android' ? 120 : 0);
 
   const { draft: draftFields, setField: setDraftField, flush: flushDraftFields } =
     useDeferredRecord(

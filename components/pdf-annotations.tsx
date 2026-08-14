@@ -54,6 +54,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
 import { normalizeAlbumPhotoUri } from '@/components/album/album-photo-image';
+import { albumImageSource } from '@/utils/androidImageDecode';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
@@ -2926,7 +2927,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     ]}
                   >
                     <Image
-                      source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri!) }}
+                      source={albumImageSource(
+                        normalizeAlbumPhotoUri(annotation.imageUri!),
+                        annotation.width,
+                        annotation.height,
+                        1.75,
+                      )}
                       style={[
                         styles.imageAnnotation,
                         isBlankAlbumPhoto
@@ -2953,7 +2959,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 </View>
               ) : (
                 <Image
-                  source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri!) }}
+                  source={albumImageSource(
+                    normalizeAlbumPhotoUri(annotation.imageUri!),
+                    annotation.width,
+                    annotation.height,
+                    1.75,
+                  )}
                   style={[
                     styles.imageAnnotation,
                     photoClipStyle,

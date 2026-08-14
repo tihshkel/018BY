@@ -2,9 +2,11 @@ import { router, useLocalSearchParams, type Href } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   StyleSheet,
   View,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { Image as ExpoImage } from "expo-image";
 
 import { AlbumPreviewPhotoBlockEditor } from "@/components/album/album-preview-photo-block-editor";
@@ -48,6 +50,7 @@ import {
   getBlankInteriorPageUri,
   getAlbumImageUrisForViewing,
 } from "@/utils/albumImages";
+import { releaseAndroidImageMemory } from "@/utils/androidSessionRelief";
 import { isDeviceLocalMediaUri } from "@/utils/crossDeviceMedia";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
@@ -84,6 +87,13 @@ export default function AlbumPagePreviewScreen() {
   } | null>(null);
 
   const previewLayout = useAlbumPagePreviewLayout(imageAspectRatio);
+  const previewFocused = useIsFocused();
+
+  useEffect(() => {
+    return () => {
+      releaseAndroidImageMemory(60);
+    };
+  }, []);
 
   const project = useAlbumProject({
     projectId: id,
@@ -323,7 +333,7 @@ export default function AlbumPagePreviewScreen() {
     sourceWidth: annotationSourceSize.width,
     sourceHeight: annotationSourceSize.height,
     // Короткий debounce: первый кадр экрана (оверлей загрузки) успевает отрисоваться.
-    debounceMs: isFinalPreview ? 48 : 0,
+    debounceMs: isFinalPreview ? (Platform.OS === 'android' ? 80 : 48) : (Platform.OS === 'android' ? 320 : 160),
   });
 
   const livePhotoCaptions = useMemo(() => {
@@ -380,7 +390,7 @@ export default function AlbumPagePreviewScreen() {
 
   useEffect(() => {
     if (!imageUri) return;
-    void ExpoImage.prefetch(imageUri);
+    void ExpoImage.prefetch(imageUri, { cachePolicy: "disk" });
   }, [imageUri]);
 
   useEffect(() => {
@@ -415,10 +425,11 @@ export default function AlbumPagePreviewScreen() {
     const pathname = usesUnifiedPhotoEditor(schema)
       ? resolveFormPathname(schema)
       : "/album-page-form";
-    router.push({
+    router.replace({
       pathname,
       params: { id, instanceId, celebration, coverType, interiorType },
     } as unknown as Href);
+    releaseAndroidImageMemory();
   };
 
   const handleChangeTemplate = () => {
@@ -525,7 +536,7 @@ export default function AlbumPagePreviewScreen() {
                 format={getPageFormatForLineGuide(resolvedLineGuideId)}
                 values={values}
               />
-            ) : imageUri ? (
+            ) : imageUri && previewFocused ? (
               <PageRenderer
                 ref={rendererRef}
                 imageUri={imageUri}
@@ -626,6 +637,8 @@ export default function AlbumPagePreviewScreen() {
                   ) : null
                 }
               />
+            ) : imageUri ? (
+              <View style={styles.previewPaused} />
             ) : (
               <View style={styles.previewUnavailable}>
                 <ActivityIndicator color={colors.primary} />
@@ -845,6 +858,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.sm,
     padding: spacing.md,
+  },
+  previewPaused: {
+    flex: 1,
+    backgroundColor: colors.white,
   },
   previewUnavailableText: {
     color: colors.textSecondary,

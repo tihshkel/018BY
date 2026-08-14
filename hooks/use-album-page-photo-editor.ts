@@ -168,7 +168,8 @@ export function useAlbumPagePhotoEditor({
 
       const pid = projectId;
       if (pid) {
-        await flushAlbumProjectPersist(pid);
+        // Не ждём диск: flush блокировал галерею и давал фриз на Android.
+        void flushAlbumProjectPersist(pid);
       }
 
       const uri = await pickPhotoFromLibrary({

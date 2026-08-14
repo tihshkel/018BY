@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
@@ -9,6 +9,7 @@ import { useAlbumFormLayout } from '@/hooks/use-album-editor-layout';
 import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import { useAlbumProject } from '@/hooks/use-album-project';
 import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
+import { releaseAndroidImageMemory } from '@/utils/androidSessionRelief';
 import { openFinalPagePreview } from '@/utils/openFinalPagePreview';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
@@ -31,6 +32,12 @@ export default function AlbumPagePhotosScreen() {
   });
   const { shellStyle } = useAlbumFormLayout();
   const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      releaseAndroidImageMemory(60);
+    };
+  }, []);
 
   const albumFlowParams: AlbumFlowParams = {
     id,

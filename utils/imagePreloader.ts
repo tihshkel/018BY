@@ -4,7 +4,17 @@
  */
 
 import { Image } from 'expo-image';
+import { Platform } from 'react-native';
 import { priorityImagesForPreload, allImagesForPreload } from '@/constants/images';
+
+const PREFETCH_POLICY = { cachePolicy: 'disk' as const };
+
+async function prefetchSource(imageSource: unknown): Promise<void> {
+  if (typeof imageSource === 'number') return;
+  if (typeof imageSource === 'string' || (imageSource && typeof imageSource === 'object' && 'uri' in imageSource)) {
+    await Image.prefetch(imageSource as string, PREFETCH_POLICY);
+  }
+}
 
 /**
  * Предзагружает изображения с высоким приоритетом
@@ -23,11 +33,7 @@ export const preloadPriorityImages = async (): Promise<void> => {
           return;
         }
         
-        // Для URI используем prefetch
-        if (typeof imageSource === 'string' || (imageSource && 'uri' in imageSource)) {
-          await Image.prefetch(imageSource as string);
-          return;
-        }
+        await prefetchSource(imageSource);
       } catch (error) {
         // Игнорируем ошибки предзагрузки отдельных изображений
         // Изображение все равно загрузится при необходимости
@@ -68,10 +74,7 @@ export const preloadAllImages = async (): Promise<void> => {
               return;
             }
             
-            if (typeof imageSource === 'string' || (imageSource && 'uri' in imageSource)) {
-              await Image.prefetch(imageSource as string);
-              return;
-            }
+            await prefetchSource(imageSource);
           } catch (error) {
             console.warn('⚠️ Ошибка предзагрузки изображения:', error);
           }
@@ -96,10 +99,11 @@ export const preloadAllImages = async (): Promise<void> => {
  * 2. Затем все остальные (в фоне)
  */
 export const preloadImagesStaged = async (): Promise<void> => {
-  // Этап 1: Приоритетные изображения
   await preloadPriorityImages();
-  
-  // Этап 2: Остальные изображения в фоне (не блокируем UI)
+
+  // Android: не греть RAM каталогом обложек — это как раз сценарий «заполнил альбом и поехало».
+  if (Platform.OS === 'android') return;
+
   preloadAllImages().catch((error) => {
     console.error('❌ Ошибка фоновой предзагрузки:', error);
   });

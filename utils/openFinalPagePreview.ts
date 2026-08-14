@@ -1,6 +1,7 @@
 import { router, type Href } from 'expo-router';
 
 import type { PageValues } from '@/types/album-page-schema';
+import { releaseAndroidImageMemory } from '@/utils/androidSessionRelief';
 import { yieldToNextPaint } from '@/utils/yieldToUi';
 
 export type FinalPagePreviewParams = {
@@ -34,7 +35,8 @@ export async function openFinalPagePreview(options: {
   const values = options.getValues();
   await options.save(values);
   await yieldToNextPaint();
-  router.push({
+  // replace, не push: иначе Android держит форму + превью + список в RAM.
+  router.replace({
     pathname: '/album-page-preview',
     params: {
       id: options.params.id,
@@ -45,4 +47,5 @@ export async function openFinalPagePreview(options: {
       mode: 'final',
     },
   } as unknown as Href);
+  releaseAndroidImageMemory();
 }

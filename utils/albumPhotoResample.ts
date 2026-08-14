@@ -1,4 +1,5 @@
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Platform } from 'react-native';
 
 import { ALBUM_DESIGN_DPI } from '@/utils/exportPageDimensions';
 import { resolvePageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
@@ -10,7 +11,8 @@ import { MAX_PHOTO_SCALE } from '@/utils/photoSlotTransform';
 export const ALBUM_PHOTO_JPEG_QUALITY = 0.92;
 
 const MIN_PHOTO_SIDE_PX = 64;
-const MAX_PHOTO_SIDE_PX = 2048;
+/** Android: меньше bitmap при вставке; 1600px хватает для печати слота при 72 DPI. */
+const MAX_PHOTO_SIDE_PX = Platform.OS === 'android' ? 1600 : 2048;
 
 export type PhotoTargetPixels = {
   maxWidth: number;

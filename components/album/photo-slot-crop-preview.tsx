@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AlbumPhotoImageRaw } from '@/components/album/album-photo-image';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
+import { androidDecodeSize } from '@/utils/androidImageDecode';
 import { resolvePageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { applyPhotoSlotTransform, DEFAULT_PHOTO_SLOT_TRANSFORM } from '@/utils/photoSlotTransform';
@@ -30,6 +31,10 @@ export function PhotoSlotCropPreview({
   const initialH = knownHeight && knownHeight > 8 ? knownHeight : 0;
   const [slotSize, setSlotSize] = useState({ width: initialW, height: initialH });
   const [imageAspect, setImageAspect] = useState(0);
+  const decodeSize = useMemo(
+    () => androidDecodeSize(slotSize.width, slotSize.height, 1.75),
+    [slotSize.height, slotSize.width],
+  );
 
   useEffect(() => {
     if (knownWidth && knownWidth > 8 && knownHeight && knownHeight > 8) {
@@ -107,11 +112,9 @@ export function PhotoSlotCropPreview({
           <AlbumPhotoImageRaw
             uri={uri}
             style={styles.image}
-            // Preview: full decode — Context7/expo-image: allowDownscaling=false → highest quality
-            // and sharp resize; avoids Glide soft bitmap from a tiny first layout.
-            allowDownscaling={false}
-            decodeWidth={slotSize.width}
-            decodeHeight={slotSize.height}
+            allowDownscaling
+            decodeWidth={decodeSize?.width ?? slotSize.width}
+            decodeHeight={decodeSize?.height ?? slotSize.height}
             recyclingKey={`${uri}:${Math.round(slotSize.width)}x${Math.round(slotSize.height)}`}
             onLoad={() => {
               void resolvePageSourceSize(uri).then((size) => {

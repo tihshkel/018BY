@@ -24,6 +24,7 @@ import {
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
+import { androidDecodeSize } from '@/utils/androidImageDecode';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
 
@@ -98,6 +99,7 @@ function PhotoSlotHandleFilled({
   const offsetY = useSharedValue(transform.offsetY || 0);
   const slotWidth = useSharedValue(120);
   const slotHeight = useSharedValue(120);
+  const [decodeSize, setDecodeSize] = useState<{ width: number; height: number } | undefined>();
   const imageAspect = useSharedValue(1);
   const minPhotoScale = useSharedValue(1);
 
@@ -331,6 +333,13 @@ function PhotoSlotHandleFilled({
         if (width > 0 && height > 0) {
           slotWidth.value = width;
           slotHeight.value = height;
+          const nextDecode = androidDecodeSize(width, height, 2);
+          if (
+            nextDecode &&
+            (decodeSize?.width !== nextDecode.width || decodeSize?.height !== nextDecode.height)
+          ) {
+            setDecodeSize(nextDecode);
+          }
           if (imageAspect.value > 0) {
             minPhotoScale.value = computePhotoContainScaleWorklet(
               width,
@@ -343,12 +352,16 @@ function PhotoSlotHandleFilled({
     >
       <Animated.View style={[styles.imageInner, imageStyle]}>
         <Image
-          source={{ uri }}
+          source={
+            decodeSize
+              ? { uri, width: decodeSize.width, height: decodeSize.height }
+              : { uri }
+          }
           style={styles.image}
           contentFit="cover"
           cachePolicy="disk"
           transition={0}
-          allowDownscaling={false}
+          allowDownscaling
           recyclingKey={uri}
           onError={() => {
             if (!isRemotePhotoUri(uri)) {

@@ -41,7 +41,7 @@ import {
   savePageValueEntry,
   savePageValuesMap,
 } from '@/utils/pageStorage';
-import { projectUiPageValuesMap } from '@/utils/pageValuesMemory';
+import { projectUiPageValuesMap, toListPageValuesStub } from '@/utils/pageValuesMemory';
 import { refreshPageValuesStatus } from '@/utils/pageStatus';
 import { sanitizePageValuesMapPhotos } from '@/utils/persistAlbumPhoto';
 import {
@@ -133,6 +133,25 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       activeInstanceIdRef.current,
       uiPageValuesMapRef.current,
     );
+    uiPageValuesMapRef.current = nextUi;
+    setPageValuesMapState(nextUi);
+  }, []);
+
+  /** Одна страница — без пересборки stubs всех 60 страниц на каждый символ. */
+  const commitPageValue = useCallback((instanceId: string, next: PageValues) => {
+    const full = {
+      ...latestStateRef.current.pageValuesMap,
+      [instanceId]: next,
+    };
+    latestStateRef.current = {
+      ...latestStateRef.current,
+      pageValuesMap: full,
+    };
+    const prevUi = uiPageValuesMapRef.current;
+    const uiEntry =
+      activeInstanceIdRef.current === instanceId ? next : toListPageValuesStub(next);
+    if (prevUi[instanceId] === uiEntry) return;
+    const nextUi = { ...prevUi, [instanceId]: uiEntry };
     uiPageValuesMapRef.current = nextUi;
     setPageValuesMapState(nextUi);
   }, []);
@@ -332,7 +351,8 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     snapshotPublishTimerRef.current = setTimeout(() => {
       snapshotPublishTimerRef.current = null;
       const latest = latestStateRef.current;
-      publishSnapshot(latest.pageValuesMap, latest.instances, latest.images);
+      // Без notify: список страниц под формой не перерисовывает 60 карточек на каждый ввод.
+      publishSnapshot(latest.pageValuesMap, latest.instances, latest.images, { notify: false });
     }, 250);
   }, [effectiveProjectId, publishSnapshot]);
 
@@ -408,6 +428,27 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     });
   }, [effectiveProjectId, images, commitFullPageValuesMap]);
 
+  const hydrateFromSnapshot = useCallback(() => {
+    if (!effectiveProjectId) return false;
+    const snapshot = getAlbumProjectSnapshot(effectiveProjectId);
+    if (!snapshot?.pageValuesMap || Object.keys(snapshot.pageValuesMap).length === 0) {
+      return false;
+    }
+    latestStateRef.current = {
+      pageValuesMap: snapshot.pageValuesMap,
+      instances: snapshot.instances,
+      images: snapshot.images,
+    };
+    commitFullPageValuesMap(snapshot.pageValuesMap);
+    if (snapshot.instances.length > 0) {
+      setInstances(snapshot.instances);
+    }
+    if (snapshot.images.length > 0) {
+      setImages(snapshot.images);
+    }
+    return true;
+  }, [effectiveProjectId, commitFullPageValuesMap]);
+
   useEffect(() => {
     if (!effectiveProjectId) return;
 
@@ -478,10 +519,10 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         ...updater(current),
         updatedAt: new Date().toISOString(),
       };
-      commitFullPageValuesMap({ ...full, [instanceId]: next });
+      commitPageValue(instanceId, next);
       schedulePersistAfterUpdate(instanceId);
     },
-    [schedulePersistAfterUpdate, commitFullPageValuesMap],
+    [schedulePersistAfterUpdate, commitPageValue],
   );
 
   const savePageValuesNow = useCallback(
@@ -1317,6 +1358,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       getInstanceTitle: getInstanceTitleForProject,
       getSchemaForInstance: getSchemaForInstanceBound,
       reloadProjectData,
+      hydrateFromSnapshot,
       persistAll,
       setInstances,
       setImages,
@@ -1345,6 +1387,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       getInstanceTitleForProject,
       getSchemaForInstanceBound,
       reloadProjectData,
+      hydrateFromSnapshot,
       persistAll,
       setInstances,
       setImages,

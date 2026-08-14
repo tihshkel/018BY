@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import {
@@ -14,6 +14,7 @@ import { useAlbumProject } from '@/hooks/use-album-project';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { useStableAlbumProjectActions } from '@/hooks/use-stable-album-project-actions';
 import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
+import { releaseAndroidImageMemory } from '@/utils/androidSessionRelief';
 import { usesUnifiedPhotoEditor } from '@/utils/albumPageNavigation';
 import { openFinalPagePreview } from '@/utils/openFinalPagePreview';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -67,6 +68,12 @@ export default function AlbumPageFormScreen() {
   const unifiedEditor = schema ? usesUnifiedPhotoEditor(schema) : false;
 
   const [isNavigating, setIsNavigating] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      releaseAndroidImageMemory(60);
+    };
+  }, []);
 
   const handleSave = async () => {
     if (!instanceId || isNavigating) return;

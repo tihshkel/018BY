@@ -40,12 +40,14 @@ function ThumbnailImage({ uri }: { uri: string }) {
         </View>
       ) : null}
       <Image
-        source={{ uri }}
+        source={{ uri, width: 112, height: 144 }}
         style={[styles.thumbnail, !loaded && styles.thumbnailHidden]}
         contentFit="cover"
         cachePolicy="disk"
         recyclingKey={uri}
-        transition={120}
+        transition={0}
+        allowDownscaling
+        priority="low"
         onLoad={() => setLoaded(true)}
         onError={() => setLoaded(true)}
       />

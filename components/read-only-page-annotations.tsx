@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { normalizeAlbumPhotoUri } from '@/components/album/album-photo-image';
+import { albumImageSource } from '@/utils/androidImageDecode';
 import type { Annotation } from '@/components/pdf-annotations';
 import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import {
@@ -538,7 +539,12 @@ function ReadOnlyPageAnnotationsInner({
               {innerStyle ? (
                 <View style={[styles.imageInner, photoClipStyle, innerStyle]}>
                   <Image
-                    source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri) }}
+                    source={albumImageSource(
+                      normalizeAlbumPhotoUri(annotation.imageUri),
+                      annotation.width,
+                      annotation.height,
+                      1.75,
+                    )}
                     style={[
                       styles.imageFill,
                       photoClipStyle,
@@ -556,7 +562,12 @@ function ReadOnlyPageAnnotationsInner({
                 </View>
               ) : (
                 <Image
-                  source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri) }}
+                  source={albumImageSource(
+                    normalizeAlbumPhotoUri(annotation.imageUri),
+                    annotation.width,
+                    annotation.height,
+                    1.75,
+                  )}
                   style={[
                     styles.imageFill,
                     photoClipStyle,

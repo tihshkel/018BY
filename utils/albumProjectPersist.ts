@@ -1,6 +1,13 @@
+import { Platform } from 'react-native';
+
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 
 import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
+
+const ANDROID_PERSIST_DELAY_MS = 900;
+const IOS_PERSIST_DELAY_MS = 400;
+const ANDROID_WIDGET_SYNC_DELAY_MS = 15000;
+const IOS_WIDGET_SYNC_DELAY_MS = 8000;
 
 export type AlbumProjectPersistMeta = {
   id: string;
@@ -37,7 +44,7 @@ function scheduleWidgetSync(): void {
   widgetSyncTimer = setTimeout(() => {
     widgetSyncTimer = null;
     void syncWidgetSnapshot();
-  }, 8000);
+  }, Platform.OS === 'android' ? ANDROID_WIDGET_SYNC_DELAY_MS : IOS_WIDGET_SYNC_DELAY_MS);
 }
 
 /** Только таймер — pending payload не трогаем (иначе теряем правки во время записи). */
@@ -53,7 +60,7 @@ export function scheduleAlbumProjectPersist(
   projectId: string,
   payload: PersistPayload,
   run: PersistRunner,
-  delayMs = 400
+  delayMs = Platform.OS === 'android' ? ANDROID_PERSIST_DELAY_MS : IOS_PERSIST_DELAY_MS,
 ): void {
   payloads.set(projectId, payload);
   runners.set(projectId, run);

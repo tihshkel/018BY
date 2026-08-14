@@ -10,11 +10,13 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -47,12 +49,12 @@ import {
   openAlbumPage,
 } from "@/utils/albumPageNavigation";
 import { hasPendingAlbumProjectPersist } from "@/utils/albumProjectPersist";
-import { getAlbumProjectSnapshot } from "@/utils/albumProjectStateSync";
 import { isBlankTemplateLineGuide } from "@/utils/photoPageTemplateManifest";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { resolveDisplayPageStatus } from "@/utils/pageStatus";
 import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
 import { normalizeRouteParam } from "@/utils/routeParams";
+import { releaseAndroidImageMemory } from "@/utils/androidSessionRelief";
 
 function getAlbumHeroSubtitle(celebration?: string, lineGuideId?: string): string {
   if (celebration === 'wedding') {
@@ -144,6 +146,7 @@ export default function AlbumPagesScreen() {
     eventDate,
   });
   const { shellStyle, pageGridColumnCount, layout } = useAlbumPageListLayout();
+  const listFocused = useIsFocused();
   const pageItemWidth =
     pageGridColumnCount > 1
       ? (layout.contentMaxWidth - (pageGridColumnCount - 1) * spacing.sm) / pageGridColumnCount
@@ -151,6 +154,7 @@ export default function AlbumPagesScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      releaseAndroidImageMemory(120);
       if (!project.projectId || project.isLoading) return;
       void touchProjectLastOpened(project.projectId);
       if (skipNextReloadRef.current) {
@@ -162,11 +166,11 @@ export default function AlbumPagesScreen() {
         void project.reloadProjectData();
         return;
       }
-      if (getAlbumProjectSnapshot(project.projectId)?.pageValuesMap) {
+      if (project.hydrateFromSnapshot()) {
         return;
       }
       void project.reloadProjectData();
-    }, [project.projectId, project.isLoading, project.reloadProjectData]),
+    }, [project.projectId, project.isLoading, project.reloadProjectData, project.hydrateFromSnapshot]),
   );
 
   const highlightedInstance = useMemo(() => {
@@ -200,7 +204,7 @@ export default function AlbumPagesScreen() {
         project.pageValuesMap,
         project.getSchemaForInstance,
       ),
-    [project.instances, project.pageValuesMap, project],
+    [project.instances, project.pageValuesMap, project.getSchemaForInstance],
   );
 
   const sectionProgressList = useMemo(
@@ -211,7 +215,7 @@ export default function AlbumPagesScreen() {
         project.pageValuesMap,
         project.getSchemaForInstance,
       ),
-    [project.lineGuideId, project.instances, project.pageValuesMap, project],
+    [project.lineGuideId, project.instances, project.pageValuesMap, project.getSchemaForInstance],
   );
 
   const coverSource = useMemo(
@@ -301,7 +305,8 @@ export default function AlbumPagesScreen() {
     project.pageValuesMap,
     project.images,
     project.lineGuideId,
-    project,
+    project.getSchemaForInstance,
+    project.getInstanceTitle,
   ]);
 
   const handleOpenPage = useCallback((instanceId: string) => {
@@ -423,6 +428,7 @@ export default function AlbumPagesScreen() {
           { paddingBottom: spacing.lg + insets.bottom + 160 },
         ]}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === "android"}
       >
         {highlightedInstance && highlightedPosition != null ? (
           <View style={styles.highlightBanner}>
@@ -464,7 +470,7 @@ export default function AlbumPagesScreen() {
               source={coverSource}
               style={styles.heroCover}
               contentFit="cover"
-              cachePolicy="memory-disk"
+              cachePolicy="disk"
               recyclingKey={`album-cover-${project.projectId}`}
               transition={0}
             />
@@ -538,6 +544,7 @@ export default function AlbumPagesScreen() {
               }
               scrollContentRef={scrollContentRef}
               onHighlightMeasured={scrollToHighlightedPage}
+              showPageImages={listFocused}
             />
           );
         })}

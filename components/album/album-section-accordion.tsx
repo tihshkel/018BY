@@ -49,6 +49,8 @@ type AlbumSectionAccordionProps = {
   highlightInstanceId?: string;
   onHighlightMeasured?: (y: number) => void;
   scrollContentRef?: RefObject<View | null>;
+  /** false — не держать decoded PNG страниц, пока список не на экране. */
+  showPageImages?: boolean;
 };
 
 export function AlbumSectionAccordion({
@@ -72,6 +74,7 @@ export function AlbumSectionAccordion({
   highlightInstanceId,
   onHighlightMeasured,
   scrollContentRef,
+  showPageImages = true,
 }: AlbumSectionAccordionProps) {
   const containsHighlight = highlightInstanceId
     ? pages.some((row) => row.instance.instanceId === highlightInstanceId)
@@ -189,8 +192,9 @@ export function AlbumSectionAccordion({
                 title={row.title}
                 subtitle={row.subtitle}
                 status={row.status}
-                thumbnailUri={row.thumbnailUri}
+                thumbnailUri={showPageImages ? row.thumbnailUri : undefined}
                 thumbnailNode={
+                  showPageImages &&
                   row.schema &&
                   row.pageValues &&
                   isBlankTemplateLineGuide(row.schema.lineGuideId) ? (

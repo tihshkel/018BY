@@ -2,10 +2,11 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'expo-asset';
 import 'react-native-reanimated';
+import { enableFreeze } from 'react-native-screens';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
@@ -20,7 +21,12 @@ import { syncToCloudNow } from '@/utils/account-sync';
 import { getAndStorePushToken } from '@/utils/pushToken';
 import { initializeImagePreload } from '@/utils/imagePreloader';
 import { shouldShowOnboarding } from '@/constants/onboardingFlow';
+import { releaseAndroidImageMemory } from '@/utils/androidSessionRelief';
 import Constants from 'expo-constants';
+
+if (Platform.OS === 'android') {
+  enableFreeze(true);
+}
 
 function NotificationHandlersBootstrap() {
   useNotificationHandlers();
@@ -100,7 +106,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
-      if (state === 'background' || state === 'inactive') {
+      // inactive на Android = галерея/диалог. Чистить кэш и синкать здесь — фриз при добавлении фото.
+      if (state === 'background') {
+        releaseAndroidImageMemory(80);
         void hasCompletedEntryFlow()
           .then((isReady) => {
             if (isReady) {
@@ -146,6 +154,7 @@ export default function RootLayout() {
                 animation: 'default',
                 animationDuration: 300,
                 animationTypeForReplace: 'push',
+                freezeOnBlur: true,
               }}
             >
               <Stack.Screen name="index" />

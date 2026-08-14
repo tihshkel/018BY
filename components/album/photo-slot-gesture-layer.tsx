@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,6 +12,7 @@ import { AlbumPhotoImageRaw } from '@/components/album/album-photo-image';
 import { AppText } from '@/components/ui';
 import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
+import { androidDecodeSize } from '@/utils/androidImageDecode';
 import {
   applyPhotoSlotTransform,
   clampAspectAwarePhotoOffset,
@@ -78,6 +79,7 @@ function PhotoSlotFilled({
   const offsetY = useSharedValue(transform.offsetY || 0);
   const slotWidth = useSharedValue(120);
   const slotHeight = useSharedValue(120);
+  const [decodeSize, setDecodeSize] = useState<{ width: number; height: number } | undefined>();
   const imageAspect = useSharedValue(1);
   const minPhotoScale = useSharedValue(1);
 
@@ -244,6 +246,13 @@ function PhotoSlotFilled({
         if (width > 0 && height > 0) {
           slotWidth.value = width;
           slotHeight.value = height;
+          const nextDecode = androidDecodeSize(width, height, 2);
+          if (
+            nextDecode &&
+            (decodeSize?.width !== nextDecode.width || decodeSize?.height !== nextDecode.height)
+          ) {
+            setDecodeSize(nextDecode);
+          }
           if (imageAspect.value > 0) {
             minPhotoScale.value = computePhotoContainScaleWorklet(
               width,
@@ -258,8 +267,9 @@ function PhotoSlotFilled({
         <AlbumPhotoImageRaw
           uri={uri}
           style={styles.image}
-          // Крупный слот (1 фото): без downscale — сразу резкий кадр на Android.
-          allowDownscaling={false}
+          allowDownscaling
+          decodeWidth={decodeSize?.width}
+          decodeHeight={decodeSize?.height}
           recyclingKey={uri}
           onError={() => {
             // Не стираем слот при временном сбое decode/`?v=` —

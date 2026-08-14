@@ -1,6 +1,6 @@
-import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
 
+import { releaseAndroidImageMemoryNow } from '@/utils/androidSessionRelief';
 import { clearAllAlbumProjectSnapshots } from '@/utils/albumProjectStateSync';
 
 export type AlbumFlowParams = {
@@ -69,13 +69,23 @@ export function buildExportReviewHref(params: AlbumFlowParams): Href {
 }
 
 export function navigateToAlbumPages(params: AlbumFlowParams): void {
-  router.replace(buildAlbumPagesHref(params));
+  const href = buildAlbumPagesHref(params);
+  // dismissTo снимает form/preview со стека; replace оставлял их под списком.
+  if (typeof router.dismissTo === 'function') {
+    try {
+      router.dismissTo(href);
+      return;
+    } catch {
+      // href нет в стеке — обычный replace
+    }
+  }
+  router.replace(href);
 }
 
 export function navigateToHomeFromAlbum(): void {
   // Сбрасываем RAM-снимки проектов + native image memory cache (п.1/п.2 давление памяти).
   clearAllAlbumProjectSnapshots();
-  void Image.clearMemoryCache();
+  releaseAndroidImageMemoryNow();
   router.replace('/(tabs)' as Href);
 }
 

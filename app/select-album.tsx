@@ -100,7 +100,7 @@ export default function SelectAlbumScreen() {
           const thumbnailPromises = thumbnails.map(async (imageSource) => {
             try {
               if (typeof imageSource === 'string') {
-                await Image.prefetch(imageSource);
+                await Image.prefetch(imageSource, { cachePolicy: 'disk' });
               } else {
                 const asset = Asset.fromModule(imageSource);
                 await asset.downloadAsync();
@@ -109,6 +109,12 @@ export default function SelectAlbumScreen() {
               // Игнорируем ошибки
             }
           });
+
+          // Android: не материализуем первые страницы всех альбомов — это душит RAM до заполнения.
+          if (Platform.OS === 'android') {
+            await Promise.all(thumbnailPromises);
+            return;
+          }
 
           // 2. Параллельно предзагружаем ПЕРВЫЕ СТРАНИЦЫ всех альбомов для мгновенного отображения
           const firstPagePromises = filteredAlbums.map(async (album) => {
@@ -335,7 +341,7 @@ export default function SelectAlbumScreen() {
                     style={styles.albumImage}
                     contentFit="cover"
                     priority="high"
-                    cachePolicy="memory-disk"
+                    cachePolicy="disk"
                     transition={0}
                     fadeDuration={0}
                     recyclingKey={album.id}

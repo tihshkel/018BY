@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { prefetchAlbumPhotoUri } from '@/components/album/album-photo-image';
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
@@ -33,6 +33,7 @@ export function usePageAnnotationsForLayout({
   debounceMs = 0,
 }: UsePageAnnotationsForLayoutParams): Annotation[] {
   const debouncedValues = useDebouncedValue(values, debounceMs);
+  const prefetchSeenRef = useRef(new Set<string>());
 
   const annotations = useMemo(() => {
     const resolvedValues = debounceMs > 0 ? debouncedValues : values;
@@ -74,10 +75,12 @@ export function usePageAnnotationsForLayout({
   ]);
 
   useEffect(() => {
+    const seen = prefetchSeenRef.current;
     for (const ann of annotations) {
-      if (ann.type === 'image' && ann.imageUri) {
-        prefetchAlbumPhotoUri(ann.imageUri);
-      }
+      if (ann.type !== 'image' || !ann.imageUri) continue;
+      if (seen.has(ann.imageUri)) continue;
+      seen.add(ann.imageUri);
+      prefetchAlbumPhotoUri(ann.imageUri);
     }
   }, [annotations]);
 

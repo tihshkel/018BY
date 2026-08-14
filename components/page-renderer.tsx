@@ -266,7 +266,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           contentPosition="center"
           transition={0}
           fadeDuration={0}
-          cachePolicy="memory-disk"
+          cachePolicy={waitForAnnotationImages ? 'memory-disk' : 'disk'}
           priority="high"
           recyclingKey={`${imageUri}::${bgRetryKey}`}
           // Экранный preview: downscale под viewport — меньше OOM на слабых Android.
