@@ -12,9 +12,12 @@ struct WidgetProjectItem: Codable, Hashable {
     let pagesCount: Int
     let photosCount: Int
     let unfinishedPages: Int?
+    let filledPages: Int?
+    let progressKnown: Bool?
+    let interiorType: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, title, category, categoryLabel, percent, celebration, coverType, pagesCount, photosCount, unfinishedPages
+        case id, title, category, categoryLabel, percent, celebration, coverType, pagesCount, photosCount, unfinishedPages, filledPages, progressKnown, interiorType
     }
 
     init(
@@ -27,7 +30,10 @@ struct WidgetProjectItem: Codable, Hashable {
         coverType: String?,
         pagesCount: Int,
         photosCount: Int,
-        unfinishedPages: Int?
+        unfinishedPages: Int?,
+        filledPages: Int? = nil,
+        progressKnown: Bool? = nil,
+        interiorType: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -39,6 +45,9 @@ struct WidgetProjectItem: Codable, Hashable {
         self.pagesCount = pagesCount
         self.photosCount = photosCount
         self.unfinishedPages = unfinishedPages
+        self.filledPages = filledPages
+        self.progressKnown = progressKnown
+        self.interiorType = interiorType
     }
 
     init(from decoder: Decoder) throws {
@@ -53,6 +62,9 @@ struct WidgetProjectItem: Codable, Hashable {
         pagesCount = try container.decodeIfPresent(Int.self, forKey: .pagesCount) ?? 0
         photosCount = try container.decodeIfPresent(Int.self, forKey: .photosCount) ?? 0
         unfinishedPages = try container.decodeIfPresent(Int.self, forKey: .unfinishedPages)
+        filledPages = try container.decodeIfPresent(Int.self, forKey: .filledPages)
+        progressKnown = try container.decodeIfPresent(Bool.self, forKey: .progressKnown)
+        interiorType = try container.decodeIfPresent(String.self, forKey: .interiorType)
     }
 }
 
@@ -64,9 +76,15 @@ struct WidgetContinueItem: Codable, Hashable {
     let percent: Int
     let celebration: String?
     let coverType: String?
+    let interiorType: String?
+    let editorPath: String?
+    let unfinishedPages: Int?
+    let filledPages: Int?
+    let totalPages: Int?
+    let actionHint: String?
 
     enum CodingKeys: String, CodingKey {
-        case projectId, instanceId, projectTitle, pageTitle, percent, celebration, coverType
+        case projectId, instanceId, projectTitle, pageTitle, percent, celebration, coverType, interiorType, editorPath, unfinishedPages, filledPages, totalPages, actionHint
     }
 
     init(
@@ -76,7 +94,13 @@ struct WidgetContinueItem: Codable, Hashable {
         pageTitle: String,
         percent: Int,
         celebration: String?,
-        coverType: String?
+        coverType: String?,
+        interiorType: String? = nil,
+        editorPath: String? = nil,
+        unfinishedPages: Int? = nil,
+        filledPages: Int? = nil,
+        totalPages: Int? = nil,
+        actionHint: String? = nil
     ) {
         self.projectId = projectId
         self.instanceId = instanceId
@@ -85,6 +109,12 @@ struct WidgetContinueItem: Codable, Hashable {
         self.percent = percent
         self.celebration = celebration
         self.coverType = coverType
+        self.interiorType = interiorType
+        self.editorPath = editorPath
+        self.unfinishedPages = unfinishedPages
+        self.filledPages = filledPages
+        self.totalPages = totalPages
+        self.actionHint = actionHint
     }
 
     init(from decoder: Decoder) throws {
@@ -96,6 +126,12 @@ struct WidgetContinueItem: Codable, Hashable {
         percent = try container.decodeIfPresent(Int.self, forKey: .percent) ?? 0
         celebration = try container.decodeIfPresent(String.self, forKey: .celebration)
         coverType = try container.decodeIfPresent(String.self, forKey: .coverType)
+        interiorType = try container.decodeIfPresent(String.self, forKey: .interiorType)
+        editorPath = try container.decodeIfPresent(String.self, forKey: .editorPath)
+        unfinishedPages = try container.decodeIfPresent(Int.self, forKey: .unfinishedPages)
+        filledPages = try container.decodeIfPresent(Int.self, forKey: .filledPages)
+        totalPages = try container.decodeIfPresent(Int.self, forKey: .totalPages)
+        actionHint = try container.decodeIfPresent(String.self, forKey: .actionHint)
     }
 }
 
@@ -261,76 +297,136 @@ enum WidgetDataStore {
         )
     }
 
-    static func makeEntry() -> WidgetEntry {
-        WidgetEntry(date: Date(), snapshot: loadSnapshot())
+    /// Recalculate calendar-dependent content from dates, not from the last app launch.
+    static func snapshot(_ source: WidgetSnapshot, at date: Date) -> WidgetSnapshot {
+        let calendar = Calendar.current
+        let reminders = (source.reminders.isEmpty ? source.nextReminder.map { [$0] } ?? [] : source.reminders)
+            .compactMap { item -> WidgetReminderItem? in
+                guard let target = WidgetFormatters.parseDate(item.dateISO) else { return nil }
+                let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: target)).day ?? 0
+                guard days >= 0 else { return nil }
+                return WidgetReminderItem(title: item.title, dateISO: item.dateISO, daysLeft: days)
+            }
+            .sorted { (WidgetFormatters.parseDate($0.dateISO) ?? .distantFuture) < (WidgetFormatters.parseDate($1.dateISO) ?? .distantFuture) }
+        var pregnancy: WidgetPregnancyItem?
+        if let item = source.pregnancy, let due = WidgetFormatters.parseDate(item.pdrISO) {
+            let daysLeft = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: due)).day ?? 0
+            if daysLeft >= -14 {
+                let day = min(294, max(1, 281 - daysLeft))
+                let week = min(42, max(1, 40 - Int(floor(Double(daysLeft) / 7))))
+                pregnancy = WidgetPregnancyItem(
+                    week: week, day: day, dayInWeek: ((day - 1) % 7) + 1,
+                    trimester: week <= 13 ? 1 : week <= 27 ? 2 : 3,
+                    weeklyInsight: week == item.week ? item.weeklyInsight : nil,
+                    daysLeft: daysLeft, pdrISO: item.pdrISO,
+                    projectTitle: item.projectTitle, projectId: item.projectId
+                )
+            }
+        }
+        let today = source.todayNotifications.filter {
+            guard let received = WidgetFormatters.parseDate($0.receivedAt) else { return false }
+            return calendar.isDate(received, inSameDayAs: date)
+        }
+        let sameSnapshotDay = WidgetFormatters.parseDate(source.updatedAt).map { calendar.isDate($0, inSameDayAs: date) } ?? false
+        return WidgetSnapshot(
+            updatedAt: source.updatedAt, userName: source.userName, albumsCount: source.albumsCount,
+            projects: source.projects, continueProject: source.continueProject,
+            nextReminder: reminders.first, reminders: reminders, pregnancy: pregnancy,
+            todayNotifications: today, latestNotification: source.latestNotification,
+            unreadTodayCount: sameSnapshotDay ? source.unreadTodayCount : today.count
+        )
+    }
+
+    static func makeEntry(at date: Date = Date()) -> WidgetEntry {
+        WidgetEntry(date: date, snapshot: snapshot(loadSnapshot(), at: date))
     }
 
     static func makeTimeline() -> Timeline<WidgetEntry> {
-        let entry = makeEntry()
-        let calendar = Calendar.current
-        let nextHalfHour = calendar.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
-        let startOfTomorrow = calendar.startOfDay(
-            for: calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        let now = Date()
+        let source = loadSnapshot()
+        var dates = [now]
+        // Future midnight entries update dates and prompts even if iOS delays a reload.
+        for offset in 1...7 {
+            if let day = Calendar.current.date(byAdding: .day, value: offset, to: Calendar.current.startOfDay(for: now)) {
+                dates.append(day)
+            }
+        }
+        let entries = dates.map { WidgetEntry(date: $0, snapshot: snapshot(source, at: $0)) }
+        return Timeline(entries: entries, policy: .after(now.addingTimeInterval(3600)))
+    }
+
+    static func previewEntry() -> WidgetEntry {
+        let now = Date()
+        let iso = ISO8601DateFormatter().string(from: now)
+        let project = WidgetProjectItem(
+            id: "preview", title: "Наша маленькая история", category: "kids", categoryLabel: "Детский альбом",
+            percent: 64, celebration: "kids", coverType: nil, pagesCount: 28, photosCount: 36,
+            unfinishedPages: 10, filledPages: 18, progressKnown: true
         )
-        let nextUpdate = min(nextHalfHour, startOfTomorrow)
-        return Timeline(entries: [entry], policy: .after(nextUpdate))
+        let second = WidgetProjectItem(
+            id: "preview-pregnancy", title: "В ожидании тебя", category: "pregnancy", categoryLabel: "Дневник беременности",
+            percent: 35, celebration: "pregnancy", coverType: nil, pagesCount: 40, photosCount: 12,
+            unfinishedPages: 26, filledPages: 14, progressKnown: true
+        )
+        let third = WidgetProjectItem(
+            id: "preview-family", title: "Наши семейные моменты", category: "family", categoryLabel: "Семейный альбом",
+            percent: 100, celebration: "family", coverType: nil, pagesCount: 20, photosCount: 42,
+            unfinishedPages: 0, filledPages: 20, progressKnown: true
+        )
+        let next = WidgetContinueItem(
+            projectId: project.id, instanceId: "preview-page", projectTitle: project.title,
+            pageTitle: "Первая улыбка", percent: 64, celebration: "kids", coverType: nil,
+            unfinishedPages: 10, filledPages: 18, totalPages: 28,
+            actionHint: "Добавьте фото и несколько слов об этом моменте"
+        )
+        let reminderDate = Calendar.current.date(byAdding: .day, value: 3, to: now) ?? now
+        let reminder = WidgetReminderItem(title: "Сохранить моменты месяца", dateISO: ISO8601DateFormatter().string(from: reminderDate), daysLeft: 3)
+        let due = Calendar.current.date(byAdding: .day, value: 108, to: now) ?? now
+        let pregnancy = WidgetPregnancyItem(week: 25, day: 173, dayInWeek: 5, trimester: 2, weeklyInsight: nil, daysLeft: 108, pdrISO: ISO8601DateFormatter().string(from: due), projectTitle: "В ожидании тебя", projectId: "preview-pregnancy")
+        let notification = WidgetInboxNotificationItem(id: "preview-note", title: "У каждого момента есть история", body: "Выберите любимое фото и сохраните то, что осталось за кадром.", receivedAt: iso)
+        return WidgetEntry(date: now, snapshot: WidgetSnapshot(
+            updatedAt: iso, userName: "Анна", albumsCount: 3, projects: [project, second, third], continueProject: next,
+            nextReminder: reminder, reminders: [reminder], pregnancy: pregnancy,
+            todayNotifications: [notification], latestNotification: notification, unreadTodayCount: 1
+        ))
     }
 }
 
 enum WidgetDeepLinks {
     static let createAlbum = URL(string: "app018by://my-stories")!
+    static let stories = URL(string: "app018by://all-stories")!
     static let reminders = URL(string: "app018by://reminders-list")!
     static let notifications = URL(string: "app018by://notifications")!
-    /// Opens paper-album helper where user can set ПДР.
     static let setPdr = URL(string: "app018by://paper-album-notifications")!
     static let home = URL(string: "app018by://")!
 
-    static func albumPages(project: WidgetProjectItem) -> URL {
-        var components = URLComponents(string: "app018by://album-pages")!
-        var query: [URLQueryItem] = [URLQueryItem(name: "id", value: project.id)]
-        if let celebration = project.celebration {
-            query.append(URLQueryItem(name: "celebration", value: celebration))
-        }
-        if let coverType = project.coverType {
-            query.append(URLQueryItem(name: "coverType", value: coverType))
-        }
-        components.queryItems = query
-        return components.url ?? home
+    private static func projectURL(id: String, mode: String) -> URL {
+        guard !id.isEmpty else { return stories }
+        var components = URLComponents(string: "app018by://widget-open")!
+        components.queryItems = [URLQueryItem(name: "id", value: id), URLQueryItem(name: "mode", value: mode)]
+        return components.url ?? stories
     }
 
-    static func continueProject(_ item: WidgetContinueItem) -> URL {
-        if item.instanceId.isEmpty {
-            var components = URLComponents(string: "app018by://album-pages")!
-            var query: [URLQueryItem] = [URLQueryItem(name: "id", value: item.projectId)]
-            if let celebration = item.celebration {
-                query.append(URLQueryItem(name: "celebration", value: celebration))
-            }
-            if let coverType = item.coverType {
-                query.append(URLQueryItem(name: "coverType", value: coverType))
-            }
-            components.queryItems = query
-            return components.url ?? home
-        }
+    static func albumPages(project: WidgetProjectItem) -> URL { projectURL(id: project.id, mode: "album") }
+    static func continueProject(_ item: WidgetContinueItem) -> URL { projectURL(id: item.projectId, mode: "continue") }
+    static func pregnancyProject(_ item: WidgetPregnancyItem) -> URL { projectURL(id: item.projectId, mode: "album") }
+}
 
-        var components = URLComponents(string: "app018by://album-page-form")!
-        var query: [URLQueryItem] = [
-            URLQueryItem(name: "id", value: item.projectId),
-            URLQueryItem(name: "instanceId", value: item.instanceId),
-        ]
-        if let celebration = item.celebration {
-            query.append(URLQueryItem(name: "celebration", value: celebration))
+/// Stable daily rotation, using calendar components rather than randomized Swift hashes.
+enum WidgetMemoryPrompts {
+    static func text(for date: Date, category: String = "") -> String {
+        let general = ["Какой момент хочется запомнить?", "Что осталось за кадром любимого фото?", "Какая маленькая деталь сделала день особенным?", "Кого хочется увидеть на страницах альбома?", "Какие слова хочется сохранить на память?", "Какое фото сегодня вызывает улыбку?"]
+        let prompts: [String]
+        switch category {
+        case "kids": prompts = ["Что нового получилось у малыша?", "Какая улыбка сегодня была самой тёплой?", "Какие смешные слова хочется запомнить?", "Какой маленький шаг стал большим событием?", "Что малыш любит больше всего сейчас?", "Как прошёл ваш день вместе?"]
+        case "pregnancy": prompts = ["Каким было ваше настроение сегодня?", "Что хочется рассказать малышу?", "Какой момент ожидания хочется сохранить?", "Что сегодня подарило вам улыбку?", "О чём вы мечтаете для вашей первой встречи?", "Какие слова поддержки хочется запомнить?"]
+        case "family": prompts = ["Какую семейную историю хочется сохранить?", "Какая традиция делает вас ближе?", "Какое общее фото вызывает улыбку?", "За что хочется поблагодарить близких?", "Как вы провели время вместе?", "Какой семейный момент хочется повторить?"]
+        case "holidays": prompts = ["Что стало самым тёплым моментом праздника?", "Какие слова хочется оставить на память?", "Какое фото передаёт настроение этого дня?", "Кто сделал этот день особенным?", "Какую деталь праздника хочется запомнить?", "Какая история скрывается за вашим фото?"]
+        default: prompts = general
         }
-        if let coverType = item.coverType {
-            query.append(URLQueryItem(name: "coverType", value: coverType))
-        }
-        components.queryItems = query
-        return components.url ?? home
-    }
-
-    static func pregnancyProject(_ item: WidgetPregnancyItem) -> URL {
-        var components = URLComponents(string: "app018by://album-pages")!
-        components.queryItems = [URLQueryItem(name: "id", value: item.projectId)]
-        return components.url ?? home
+        let parts = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        let seed = (parts.year ?? 0) * 372 + (parts.month ?? 0) * 31 + (parts.day ?? 0)
+        return prompts[abs(seed) % prompts.count]
     }
 }
 
@@ -374,24 +470,42 @@ enum WidgetFormatters {
         "\(week) неделя · \(dayInWeek)-й день"
     }
 
-    static func shortDate(_ iso: String) -> String {
+    static func parseDate(_ iso: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        var date = formatter.date(from: iso)
-        if date == nil {
-            formatter.formatOptions = [.withInternetDateTime]
-            date = formatter.date(from: iso)
-        }
-        guard let parsed = date else { return iso }
+        if let date = formatter.date(from: iso) { return date }
+        formatter.formatOptions = [.withInternetDateTime]
+        if let date = formatter.date(from: iso) { return date }
+        let plain = DateFormatter()
+        plain.locale = Locale(identifier: "en_US_POSIX")
+        plain.dateFormat = "yyyy-MM-dd"
+        plain.isLenient = false
+        return plain.date(from: iso)
+    }
+
+    static func shortDate(_ iso: String) -> String {
+        guard let parsed = parseDate(iso) else { return "Дата не указана" }
         let display = DateFormatter()
         display.locale = Locale(identifier: "ru_RU")
-        display.dateStyle = .medium
+        display.dateFormat = "d MMMM"
         return display.string(from: parsed)
+    }
+
+    static func remainingPages(_ count: Int) -> String {
+        if count == 1 { return "Осталась 1 страница" }
+        return "Осталось \(max(0, count)) стр."
+    }
+
+    static func progressLabel(_ item: WidgetContinueItem) -> String {
+        if let filled = item.filledPages, let total = item.totalPages, total > 0 {
+            return "\(filled) из \(total) стр. сохранено"
+        }
+        return item.instanceId.isEmpty ? "Начните свою историю" : "Альбом заполнен на \(min(100, max(0, item.percent)))%"
     }
 
     static func trimText(_ text: String, maxLength: Int) -> String {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.count <= maxLength { return trimmed }
-        return String(trimmed.prefix(maxLength - 1)).trimmingCharacters(in: .whitespacesAndNewlines) + "…"
+        return String(trimmed.prefix(max(0, maxLength - 1))).trimmingCharacters(in: .whitespacesAndNewlines) + "…"
     }
 }

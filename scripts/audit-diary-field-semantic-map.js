@@ -226,7 +226,8 @@ function validateSemantic(albumId, pageNumber, schema, pageSlots, template) {
   ]);
   if (INTRO_ZONE_TEMPLATES.has(template) && pageSlots.length > 0) {
     const firstSlot = pageSlots.find((s) => !s.hasLabel) ?? pageSlots[0];
-    if (firstSlot && firstSlot.y < 0.22) {
+    // Хвост после печатного вопроса в шапке — это линия ответа, не intro-OCR.
+    if (firstSlot && firstSlot.y < 0.22 && !firstSlot.inlineLabelTail) {
       issues.push({
         severity: 'error',
         code: 'FIRST_SLOT_IN_INTRO_ZONE',

@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -12,7 +11,7 @@ import {
 import { AppleIcon } from '@/components/icons/apple-icon';
 import { GoogleIcon } from '@/components/icons/google-icon';
 import { AppText } from '@/components/ui/app-text';
-import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
+import { colors, spacing, surfaces } from '@/constants/design-tokens';
 import { AUTH_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 type SocialAuthMode = 'login' | 'register';
@@ -27,14 +26,15 @@ export type SocialAuthButtonsProps = {
   /** Показать разделитель над кнопками (по умолчанию true). */
   showDivider?: boolean;
   dividerLabel?: string;
+  layout?: 'column' | 'row';
 };
 
 function getGoogleLabel(mode: SocialAuthMode): string {
-  return 'Google';
+  return mode === 'register' ? 'Продолжить с Google' : 'Войти с Google';
 }
 
 function getAppleLabel(mode: SocialAuthMode): string {
-  return 'Apple';
+  return mode === 'register' ? 'Продолжить с Apple' : 'Войти с Apple';
 }
 
 type SocialButtonProps = {
@@ -45,6 +45,7 @@ type SocialButtonProps = {
   loading?: boolean;
   accessibilityLabel: string;
   emphasis?: 'default' | 'apple';
+  compact?: boolean;
 };
 
 function SocialButton({
@@ -55,6 +56,7 @@ function SocialButton({
   loading = false,
   accessibilityLabel,
   emphasis = 'default',
+  compact = false,
 }: SocialButtonProps) {
   const isDisabled = disabled || loading;
   const isApple = emphasis === 'apple';
@@ -65,24 +67,22 @@ function SocialButton({
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       style={({ pressed }) => [
         styles.button,
+        compact && styles.buttonCompact,
         isApple && styles.buttonApple,
         pressed && !isDisabled && (isApple ? styles.buttonApplePressed : styles.buttonPressed),
         isDisabled && styles.buttonDisabled,
       ]}
     >
       <View style={styles.iconSlot}>
-        {loading ? (
-          <ActivityIndicator color={colors.textPrimary} />
-        ) : (
-          icon
-        )}
+        {loading ? <ActivityIndicator color={isApple ? colors.white : colors.textPrimary} /> : icon}
       </View>
       <AppText variant="button" style={[styles.buttonLabel, isApple && styles.buttonLabelApple]}>
         {label}
       </AppText>
-      <View style={styles.iconSlot} />
+      {!compact ? <View style={styles.iconSlot} /> : null}
     </Pressable>
   );
 }
@@ -96,6 +96,7 @@ export function SocialAuthButtons({
   style,
   showDivider = true,
   dividerLabel = 'или',
+  layout = 'column',
 }: SocialAuthButtonsProps) {
   return (
     <View style={[styles.container, style]}>
@@ -109,26 +110,25 @@ export function SocialAuthButtons({
         </View>
       ) : null}
 
-      <View style={styles.buttonsColumn}>
-        {Platform.OS === 'ios' ? (
-          <SocialButton
-            label={getAppleLabel(mode)}
-            icon={<AppleIcon size={18} color={colors.textPrimary} />}
-            onPress={onApplePress}
-            disabled={disabled}
-            loading={loadingProvider === 'apple'}
-            accessibilityLabel={getAppleLabel(mode)}
-            emphasis="apple"
-          />
-        ) : null}
-
+      <View style={[styles.buttonsColumn, layout === 'row' && styles.buttonsRow]}>
         <SocialButton
-          label={getGoogleLabel(mode)}
+          label={layout === 'row' ? 'Google' : getGoogleLabel(mode)}
+          compact={layout === 'row'}
           icon={<GoogleIcon size={20} />}
           onPress={onGooglePress}
           disabled={disabled}
           loading={loadingProvider === 'google'}
           accessibilityLabel={getGoogleLabel(mode)}
+        />
+        <SocialButton
+          label={layout === 'row' ? 'Apple' : getAppleLabel(mode)}
+          compact={layout === 'row'}
+          icon={<AppleIcon size={20} color={colors.white} />}
+          onPress={onApplePress}
+          disabled={disabled}
+          loading={loadingProvider === 'apple'}
+          accessibilityLabel={getAppleLabel(mode)}
+          emphasis="apple"
         />
       </View>
     </View>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: 8,
   },
   dividerLine: {
     flex: 1,
@@ -158,27 +158,29 @@ const styles = StyleSheet.create({
   buttonsColumn: {
     gap: 8,
   },
+  buttonsRow: { flexDirection: 'row', gap: 10 },
+  buttonCompact: { flex: 1, minHeight: 52, paddingHorizontal: 12, gap: 6 },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 54,
     paddingVertical: 12,
     paddingHorizontal: spacing.md,
-    borderRadius: radii.xs,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,
   },
   buttonApple: {
-    backgroundColor: colors.white,
-    borderColor: colors.border,
+    backgroundColor: '#302B30',
+    borderColor: '#302B30',
   },
   buttonPressed: {
     backgroundColor: surfaces.muted,
   },
   buttonApplePressed: {
-    backgroundColor: surfaces.muted,
+    backgroundColor: '#514650',
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -195,6 +197,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   buttonLabelApple: {
-    color: colors.textPrimary,
+    color: colors.white,
   },
 });

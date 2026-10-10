@@ -1,5 +1,5 @@
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { colors } from '@/constants/design-tokens';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
   ActivityIndicator,
@@ -10,29 +10,31 @@ import {
   View,
 } from 'react-native';
 
-const PREMIUM_GOLD = '#D4AF37';
-const PREMIUM_GOLD_DARK = '#9A7B0A';
+const PREMIUM_GOLD = '#D4E1D8';
+const PREMIUM_GOLD_DARK = '#56735F';
 
 type ProfileSubscriptionStatusBadgeProps = {
   isPremium: boolean;
   isLoading?: boolean;
+  isIapEnabled?: boolean;
   onPress?: () => void;
 };
 
 export function ProfileSubscriptionStatusBadge({
   isPremium,
   isLoading = false,
+  isIapEnabled = true,
   onPress,
 }: ProfileSubscriptionStatusBadgeProps) {
   const content = isLoading ? (
     <ActivityIndicator size="small" color={colors.textSecondary} />
   ) : isPremium ? (
     <>
-      <MaterialCommunityIcons name="crown" size={14} color={PREMIUM_GOLD_DARK} />
-      <Text style={styles.premiumText}>Премиум</Text>
+      <MaterialCommunityIcons name="check-decagram-outline" size={14} color={PREMIUM_GOLD_DARK} />
+      <Text style={styles.premiumText}>{isIapEnabled ? 'Куплено' : 'Доступно'}</Text>
     </>
   ) : (
-    <Text style={styles.standardText}>Стандарт</Text>
+    <Text style={styles.standardText}>Не куплено</Text>
   );
 
   if (onPress) {
@@ -47,7 +49,13 @@ export function ProfileSubscriptionStatusBadge({
         activeOpacity={0.75}
         testID="profile-subscription-badge-button"
         accessibilityRole="button"
-        accessibilityLabel={isPremium ? 'Статус Премиум' : 'Статус Стандарт'}
+        accessibilityLabel={
+          !isIapEnabled
+            ? 'Экспорт для печати доступен'
+            : isPremium
+              ? 'Экспорт для печати: куплено'
+              : 'Экспорт для печати: не куплено'
+        }
       >
         {content}
       </TouchableOpacity>
@@ -77,14 +85,14 @@ const styles = StyleSheet.create({
     height: 36,
     paddingHorizontal: 16,
     borderRadius: 18,
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   badgeStandard: {
     backgroundColor: colors.background,
     borderColor: '#E8DDD4',
   },
   badgePremium: {
-    backgroundColor: '#FFF8DC',
+    backgroundColor: '#EFF5F0',
     borderColor: PREMIUM_GOLD,
   },
   badgeLoading: {

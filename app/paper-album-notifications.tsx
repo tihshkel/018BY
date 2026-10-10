@@ -2,15 +2,12 @@ import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { scheduleSyncToCloud } from '@/utils/account-sync';
 import { setupAlbumNotificationsForCelebration } from '@/utils/albumNotificationCoordinator';
-import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
+import { ensureNotificationPermission } from '@/utils/localNotificationSchedule';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppDateField } from '@/components/ui/app-date-field';
 import { AppDatePickerSheet } from '@/components/ui/app-date-picker-sheet';
-import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
-import { SchedulableTriggerInputTypes, type TimeIntervalTriggerInput } from 'expo-notifications';
-import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -85,6 +82,9 @@ export default function PaperAlbumNotificationsScreen() {
   const handleTypeSelect = (type: 'pregnancy' | 'kids') => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedType(type);
+    const date = new Date();
+    if (type === 'pregnancy') date.setDate(date.getDate() + 280);
+    setSelectedDate(date);
     setShowDatePicker(true);
   };
 
@@ -107,123 +107,37 @@ export default function PaperAlbumNotificationsScreen() {
       return;
     }
 
+    if (isSaving) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!Number.isFinite(selectedDate.getTime()) || (selectedType === 'kids' && selectedDate > new Date()) || (selectedType === 'pregnancy' && selectedDate < today)) {
+      Alert.alert('Проверьте дату', selectedType === 'kids' ? 'Дата рождения не может быть в будущем.' : 'Укажите сегодняшнюю или будущую предварительную дату родов.');
+      return;
+    }
     setIsSaving(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      const projectId = `paper_${Date.now()}`;
-      const dateISO = selectedDate.toISOString();
-
-      // Сохраняем информацию о бумажном альбоме
-      const paperAlbumData: PaperAlbumNotification = {
-        id: projectId,
-        type: selectedType,
-        date: dateISO,
-        projectId,
-        createdAt: new Date().toISOString(),
-      };
-
-      // Сохраняем в AsyncStorage
-      const existingPaperAlbums = await AsyncStorage.getItem('@paper_albums');
-      const paperAlbums = existingPaperAlbums
-        ? JSON.parse(existingPaperAlbums)
-        : [];
-      paperAlbums.push(paperAlbumData);
-      await AsyncStorage.setItem('@paper_albums', JSON.stringify(paperAlbums));
+      const raw = await AsyncStorage.getItem('@paper_albums');
+      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      const paperAlbums: PaperAlbumNotification[] = Array.isArray(parsed) ? parsed : [];
+      const existing = paperAlbums.find(album => album.type === selectedType &&
+        new Date(album.date).toDateString() === selectedDate.toDateString());
+      const projectId = existing?.projectId ?? `paper_${Date.now()}`;
+      if (!existing) {
+        paperAlbums.push({ id: projectId, type: selectedType, date: selectedDate.toISOString(), projectId, createdAt: new Date().toISOString() });
+        await AsyncStorage.setItem('@paper_albums', JSON.stringify(paperAlbums));
+      }
+      await setupAlbumNotificationsForCelebration(selectedDate, selectedType, projectId);
       scheduleSyncToCloud();
-
-      // Планируем уведомления для выбранного типа и перепланируем все сохранённые альбомы
-      if (selectedType === 'pregnancy' || selectedType === 'kids') {
-        await setupAlbumNotificationsForCelebration(selectedDate, selectedType, projectId);
-      }
-
-      // Отправляем push-уведомление об успешном подключении
-      let notificationSent = false;
-      try {
-        // Проверяем, не находимся ли мы в Expo Go (там уведомления не работают)
-        const isExpoGo = Constants.executionEnvironment === 'storeClient';
-        console.log('Is Expo Go:', isExpoGo);
-        
-        if (!isExpoGo) {
-          // Запрашиваем разрешения, если они еще не получены
-          let permissions = await Notifications.getPermissionsAsync();
-          console.log('Current permissions:', {
-            granted: permissions.granted,
-            iosStatus: permissions.ios?.status,
-            androidImportance: permissions.android?.importance,
-          });
-          
-          let hasPermission = permissions.granted || 
-            (Platform.OS === 'ios' && permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL);
-          
-          if (!hasPermission) {
-            console.log('Requesting permissions...');
-            const requestResult = await Notifications.requestPermissionsAsync();
-            console.log('Permission request result:', requestResult.status);
-            hasPermission = requestResult.status === 'granted';
-          }
-
-          if (hasPermission) {
-            console.log('Has permission, scheduling notification...');
-            // Отправляем уведомление немедленно (через минимальную задержку)
-            try {
-              const trigger: TimeIntervalTriggerInput = {
-                type: SchedulableTriggerInputTypes.TIME_INTERVAL,
-                seconds: 1,
-              };
-              console.log('Scheduled test notification in 1s (TIME_INTERVAL)');
-
-              const notificationId = await Notifications.scheduleNotificationAsync({
-                content: {
-                  title: '✅ Уведомления подключены',
-                  body: selectedType === 'pregnancy'
-                    ? 'Уведомления для альбома беременности успешно настроены. Вы будете получать напоминания о развитии беременности.'
-                    : 'Уведомления для детского альбома успешно настроены. Вы будете получать напоминания о развитии ребёнка.',
-                  sound: true,
-                  data: OPEN_NOTIFICATIONS_INBOX_DATA,
-                },
-                trigger,
-              });
-              
-              if (notificationId) {
-                notificationSent = true;
-                console.log('✅ Success notification scheduled, ID:', notificationId);
-              } else {
-                console.warn('⚠️ Notification scheduled but returned null ID');
-              }
-            } catch (scheduleError) {
-              console.error('❌ Error scheduling notification:', scheduleError);
-            }
-          } else {
-            console.warn('⚠️ No permission for notifications. Granted:', permissions.granted, 'iOS status:', permissions.ios?.status);
-          }
-        } else {
-          console.log('⚠️ Running in Expo Go, notifications disabled');
-        }
-      } catch (notificationError) {
-        console.error('❌ Error in notification flow:', notificationError);
-      }
-
-      // Если уведомление не отправилось, показываем Alert как запасной вариант
-      if (!notificationSent) {
-        Alert.alert(
-          'Успешно!',
-          'Уведомления для бумажного альбома настроены. Вы будете получать напоминания так же, как пользователи цифровых альбомов.',
-          [
-            {
-              text: 'Отлично',
-              onPress: () => {
-                router.back();
-              },
-            },
-          ]
-        );
-      } else {
-        // Переходим назад после успешного сохранения (даем время на отправку уведомления)
-        setTimeout(() => {
-          router.back();
-        }, 800);
-      }
+      const allowed = await ensureNotificationPermission();
+      Alert.alert(
+        allowed ? 'Уведомления подключены' : 'Альбом сохранён',
+        allowed
+          ? 'Напоминания будут приходить на телефон. Вы можете заполнять бумажный альбом и управлять уведомлениями в разделе «Мои напоминания».'
+          : 'Чтобы получать напоминания, разрешите уведомления для 018BY в настройках телефона. Дата альбома сохранена.',
+        [{ text: 'Понятно', onPress: () => router.back() }]
+      );
     } catch (error) {
       console.error('Error saving paper album notifications:', error);
       Alert.alert(
@@ -357,7 +271,8 @@ export default function PaperAlbumNotificationsScreen() {
           onChange={setSelectedDate}
           onClose={handleDateConfirm}
           title={selectedTypeInfo?.dateLabel ?? 'Выберите дату'}
-          minimumDate={new Date(1900, 0, 1)}
+          minimumDate={selectedType === 'pregnancy' ? new Date(new Date().setHours(0, 0, 0, 0)) : new Date(1900, 0, 1)}
+          maximumDate={selectedType === 'kids' ? new Date() : undefined}
           maximumDate={new Date(2030, 11, 31)}
         />
         </ResponsiveScreenShell>

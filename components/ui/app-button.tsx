@@ -7,7 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { colors, createShadow, radii, typography } from '@/constants/design-tokens';
+import { colors, createShadow, radii } from '@/constants/design-tokens';
 import { AppText } from '@/components/ui/app-text';
 
 type AppButtonVariant = 'primary' | 'outline' | 'ghost';
@@ -37,6 +37,8 @@ export function AppButton({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       testID={testID}
       onPress={onPress}
       disabled={isDisabled}

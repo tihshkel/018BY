@@ -1,17 +1,17 @@
 import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
-import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import { projectCategories } from '@/constants/projectTemplates';
 import { getAccountSyncId } from '@/utils/account-identity';
 import {
-  getRemindersStorageKey,
   getSupabaseNotConfiguredAlertMessageOnce,
   isSupabaseNotConfiguredError,
   pushCoreOnlyToCloud,
   scheduleSyncToCloud,
   setLocalRemindersJsonForSyncId,
 } from '@/utils/account-sync';
-import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
+import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinator';
+import { isAlbumNotificationReminder, readNotificationReminders, type NotificationReminder } from '@/utils/albumNotificationPreferences';
+import { cancelUserReminder, ensureNotificationPermission, nextReminderDate, scheduleUserReminder } from '@/utils/localNotificationSchedule';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppDateField } from '@/components/ui/app-date-field';
@@ -45,53 +45,7 @@ import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
-/** Стабильный id для Expo (`NotificationRequestInput.identifier`, см. docs expo-notifications). */
-function getUserReminderNotificationIdentifier(reminderRowId: string): string {
-  return `app_user_reminder_${reminderRowId}`;
-}
-
-// Функция для безопасной загрузки expo-notifications (только при необходимости)
-// Это предотвращает автоматическую регистрацию push token listener при загрузке модуля
-let notificationHandlerInitialized = false;
-let notificationsModule: typeof import('expo-notifications') | null = null;
-
-const getNotifications = (): typeof import('expo-notifications') | null => {
-  // В Expo Go не загружаем модуль вообще, чтобы избежать ошибок
-  if (isExpoGo) {
-    return null;
-  }
-
-  // Если модуль уже загружен, возвращаем его
-  if (notificationsModule) {
-    return notificationsModule;
-  }
-
-  try {
-    // Используем require только внутри функции, чтобы избежать загрузки при импорте файла
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Notifications = require('expo-notifications');
-    
-    // Настраиваем обработчик только один раз
-    if (Notifications && !notificationHandlerInitialized) {
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: true,
-        }),
-      });
-      notificationHandlerInitialized = true;
-    }
-    
-    notificationsModule = Notifications;
-    return Notifications;
-  } catch (error) {
-    // Модуль недоступен - это нормально
-    return null;
-  }
-};
-
-interface Reminder {
+interface Reminder extends NotificationReminder {
   id: string;
   categoryId: string;
   categoryName: string;
@@ -102,39 +56,16 @@ interface Reminder {
   notificationId?: string;
 }
 
-/** Упрощённый формат хранения: только id, название и дата (+ enabled, notificationId для работы). Один пользователь = один ключ по id синхронизации. */
-type StoredReminder = {
-  id: string;
-  title: string;
-  date: string;
-  enabled?: boolean;
-  notificationId?: string;
-  categoryId?: string;
-  categoryName?: string;
-  description?: string;
-};
+type StoredReminder = NotificationReminder;
 
-function toStoredReminder(r: Reminder): StoredReminder {
-  return {
-    id: r.id,
-    title: r.title,
-    date: r.date,
-    enabled: r.enabled,
-    notificationId: r.notificationId,
-    description: r.description ?? '',
-    categoryId: r.categoryId,
-    categoryName: r.categoryName,
-  };
-}
+function toStoredReminder(r: Reminder): StoredReminder { return { ...r }; }
 
 function fromStoredReminder(r: StoredReminder): Reminder {
   return {
-    id: r.id,
-    title: r.title,
-    date: r.date,
+    ...r,
+    id: String(r.id), title: r.title, date: r.date,
     enabled: r.enabled ?? true,
-    notificationId: r.notificationId,
-    categoryId: r.categoryId ?? 'pregnancy',
+    categoryId: r.categoryId ?? 'family',
     categoryName: r.categoryName ?? 'Напоминание',
     description: r.description ?? '',
   };
@@ -144,6 +75,7 @@ export default function RemindersListScreen() {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const mutationInProgress = useRef(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -199,162 +131,29 @@ export default function RemindersListScreen() {
   );
 
   const requestPermissions = async () => {
-    const Notifications = getNotifications();
-    if (!Notifications) {
-      // В Expo Go уведомления не работают - это нормально
-      return;
-    }
-    try {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Разрешения',
-          'Для работы напоминаний необходимо разрешение на уведомления',
-          [{ text: 'OK' }]
-        );
-      }
-    } catch (error) {
-      // Игнорируем ошибки в Expo Go
-      const msg = error instanceof Error ? error.message : String(error);
-      if (__DEV__ && !msg.includes('Expo Go')) {
-        console.warn('Ошибка при запросе разрешений на уведомления:', error);
-      }
-    }
-  };
-
-  const scheduleNotification = async (
-    reminderId: string,
-    title: string,
-    body: string,
-    date: Date
-  ): Promise<string | null> => {
-    const Notifications = getNotifications();
-    if (!Notifications) {
-      // В Expo Go уведомления не работают - это нормально
-      return null;
-    }
-    try {
-      // Проверяем, что дата в будущем
-      const now = new Date();
-      if (date <= now) {
-        console.warn('Cannot schedule notification in the past');
-        return null;
-      }
-
-      const trigger: DateTriggerInput = {
-        type: SchedulableTriggerInputTypes.DATE,
-        date,
-      };
-
-      const stableId = getUserReminderNotificationIdentifier(reminderId);
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        identifier: stableId,
-        content: {
-          title: title,
-          body: body,
-          sound: true,
-          data: OPEN_NOTIFICATIONS_INBOX_DATA,
-        },
-        trigger: trigger,
-      });
-      return notificationId || stableId;
-    } catch (error) {
-      console.error('Error scheduling notification:', error);
-      return null;
+    if (!isExpoGo && !(await ensureNotificationPermission(true))) {
+      Alert.alert('Уведомления выключены', 'Разрешите уведомления для 018BY в настройках телефона, чтобы получать напоминания.');
     }
   };
 
   const loadReminders = async () => {
     try {
-      const syncId = await getAccountSyncId();
-      const storageKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
-      let saved = await AsyncStorage.getItem(storageKey);
-      // Миграция: если у профиля пусто, но есть старый общий ключ — переносим данные в ключ профиля
-      if ((!saved || saved === '[]') && syncId) {
-        const legacy = await AsyncStorage.getItem('@reminders');
-        if (legacy && legacy !== '[]') {
-          await AsyncStorage.setItem(storageKey, legacy);
-          saved = legacy;
+      await refreshAllAlbumNotifications({ skipCloudSync: true });
+      const stored = await readNotificationReminders();
+      const updated = stored.map((row) => {
+        // Настройка расписания и ежегодное событие не являются просроченным разовым push.
+        if (!isAlbumNotificationReminder(row) && !row.repeats && row.enabled !== false && !nextReminderDate(row)) {
+          return { ...row, enabled: false, notificationId: undefined };
         }
-      }
-      if (saved) {
-        let parsedReminders: Reminder[] = [];
-        try {
-          parsedReminders = JSON.parse(saved);
-          if (!Array.isArray(parsedReminders)) parsedReminders = [];
-        } catch {
-          parsedReminders = [];
-        }
-
-        // Оставляем все напоминания с id — сколько создано, столько и отображаем (отдельно 1-е, 2-е, 3-е и т.д.)
-        const validReminders = parsedReminders.filter(
-          (r: StoredReminder) => r && (r.id != null && r.id !== '')
-        );
-
-        if (validReminders.length === 0) {
-          setReminders([]);
-          if (syncId) await AsyncStorage.removeItem(storageKey);
-          return;
-        }
-
-        const normalized = validReminders.map((r: StoredReminder) => fromStoredReminder(r));
-
-        // Перепланируем активные напоминания с датой в будущем
-        const updatedReminders = await Promise.all(
-          normalized.map(async (reminder) => {
-            if (reminder.enabled) {
-              const reminderDate = new Date(reminder.date);
-              const now = new Date();
-              
-              if (reminderDate > now && !reminder.notificationId) {
-                const notificationId = await scheduleNotification(
-                  reminder.id,
-                  reminder.title,
-                  reminder.description,
-                  reminderDate
-                );
-                if (notificationId) {
-                  return { ...reminder, notificationId };
-                }
-              }
-              
-              if (reminderDate <= now) {
-                return { ...reminder, enabled: false };
-              }
-            }
-            
-            return reminder;
-          })
-        );
-        
-        setReminders(updatedReminders);
-        await saveRemindersAndPush(updatedReminders);
-      } else {
-        setReminders([]);
-      }
+        return row;
+      });
+      setReminders(updated.filter((row) => row.deleted !== true).map(fromStoredReminder));
+      if (updated.some((row, index) => row !== stored[index])) await saveRemindersAndPush(updated.map(fromStoredReminder));
     } catch (error) {
-      console.error('Error loading reminders:', error);
-      setReminders([]);
-      try {
-        const syncId = await getAccountSyncId();
-        const storageKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
-        await AsyncStorage.removeItem(storageKey);
-      } catch (e) {
-        // ignore
-      }
-    }
-  };
-
-  const cancelNotification = async (notificationId: string) => {
-    const Notifications = getNotifications();
-    if (!Notifications) {
-      // В Expo Go уведомления не работают - это нормально
-      return;
-    }
-    try {
-      await Notifications.cancelScheduledNotificationAsync(notificationId);
-    } catch (error) {
-      console.error('Error canceling notification:', error);
+      // Ошибка сети/планировщика не должна стирать сохранённый список.
+      console.warn('Error loading reminders:', error);
+      const stored = await readNotificationReminders();
+      setReminders(stored.filter((row) => row.deleted !== true).map(fromStoredReminder));
     }
   };
 
@@ -368,26 +167,14 @@ export default function RemindersListScreen() {
     } else {
       await AsyncStorage.setItem('@reminders', json);
     }
+    // Сначала меняем локальную очередь: выключение не должно ждать ответа облака.
+    await refreshAllAlbumNotifications({ skipCloudSync: true, force: true });
     void syncWidgetSnapshot();
     return pushCoreOnlyToCloud({ remindersAuthoritativeLocal: true });
   };
 
-  const getRemindersFromStorage = async (): Promise<Reminder[]> => {
-    const syncId = await getAccountSyncId();
-    const storageKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
-    let raw = await AsyncStorage.getItem(storageKey);
-    if ((!raw || raw === '[]') && syncId) {
-      raw = (await AsyncStorage.getItem('@reminders')) ?? raw;
-    }
-    if (!raw) return [];
-    try {
-      const parsed = JSON.parse(raw);
-      const arr = Array.isArray(parsed) ? parsed : [];
-      return arr.map((r: StoredReminder) => fromStoredReminder(r));
-    } catch {
-      return [];
-    }
-  };
+  const getRemindersFromStorage = async (): Promise<Reminder[]> =>
+    (await readNotificationReminders()).map(fromStoredReminder);
 
   const handleAddReminder = async () => {
     if (!selectedCategory) {
@@ -395,7 +182,7 @@ export default function RemindersListScreen() {
       return;
     }
 
-    if (selectedDate < new Date()) {
+    if (!Number.isFinite(selectedDate.getTime()) || selectedDate <= new Date()) {
       Alert.alert('Ошибка', 'Дата напоминания должна быть в будущем');
       return;
     }
@@ -409,37 +196,32 @@ export default function RemindersListScreen() {
       customDescription.trim() ||
       `Напоминание о важных моментах в категории "${category.name}"`;
 
-    // Планируем уведомление
-    const notificationId = await scheduleNotification(
-      reminderId,
-      title,
-      description,
-      selectedDate
-    );
-
+    if (mutationInProgress.current) return;
+    mutationInProgress.current = true;
+    let notificationId: string | null = null;
     const newReminder: Reminder = {
-      id: reminderId,
-      categoryId: selectedCategory,
-      categoryName: category.name,
-      title,
-      description,
-      date: selectedDate.toISOString(),
-      enabled: true,
-      notificationId: notificationId || undefined,
+      id: reminderId, categoryId: selectedCategory, categoryName: category.name,
+      title, description, date: selectedDate.toISOString(), enabled: false,
     };
-
-    const currentList = await getRemindersFromStorage();
-    const updated = [...currentList, newReminder];
-    setReminders(updated);
+    try {
+      if (await ensureNotificationPermission(true)) {
+        notificationId = await scheduleUserReminder(newReminder);
+      }
+    } catch (error) { console.warn('Error scheduling reminder:', error); }
+    newReminder.enabled = notificationId !== null;
+    newReminder.notificationId = notificationId ?? undefined;
 
     try {
+      const currentList = await getRemindersFromStorage();
+      const updated = [...currentList, newReminder];
+      setReminders(updated.filter(row => row.deleted !== true));
       const pushResult = await saveRemindersAndPush(updated);
       if (!pushResult.ok) {
         if (isSupabaseNotConfiguredError(pushResult.error)) {
           const msg = getSupabaseNotConfiguredAlertMessageOnce();
           if (msg) Alert.alert('Сохранено на устройстве', msg);
         } else {
-          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
+          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте соединение с интернетом.`);
         }
       }
       setShowAddModal(false);
@@ -447,49 +229,44 @@ export default function RemindersListScreen() {
       setCustomTitle('');
       setCustomDescription('');
       setSelectedDate(new Date());
-      Alert.alert('Успешно', 'Напоминание добавлено');
+      Alert.alert(notificationId ? 'Успешно' : 'Сохранено без уведомления', notificationId ? 'Напоминание добавлено' : 'Разрешите уведомления в настройках телефона, затем включите напоминание переключателем.');
     } catch (error) {
       console.error('Error saving reminder:', error);
       Alert.alert('Ошибка', 'Не удалось сохранить напоминание');
-    }
+      await cancelUserReminder(newReminder);
+    } finally { mutationInProgress.current = false; }
   };
 
   const handleToggleReminder = async (id: string) => {
-    const currentList = await getRemindersFromStorage();
-    const reminder = currentList.find(r => r.id === id);
-    if (!reminder) return;
-
-    const newEnabled = !reminder.enabled;
-
-    if (newEnabled && !reminder.notificationId) {
-      scheduleNotification(reminder.id, reminder.title, reminder.description, new Date(reminder.date)).then(
-        async notificationId => {
-          if (notificationId) {
-            const list = await getRemindersFromStorage();
-            const updatedList = list.map(r =>
-              r.id === id ? { ...r, enabled: newEnabled, notificationId } : r
-            );
-            setReminders(updatedList);
-            await saveRemindersAndPush(updatedList);
-          }
-        }
-      );
-    }
-
-    if (!newEnabled && reminder.notificationId) {
-      cancelNotification(reminder.notificationId);
-    }
-
-    const updatedList = currentList.map(r =>
-      r.id === id ? { ...r, enabled: newEnabled } : r
-    );
-    setReminders(updatedList);
-
+    if (mutationInProgress.current) return;
+    mutationInProgress.current = true;
     try {
-      await saveRemindersAndPush(updatedList);
+      const currentList = await getRemindersFromStorage();
+      const reminder = currentList.find(row => row.id === id);
+      if (!reminder) return;
+      const enabled = !reminder.enabled;
+      if (enabled && !(await ensureNotificationPermission(true))) {
+        Alert.alert('Уведомления выключены', 'Разрешите уведомления для 018BY в настройках телефона.');
+        return;
+      }
+      let notificationId: string | undefined;
+      if (!isAlbumNotificationReminder(reminder)) {
+        if (enabled) {
+          if (!nextReminderDate(reminder)) {
+            Alert.alert('Дата уже прошла', 'Создайте напоминание с будущей датой.');
+            return;
+          }
+          notificationId = await scheduleUserReminder(reminder) ?? undefined;
+          if (!notificationId) throw new Error('Не удалось запланировать уведомление');
+        } else await cancelUserReminder(reminder);
+      }
+      const updated = currentList.map(row => row.id === id ? { ...row, enabled, notificationId } : row);
+      setReminders(updated.filter(row => row.deleted !== true));
+      await saveRemindersAndPush(updated);
     } catch (error) {
-      console.error('Error saving reminders:', error);
-    }
+      console.warn('Error toggling reminder:', error);
+      Alert.alert('Ошибка', 'Не удалось изменить напоминание. Попробуйте ещё раз.');
+    } finally { mutationInProgress.current = false; }
   };
 
   const handleDeleteReminder = async (id: string) => {
@@ -509,14 +286,17 @@ export default function RemindersListScreen() {
           text: 'Удалить',
           style: 'destructive',
           onPress: async () => {
-            const stableNid = getUserReminderNotificationIdentifier(reminder.id);
-            await cancelNotification(reminder.notificationId ?? stableNid);
-            await cancelNotification(stableNid);
-
-            const updated = currentList.filter((r) => r.id !== id);
-            setReminders(updated);
-
+            if (mutationInProgress.current) return;
+            mutationInProgress.current = true;
             try {
+            const latest = await getRemindersFromStorage();
+            await cancelUserReminder(reminder);
+            // Служебная запись остаётся выключенной, чтобы миграция не подключила её заново.
+            const updated = isAlbumNotificationReminder(reminder)
+              ? latest.map(row => row.id === id ? { ...row, enabled: false, deleted: true, notificationId: undefined } : row)
+              : latest.filter(row => row.id !== id);
+            setReminders(updated.filter(row => row.deleted !== true));
+
               const pushResult = await saveRemindersAndPush(updated);
               if (pushResult.ok) {
                 scheduleSyncToCloud();
@@ -534,7 +314,7 @@ export default function RemindersListScreen() {
             } catch (error) {
               console.error('Error saving reminders:', error);
               Alert.alert('Ошибка', 'Не удалось сохранить список после удаления.');
-            }
+            } finally { mutationInProgress.current = false; }
           },
         },
       ]

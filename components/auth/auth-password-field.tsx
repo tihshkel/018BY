@@ -21,6 +21,7 @@ export const AuthPasswordField = forwardRef<TextInput, AuthPasswordFieldProps>(
         rightAccessory={
           <Pressable
             onPress={() => setVisible((value) => !value)}
+            accessibilityRole="button"
             hitSlop={10}
             style={styles.toggle}
             accessibilityLabel={

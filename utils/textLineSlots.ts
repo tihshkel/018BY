@@ -8,6 +8,7 @@ import {
     isKidsMonthPage,
     DESIGNED_LABELED_LINE_TEXT_INSET_NORM,
     DESIGNED_LINE_EDGE_INSET_NORM,
+    DIARY_BROWN_MYDAY_DATE_STROKE_Y,
     KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX,
     KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM,
     KIDS_MONTH_LINE_BAND_HEIGHT,
@@ -16,6 +17,11 @@ import {
     PREGNANCY_WEEKLY_LINE_PITCH,
 } from "@/constants/album-text-margins";
 import { getKids48EventDateLineNorm } from "@/constants/kids-48-event-date-slots";
+import {
+  DIARY_BROWN_MY_DAY_TEMPLATE,
+  getDiaryBrownPageTemplate,
+} from "@/constants/diary-brown-page-templates";
+import { getAlbumPageSchema } from "@/constants/generated/album-page-schemas";
 import { LINE_GUIDES } from "@/constants/line-guides";
 import { LINE_SLOTS, type NormalizedLineSlot } from "@/constants/line-slots";
 import type { Annotation } from "@/types/annotation";
@@ -173,6 +179,75 @@ function isDiaryInteriorLineGuide(lineGuideId: string): boolean {
   return (
     lineGuideId === "diary_interior_brown" ||
     lineGuideId === "diary_interior_purple"
+  );
+}
+
+const BROWN_MYDAY_DATE_PLACEHOLDER_Y = 0.1654;
+
+function snapDiaryBrownMyDayDateSlots(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (
+    lineGuideId !== "diary_interior_brown" ||
+    !norms.length ||
+    getDiaryBrownPageTemplate(page) !== DIARY_BROWN_MY_DAY_TEMPLATE
+  ) {
+    return norms.map((slot) => ({ ...slot }));
+  }
+  const first = norms[0];
+  if ((first.inputKind ?? "line") !== "line") {
+    return norms.map((slot) => ({ ...slot }));
+  }
+  if (Math.abs(first.y - BROWN_MYDAY_DATE_PLACEHOLDER_Y) > 0.003) {
+    return norms.map((slot) => ({ ...slot }));
+  }
+  return [
+    { ...first, y: DIARY_BROWN_MYDAY_DATE_STROKE_Y },
+    ...norms.slice(1).map((slot) => ({ ...slot })),
+  ];
+}
+
+function unifyDiaryFieldContinuationGroups(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (!isDiaryInteriorLineGuide(lineGuideId) || !norms.length) {
+    return norms.map((slot) => ({ ...slot }));
+  }
+  const schema = getAlbumPageSchema(lineGuideId, page);
+  if (!schema?.fields?.length) {
+    return norms.map((slot) => ({ ...slot }));
+  }
+  const next = norms.map((slot) => ({ ...slot }));
+  for (const field of schema.fields) {
+    const start = field.templateLineStart ?? 0;
+    const count = field.templateLineCount ?? 1;
+    const groupId = start + 1;
+    for (let offset = 0; offset < count; offset += 1) {
+      const index = start + offset;
+      if (index >= 0 && index < next.length) {
+        next[index] = { ...next[index], continuationGroup: groupId };
+      }
+    }
+  }
+  return next;
+}
+
+function getDiaryNormalizedSlotsForPage(
+  lineGuideId: string,
+  page: number,
+): NormalizedLineSlot[] {
+  return unifyDiaryFieldContinuationGroups(
+    lineGuideId,
+    page,
+    snapDiaryBrownMyDayDateSlots(
+      lineGuideId,
+      page,
+      getNormalizedSlotsForPage(lineGuideId, page),
+    ),
   );
 }
 
@@ -2513,7 +2588,9 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     "diary-brown-p15-dreams-groups-v2",
     "diary-brown-p38-food-strokes-v1",
     "diary-brown-myday-date-mood-v2",
-    "diary-brown-myday-date-mood-v3",
+    "diary-brown-myday-date-mood-v4",
+    "diary-field-continuation-unify-v1",
+    "diary-pipeline-isolated-v1",
     "diary-brown-friend-no-synthetic-name-v1",
     "birthday-pill-center-v1",
     "birthday-stroke-baseline-v1",
@@ -2539,29 +2616,33 @@ export function getLineSlotsForPage(
     return [];
   }
 
-  const weightNorms = refinePregnancy60WeeklyWeightBellySlots(
-    lineGuideId,
-    page,
-    refineDenseContinuationGroupSpacing(
-      lineGuideId,
-      page,
-      getNormalizedSlotsForPage(lineGuideId, page),
-    ),
-  );
+  const weightNorms = isDiaryInteriorLineGuide(lineGuideId)
+    ? getDiaryNormalizedSlotsForPage(lineGuideId, page)
+    : refinePregnancy60WeeklyWeightBellySlots(
+        lineGuideId,
+        page,
+        refineDenseContinuationGroupSpacing(
+          lineGuideId,
+          page,
+          getNormalizedSlotsForPage(lineGuideId, page),
+        ),
+      );
   const weeklyGuides = isPregnancyWeeklyStructuredPage(lineGuideId, page)
     ? getWeeklyGuideStrokesForPage(lineGuideId, page, weightNorms)
     : undefined;
 
-  const normalized = refinePregnancyRuledNotebookLineNorms(
-    lineGuideId,
-    page,
-    refinePregnancyWeeklyRuledLineNorms(
-      lineGuideId,
-      page,
-      weightNorms,
-      weeklyGuides,
-    ),
-  );
+  const normalized = isDiaryInteriorLineGuide(lineGuideId)
+    ? weightNorms
+    : refinePregnancyRuledNotebookLineNorms(
+        lineGuideId,
+        page,
+        refinePregnancyWeeklyRuledLineNorms(
+          lineGuideId,
+          page,
+          weightNorms,
+          weeklyGuides,
+        ),
+      );
   if (!normalized.length) {
     lineSlotsResultCache.set(cacheKey, []);
     return [];

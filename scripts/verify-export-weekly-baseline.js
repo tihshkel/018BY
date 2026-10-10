@@ -265,8 +265,8 @@ assert(
   'pdf-annotations uses shared resolveTemplateLineRowLayout',
 );
 assert(
-  templateSource.includes("lineGuideId === 'pregnancy_60' && slot.page === 4") &&
-    templateSource.includes('applyDiaryAmaticVisualSink(Math.min(ascent, 0.96))') &&
+    templateSource.includes("lineGuideId === 'pregnancy_60' && slot.page === 4") &&
+    templateSource.includes('applyPregnancyAmaticVisualSink(Math.min(ascent, 0.96))') &&
     templateSource.includes('usesPregnancyAlbumRnLineHeightAscent'),
   'pregnancy_60 p4: Amatic sink in preview; PDF ascent matches (not raw rnRatio)',
 );

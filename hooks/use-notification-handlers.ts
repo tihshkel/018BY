@@ -4,10 +4,10 @@ import { router, type Href } from 'expo-router';
 import type { NotificationResponse } from 'expo-notifications';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
-import { recordNotificationToInbox } from '@/utils/notificationInbox';
+import { recordNotificationToInbox, restorePresentedNotificationsToInbox } from '@/utils/notificationInbox';
 import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -56,6 +56,17 @@ export function useNotificationHandlers() {
       await openNotificationsScreen();
     };
 
+    const importPresentedNotifications = async () => {
+      try {
+        await restorePresentedNotificationsToInbox();
+        void syncWidgetSnapshot();
+      } catch (error) { console.warn('[Notifications] Could not restore delivered notifications:', error); }
+    };
+    void importPresentedNotifications();
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void importPresentedNotifications();
+    });
+
     const receivedSubscription = Notifications.addNotificationReceivedListener(async (event) => {
       await recordNotificationToInbox(event);
       void syncWidgetSnapshot();
@@ -72,6 +83,7 @@ export function useNotificationHandlers() {
     });
 
     return () => {
+      appStateSubscription.remove();
       receivedSubscription.remove();
       responseSubscription.remove();
     };

@@ -24,6 +24,7 @@ const {
   BROWN_FOOD_FIELDS,
   FIRST_LOVE_FIELDS,
   SCHOOL_LIFE_FIELDS,
+  PURPLE_SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
   DREAMS_FIELDS,
@@ -502,7 +503,9 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'SchoolLifeTemplate' || template === 'SchoolLifeQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SCHOOL_LIFE_FIELDS);
+    const schoolSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_SCHOOL_LIFE_FIELDS : SCHOOL_LIFE_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, schoolSpec);
   }
 
   if (template === 'DreamsTemplate') {

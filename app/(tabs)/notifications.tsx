@@ -1,6 +1,6 @@
 import { AppHeader, AppScreen, AppText } from '@/components/ui';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
-import { getNotificationInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
+import { getNotificationInbox, restorePresentedNotificationsToInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
 import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -44,6 +44,7 @@ export default function NotificationsScreen() {
   const [items, setItems] = useState<NotificationInboxItem[]>([]);
 
   const loadInbox = useCallback(async () => {
+    await restorePresentedNotificationsToInbox().catch((error) => console.warn('[Notifications] Could not restore inbox:', error));
     const inbox = await getNotificationInbox();
     setItems(inbox);
     void syncWidgetSnapshot();
@@ -59,7 +60,7 @@ export default function NotificationsScreen() {
     <AppScreen tabletShell contentMaxWidth={640} edges={['top']}>
       <AppHeader title="История уведомлений" showBack={false} />
       <AppText variant="bodySm" style={styles.headerSubtitle}>
-        Все полученные push-уведомления
+        Напоминания, сохранённые на этом устройстве
       </AppText>
 
       <FlatList

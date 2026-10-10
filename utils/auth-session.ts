@@ -5,9 +5,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
 import { getSupabase } from '@/lib/supabase';
-import { setAccountSyncId } from '@/utils/account-identity';
+import { ACCOUNT_SYNC_ID_KEY, setAccountSyncId } from '@/utils/account-identity';
 import { getAccountFromSupabase, saveAccountToSupabase } from '@/utils/supabase-account';
-import { ACCOUNT_SYNC_ID_KEY } from '@/utils/account-identity';
 import { clearWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 export type ReferralSource = 'physical_album' | 'instagram' | 'organic';
@@ -19,6 +18,11 @@ const DEFAULT_USER_NAME = 'Пользователь';
 WebBrowser.maybeCompleteAuthSession();
 
 async function clearLocalDataForAccountSwitch(prevSyncId: string | null): Promise<void> {
+  const { clearAlbumNotificationsForAccountSwitch } = await import('@/utils/albumNotificationCoordinator');
+  await clearAlbumNotificationsForAccountSwitch();
+  const { clearNotificationInbox } = await import('@/utils/notificationInbox');
+  await clearNotificationInbox();
+  await AsyncStorage.removeItem('@last_handled_notification_response');
   try {
     const keys = await AsyncStorage.getAllKeys();
     const toRemove: string[] = [];
@@ -46,7 +50,12 @@ async function clearLocalDataForAccountSwitch(prevSyncId: string | null): Promis
         toRemove.push(k);
         continue;
       }
-      if (k === '@reminders' || k === '@pregnancy_info' || k === '@kids_info' || k === '@paper_albums') {
+      if (
+        k === '@reminders' ||
+        k === '@pregnancy_info' ||
+        k === '@kids_info' ||
+        k === '@paper_albums'
+      ) {
         toRemove.push(k);
         continue;
       }
@@ -106,7 +115,7 @@ export function isValidEmail(raw: string): boolean {
 export async function signUpWithEmailPassword(params: {
   email: string;
   password: string;
-  referralSource: ReferralSource;
+  referralSource?: ReferralSource;
 }): Promise<{ success: boolean; error?: string }> {
   const email = normalizeEmail(params.email);
   if (!isValidEmail(email)) {
@@ -129,7 +138,7 @@ export async function signUpWithEmailPassword(params: {
       data: {
         login_username: email,
         user_name: DEFAULT_USER_NAME,
-        referral_source: params.referralSource,
+        ...(params.referralSource ? { referral_source: params.referralSource } : {}),
       },
     },
   });
@@ -214,7 +223,7 @@ function isExpoGoRuntime(): boolean {
 }
 
 async function signInWithBrowserOAuth(
-  provider: OAuthProvider
+  provider: OAuthProvider,
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   if (!supabase) {
@@ -240,6 +249,11 @@ async function signInWithBrowserOAuth(
     return { success: false, error: 'OAUTH_URL_MISSING' };
   }
 
+  if (Platform.OS === 'web') {
+    window.location.assign(data.url);
+    return { success: false, error: 'OAUTH_REDIRECTING' };
+  }
+
   if (Platform.OS === 'android') {
     try {
       await WebBrowser.warmUpAsync();
@@ -259,7 +273,39 @@ async function signInWithBrowserOAuth(
   return completeOAuthFromRedirectUrl(result.url);
 }
 
-async function completeOAuthFromRedirectUrl(url: string): Promise<{ success: boolean; error?: string }> {
+// A native deep link can reach both Expo Router and the browser session listener.
+// Exchange each one-time code only once, without retaining credentials indefinitely.
+let lastOAuthCallback: {
+  key: string;
+  result: Promise<{ success: boolean; error?: string }>;
+} | null = null;
+export function completeOAuthFromRedirectUrl(
+  url: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { query, hash } = splitUrlQueryAndHash(url);
+  const queryParams = new URLSearchParams(query);
+  const hashParams = new URLSearchParams(hash);
+  const key =
+    queryParams.get('code') ??
+    hashParams.get('access_token') ??
+    queryParams.get('access_token') ??
+    url;
+  if (lastOAuthCallback?.key === key) return lastOAuthCallback.result;
+  const result = exchangeOAuthRedirect(url).catch(() => ({
+    success: false,
+    error: 'OAUTH_NETWORK_ERROR',
+  }));
+  const entry = { key, result };
+  lastOAuthCallback = entry;
+  void result.then(() =>
+    setTimeout(() => {
+      if (lastOAuthCallback === entry) lastOAuthCallback = null;
+    }, 30000),
+  );
+  return result;
+}
+
+async function exchangeOAuthRedirect(url: string): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   if (!supabase) {
     return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
@@ -302,77 +348,30 @@ async function completeOAuthFromRedirectUrl(url: string): Promise<{ success: boo
 
 export function mapOAuthErrorMessage(
   error: string | undefined,
-  mode: 'signIn' | 'signUp' = 'signIn'
+  mode: 'signIn' | 'signUp' = 'signIn',
 ): string {
-  const serviceUnavailable =
-    mode === 'signUp'
-      ? 'Сервис регистрации недоступен. Проверьте настройки Supabase.'
-      : 'Сервис входа недоступен. Проверьте настройки Supabase.';
-  const cancelled = mode === 'signUp' ? 'Регистрация отменена.' : 'Вход отменён.';
-  const fallback =
-    mode === 'signUp'
-      ? 'Не удалось зарегистрироваться через выбранный сервис.'
-      : 'Не удалось войти через выбранный сервис.';
-
-  if (error === 'SUPABASE_NOT_CONFIGURED') {
-    return serviceUnavailable;
-  }
-  if (error === 'OAUTH_CANCELLED') {
-    return cancelled;
-  }
-  if (error === 'GOOGLE_NOT_CONFIGURED') {
-    return 'Google Sign-In не настроен. Добавьте client ID в .env и пересоберите приложение.';
-  }
-  if (error === 'GOOGLE_PLAY_SERVICES_NOT_AVAILABLE') {
-    return 'На устройстве нет Google Play Services или они устарели. Обновите их и попробуйте снова.';
-  }
-  if (error === 'GOOGLE_IN_PROGRESS') {
-    return 'Вход через Google уже выполняется. Подождите несколько секунд.';
-  }
-  if (error === 'GOOGLE_DEVELOPER_ERROR' || error?.includes('DEVELOPER_ERROR')) {
-    return 'Google Sign-In: неверная настройка Android (SHA-1). Добавьте отпечаток debug-сборки в Google Cloud → Credentials → 018BY Android.';
-  }
-  if (error === 'APPLE_NATIVE_UNAVAILABLE' || error === 'APPLE_ID_TOKEN_MISSING') {
-    return 'Вход через Apple недоступен на этом устройстве. Попробуйте email или Google.';
-  }
-
   const normalized = (error ?? '').toLowerCase();
-  if (
-    normalized.includes('provider is not enabled') ||
-    normalized.includes('unsupported provider')
-  ) {
-    return (
-      'Вход через Google/Apple не включён в Supabase. ' +
-      'Dashboard → Authentication → Providers → включите Google и Apple и сохраните Client ID / Secret.'
-    );
-  }
-  if (
-    normalized.includes('unexpected_failure') ||
-    normalized.includes('unexpected failure')
-  ) {
-    return (
-      'Ошибка сервера входа (Supabase). Проверьте Client ID и Secret у провайдера Google/Apple ' +
-      'и Redirect URL: app018by://auth/callback.'
-    );
-  }
-  if (normalized.includes('redirect_uri') || normalized.includes('redirect uri')) {
-    return (
-      'Redirect URL не совпадает с настройками Supabase. ' +
-      'Добавьте app018by://auth/callback в Authentication → URL Configuration.'
-    );
-  }
-
-  if (error && error.length > 0) {
-    const prefix = mode === 'signUp' ? 'Не удалось зарегистрироваться' : 'Не удалось войти';
-    return `${prefix}: ${error}`;
-  }
-  return fallback;
+  if (error === 'OAUTH_CANCELLED') return 'Вход отменён.';
+  if (error === 'GOOGLE_IN_PROGRESS') return 'Вход уже выполняется. Подождите немного.';
+  if (error === 'GOOGLE_PLAY_SERVICES_NOT_AVAILABLE')
+    return 'Обновите сервисы Google Play и попробуйте снова или войдите по email.';
+  if (/network|fetch|internet|timeout/.test(normalized))
+    return 'Не удалось подключиться. Проверьте интернет и попробуйте ещё раз.';
+  if (/rate.limit|too many/.test(normalized))
+    return 'Слишком много попыток. Подождите немного и попробуйте снова.';
+  if (/invalid login credentials/.test(normalized))
+    return 'Неверный email или пароль. Проверьте данные и попробуйте снова.';
+  if (/email not confirmed/.test(normalized))
+    return 'Подтвердите email по ссылке в письме, затем войдите в аккаунт.';
+  return mode === 'signUp'
+    ? 'Не удалось создать аккаунт. Попробуйте ещё раз или выберите другой способ.'
+    : 'Не удалось войти. Попробуйте ещё раз или выберите другой способ входа.';
 }
 
 export async function signInWithOAuthProvider(
-  provider: OAuthProvider
+  provider: OAuthProvider,
 ): Promise<{ success: boolean; error?: string }> {
-  // Нативный Google (dev/production client). При сбое — браузерный OAuth.
+  // Prefer native UI. Use the browser only when the native module is unavailable.
   if (provider === 'google' && !isExpoGoRuntime() && Platform.OS !== 'web') {
     try {
       const { canUseNativeGoogleSignIn, signInWithGoogleNative } = await import(
@@ -380,19 +379,14 @@ export async function signInWithOAuthProvider(
       );
       if (canUseNativeGoogleSignIn()) {
         const native = await signInWithGoogleNative();
-        if (native.success || native.error === 'OAUTH_CANCELLED') {
-          return native;
-        }
-        if (__DEV__) {
-          console.warn('[auth-session] native Google failed, browser fallback:', native.error);
-        }
+        return native;
       }
     } catch (err) {
       if (__DEV__) console.warn('[auth-session] native Google unavailable:', err);
     }
   }
 
-  // Нативный Sign in with Apple (iOS). При сбое — браузерный OAuth.
+  // Native Sign in with Apple on supported iOS builds.
   if (provider === 'apple' && Platform.OS === 'ios' && !isExpoGoRuntime()) {
     try {
       const { canUseNativeAppleSignIn, signInWithAppleNative } = await import(
@@ -400,12 +394,7 @@ export async function signInWithOAuthProvider(
       );
       if (await canUseNativeAppleSignIn()) {
         const native = await signInWithAppleNative();
-        if (native.success || native.error === 'OAUTH_CANCELLED') {
-          return native;
-        }
-        if (__DEV__) {
-          console.warn('[auth-session] native Apple failed, browser fallback:', native.error);
-        }
+        return native;
       }
     } catch (err) {
       if (__DEV__) console.warn('[auth-session] native Apple unavailable:', err);
@@ -423,7 +412,10 @@ export async function signInWithUsernamePassword(params: {
   return signInWithEmailPassword({ email: params.username, password: params.password });
 }
 
-export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: boolean; error?: string }> {
+export async function restoreLocalAccountKeysFromSupabase(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
   const supabase = getSupabase();
   if (!supabase) {
     return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
@@ -448,7 +440,7 @@ export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: 
 
   await setAccountSyncId(userId);
 
-  let account = await getAccountFromSupabase(userId);
+  let account = await getAccountFromSupabase(userId, { throwOnError: true });
   if (!account) {
     const email = session.user.email?.trim();
     const ensured = await saveAccountToSupabase(userId, DEFAULT_USER_NAME, null, {
@@ -460,9 +452,10 @@ export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: 
         error: ensured.error ?? 'Не удалось создать строку в profiles',
       };
     }
-    account = await getAccountFromSupabase(userId);
+    account = await getAccountFromSupabase(userId, { throwOnError: true });
   }
-  const rawName = account?.userName?.trim() ?? '';
+  if (!account) return { success: false, error: 'PROFILE_ROW_MISSING' };
+  const rawName = account.userName?.trim() ?? '';
   const isPlaceholder = !rawName || rawName === DEFAULT_USER_NAME;
   if (!isPlaceholder) {
     await AsyncStorage.setItem('@user_name', rawName);
@@ -497,7 +490,9 @@ export async function isAuthEmailRegistered(email: string): Promise<boolean | nu
   return data === true;
 }
 
-export async function requestPasswordResetEmail(email: string): Promise<{ success: boolean; error?: string }> {
+export async function requestPasswordResetEmail(
+  email: string,
+): Promise<{ success: boolean; error?: string }> {
   const e = normalizeEmail(email);
   if (!isValidEmail(e)) {
     return { success: false, error: 'EMAIL_INVALID' };
@@ -533,7 +528,9 @@ function splitUrlQueryAndHash(url: string): { query: string; hash: string } {
   return { query, hash };
 }
 
-export async function applyRecoverySessionFromUrl(url: string): Promise<{ success: boolean; error?: string }> {
+export async function applyRecoverySessionFromUrl(
+  url: string,
+): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   if (!supabase) {
     return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
@@ -568,7 +565,9 @@ export async function applyRecoverySessionFromUrl(url: string): Promise<{ succes
   return { success: true };
 }
 
-export async function updatePasswordAfterRecovery(newPassword: string): Promise<{ success: boolean; error?: string }> {
+export async function updatePasswordAfterRecovery(
+  newPassword: string,
+): Promise<{ success: boolean; error?: string }> {
   if (newPassword.length < 6) {
     return { success: false, error: 'PASSWORD_TOO_SHORT' };
   }
@@ -623,12 +622,7 @@ export async function resetAppToOnboarding(): Promise<void> {
   }
 
   // Чистим локальные ключи, влияющие на стартовый роут
-  const keysToRemove = [
-    '@has_seen_onboarding',
-    '@user_name',
-    '@user_avatar',
-    ACCOUNT_SYNC_ID_KEY,
-  ];
+  const keysToRemove = ['@has_seen_onboarding', '@user_name', '@user_avatar', ACCOUNT_SYNC_ID_KEY];
 
   await AsyncStorage.multiRemove(keysToRemove);
 }

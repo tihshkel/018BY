@@ -1,136 +1,81 @@
 import SwiftUI
 import WidgetKit
 
-/// Overview widget: albums count + days to PDR + next date (info-first, not a CTA button).
+/// Retains the installed widget kind while replacing the generic dashboard with a daily memory prompt.
 struct QuickAccessEntryView: View {
     @Environment(\.widgetFamily) private var family
     @Environment(\.widgetPalette) private var palette
     let entry: WidgetEntry
-
-    private var albumsCount: Int { entry.snapshot.albumsCount }
-    private var pregnancy: WidgetPregnancyItem? { entry.snapshot.pregnancy }
-    private var nextReminder: WidgetReminderItem? { entry.snapshot.nextReminder }
-    private var continueItem: WidgetContinueItem? { entry.snapshot.continueProject }
+    private var next: WidgetContinueItem? { entry.snapshot.continueProject }
+    private var category: String { next?.celebration ?? entry.snapshot.projects.first?.category ?? "" }
+    private var prompt: String { WidgetMemoryPrompts.text(for: entry.date, category: category) }
+    private var destination: URL {
+        if let next { return WidgetDeepLinks.continueProject(next) }
+        if let project = entry.snapshot.projects.first { return WidgetDeepLinks.albumPages(project: project) }
+        return WidgetDeepLinks.createAlbum
+    }
+    private var action: String { entry.snapshot.albumsCount == 0 ? "Начать историю" : "Сохранить момент" }
 
     var body: some View {
         Group {
             switch family {
-            case .systemSmall:
-                smallView
-            case .systemMedium:
-                mediumView
             case .accessoryInline:
-                Text(inlineText)
-                    .font(.system(size: 12, weight: .semibold))
-            default:
-                smallView
+                Label(next.map { "Сохранить момент · \($0.pageTitle)" } ?? "Какой момент хочется запомнить?", systemImage: "heart")
+            case .systemMedium: medium
+            default: small
             }
-        }
-        .widgetURL(primaryURL)
+        }.widgetURL(destination)
     }
 
-    private var primaryURL: URL {
-        if let pregnancy {
-            return WidgetDeepLinks.pregnancyProject(pregnancy)
-        }
-        if let continueItem {
-            return WidgetDeepLinks.continueProject(continueItem)
-        }
-        if albumsCount > 0 {
-            return WidgetDeepLinks.home
-        }
-        return WidgetDeepLinks.setPdr
-    }
-
-    private var inlineText: String {
-        if let pregnancy {
-            return "ПДР · \(WidgetFormatters.daysUntilPdrLabel(pregnancy.daysLeft))"
-        }
-        return "018BY · \(WidgetFormatters.albumsCountLabel(albumsCount))"
-    }
-
-    private var smallView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            WidgetMetricLabel(text: "Сводка")
-            if let pregnancy {
-                WidgetHeroNumber(text: "\(max(pregnancy.daysLeft, 0))", size: 36)
-                Text("дней до ПДР")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(palette.textPrimary)
-                Text(WidgetFormatters.albumsCountLabel(albumsCount))
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(palette.textSecondary)
-            } else {
-                WidgetHeroNumber(text: "\(albumsCount)", size: 36)
-                Text(WidgetFormatters.albumsCountLabel(albumsCount).replacingOccurrences(of: "\(albumsCount) ", with: ""))
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(palette.textPrimary)
-                Text(albumsCount == 0 ? "Укажите ПДР в приложении" : "Добавьте ПДР для отсчёта")
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(palette.textSecondary)
-                    .lineLimit(2)
-            }
+    private var small: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            WidgetHeader(title: "Момент дня", icon: "quote.opening")
             Spacer(minLength: 0)
+            Text(prompt).font(.system(size: 17, weight: .medium, design: .serif)).foregroundStyle(palette.textPrimary).lineLimit(3).fixedSize(horizontal: false, vertical: true).minimumScaleFactor(0.85).layoutPriority(1)
+            Spacer(minLength: 0)
+            Text("Одно фото. Несколько слов.").font(.system(size: 10)).foregroundStyle(palette.textSecondary).lineLimit(1)
+            WidgetCallToAction(title: action)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .widgetCardBackground()
-    }
-
-    private var mediumView: some View {
-        HStack(spacing: 12) {
-            metricTile(
-                label: "Альбомы",
-                value: "\(albumsCount)",
-                detail: WidgetFormatters.albumsCountLabel(albumsCount)
-            )
-            metricTile(
-                label: "До ПДР",
-                value: pregnancy.map { "\(max($0.daysLeft, 0))" } ?? "—",
-                detail: pregnancy.map {
-                    WidgetFormatters.pregnancyWeekDayLabel(week: $0.week, dayInWeek: $0.dayInWeek)
-                } ?? "Укажите дату"
-            )
-            metricTile(
-                label: "Событие",
-                value: nextReminder.map { "\(max($0.daysLeft, 0))" } ?? (continueItem.map { "\($0.percent)%" } ?? "—"),
-                detail: nextReminder?.title
-                    ?? continueItem?.pageTitle
-                    ?? "Нет дат"
-            )
+        .background(alignment: .topTrailing) {
+            Text("“").font(.system(size: 76, weight: .regular, design: .serif)).foregroundStyle(palette.textSecondary.opacity(0.07))
+                .padding(.top, 9).padding(.trailing, 2).accessibilityHidden(true)
         }
         .widgetCardBackground()
     }
 
-    private func metricTile(label: String, value: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            WidgetMetricLabel(text: label)
-            Text(value)
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundStyle(WidgetColors.primaryDeep)
-                .minimumScaleFactor(0.7)
-                .lineLimit(1)
-            Text(detail)
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(palette.textSecondary)
-                .lineLimit(2)
+    private var medium: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            WidgetHeader(title: "Момент дня", icon: "quote.opening")
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(prompt).font(.system(size: 18, weight: .medium, design: .serif)).foregroundStyle(palette.textPrimary).lineLimit(2).minimumScaleFactor(0.9)
+                    Text("Одно фото. Несколько слов. Навсегда.")
+                        .font(.system(size: 11)).foregroundStyle(palette.textSecondary).lineLimit(1)
+                }
+                Spacer(minLength: 0)
+                WidgetKeepsakeStamp(symbol: "heart", category: category, size: 54).rotationEffect(.degrees(8))
+            }
             Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .widgetSectionCard(padding: 10)
+            HStack(spacing: 16) {
+                Text(next?.projectTitle ?? (entry.snapshot.albumsCount == 0 ? "Ваше начало — здесь" : "Для ваших любимых историй"))
+                    .font(.system(size: 10)).foregroundStyle(palette.textSecondary).lineLimit(1)
+                Spacer(minLength: 0)
+                WidgetCallToAction(title: action).frame(maxWidth: 138)
+            }
+        }.widgetCardBackground()
     }
 }
 
 struct QuickAccessWidget: Widget {
     let kind = "QuickAccessWidget"
-
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: WidgetSnapshotProvider()) { entry in
-            QuickAccessEntryView(entry: entry)
-                .widgetHomeScreenContainer()
+            QuickAccessEntryView(entry: entry).widgetHomeScreenContainer()
         }
-        .configurationDisplayName("Сводка")
-        .description("Альбомы, дни до ПДР и ближайшая дата — на одном экране.")
+        .configurationDisplayName("Момент дня")
+        .description("Новая подсказка каждый день: сохраните маленький момент в своём альбоме.")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline])
+        .contentMarginsDisabled()
         .containerBackgroundRemovable(true)
     }
 }

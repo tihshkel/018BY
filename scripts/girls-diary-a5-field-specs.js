@@ -146,6 +146,18 @@ const SCHOOL_LIFE_FIELDS = [
   ['schoolMemory', 'Расскажи о самом интересном событии из твоей школьной жизни', 'text', 3],
 ];
 
+/** Фиолетовый A5 p22: 9 OCR-слотов (коричневый 60 стр. держит 14 линий). */
+const PURPLE_SCHOOL_LIFE_FIELDS = [
+  ['likesStudying', 'Тебе нравится учиться? Почему?', 'text', 2],
+  ['favoriteSubject', 'Любимый предмет в школе', 'text', 1],
+  ['favoriteTeacher', 'Любимый учитель', 'text', 1],
+  ['classSize', 'Сколько человек в твоём классе?', 'text', 1],
+  ['classmateFriends', 'С кем из одноклассников дружишь?', 'text', 1],
+  ['schoolEvents', 'Какие школьные мероприятия тебе нравятся?', 'text', 1],
+  ['recessActivity', 'Чем лучше всего ты занимаешься на перемене?', 'text', 1],
+  ['schoolMemory', 'Расскажи о самом интересном событии из твоей школьной жизни', 'text', 1],
+];
+
 const SUNDAY_SCHEDULE_FIELDS = [
   ['morningPlans', 'Утренние планы', 'text', 1],
   ['dayPlans', 'Дневные дела', 'text', 1],
@@ -252,6 +264,7 @@ module.exports = {
   BROWN_FOOD_FIELDS,
   FIRST_LOVE_FIELDS,
   SCHOOL_LIFE_FIELDS,
+  PURPLE_SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
   DREAMS_FIELDS,

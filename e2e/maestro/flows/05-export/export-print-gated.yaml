@@ -1,3 +1,5 @@
+# iOS only. Use an account with no print-unlock purchase (or reset Xcode test transactions).
+# Clearing app data alone does not clear StoreKit ownership.
 appId: com.tihshkel.x018BY
 ---
 - runFlow:
@@ -6,17 +8,34 @@ appId: com.tihshkel.x018BY
     id: album-export-button
 - tapOn:
     id: export-format-hard
-    optional: true
+- assertVisible:
+    id: print-unlock-paywall
+- assertVisible:
+    id: print-unlock-purchase
+- assertVisible:
+    id: print-unlock-restore
+- extendedWaitUntil:
+    visible:
+      id: print-unlock-later
+      enabled: true
+    timeout: 60000
+- tapOn:
+    id: print-unlock-later
 - tapOn:
     id: export-format-soft
-    optional: true
+- assertVisible:
+    id: print-unlock-paywall
+- tapOn:
+    id: print-unlock-later
+- tapOn:
+    id: export-format-electronic
+- assertNotVisible:
+    id: print-unlock-paywall
 - tapOn:
     id: export-start
 - extendedWaitUntil:
     visible:
-      id: export-subscription-screen
-    timeout: 20000
-    optional: true
-- assertVisible:
-    text: 'Экспорт для печати'
-    optional: true
+      id: export-done-home
+    timeout: 120000
+- assertNotVisible:
+    id: print-unlock-paywall

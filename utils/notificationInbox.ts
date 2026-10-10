@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Notification } from 'expo-notifications';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 export type NotificationInboxItem = {
   id: string;
@@ -11,6 +13,7 @@ export type NotificationInboxItem = {
 
 const INBOX_STORAGE_KEY = '@notification_inbox';
 const MAX_INBOX_ITEMS = 200;
+let inboxWriteQueue: Promise<unknown> = Promise.resolve();
 
 function parseInbox(raw: string | null): NotificationInboxItem[] {
   if (!raw) return [];
@@ -40,21 +43,22 @@ export async function getNotificationInbox(): Promise<NotificationInboxItem[]> {
   return parseInbox(raw);
 }
 
-export async function appendNotificationToInbox(
-  item: NotificationInboxItem
-): Promise<NotificationInboxItem[]> {
-  const existing = await getNotificationInbox();
-  if (existing.some((entry) => entry.id === item.id)) {
-    return existing;
-  }
-
-  const next = [item, ...existing].slice(0, MAX_INBOX_ITEMS);
-  await saveInbox(next);
-  return next;
+export async function appendNotificationToInbox(item: NotificationInboxItem): Promise<NotificationInboxItem[]> {
+  const operation = inboxWriteQueue.then(async () => {
+    const existing = await getNotificationInbox();
+    if (existing.some((entry) => entry.id === item.id || (entry.id === item.id.split(':')[0] && entry.receivedAt === item.receivedAt))) return existing;
+    const next = [item, ...existing].sort((a, b) => Date.parse(b.receivedAt) - Date.parse(a.receivedAt)).slice(0, MAX_INBOX_ITEMS);
+    await saveInbox(next);
+    return next;
+  });
+  inboxWriteQueue = operation.catch(() => {});
+  return operation;
 }
 
 export async function clearNotificationInbox(): Promise<void> {
-  await AsyncStorage.removeItem(INBOX_STORAGE_KEY);
+  const operation = inboxWriteQueue.then(() => AsyncStorage.removeItem(INBOX_STORAGE_KEY));
+  inboxWriteQueue = operation.catch(() => {});
+  await operation;
 }
 
 /** expo-notifications отдаёт `date` в секундах (timeIntervalSince1970), не в миллисекундах. */
@@ -82,7 +86,7 @@ export function notificationToInboxItem(notification: Notification): Notificatio
       ? notificationDateToMs(notification.date)
       : Date.now();
   const baseId = notification.request.identifier || 'notification';
-  const id = baseId;
+  const id = `${baseId}:${deliveryMs}`;
 
   return {
     id,
@@ -97,4 +101,12 @@ export async function recordNotificationToInbox(
   notification: Notification
 ): Promise<NotificationInboxItem[]> {
   return appendNotificationToInbox(notificationToInboxItem(notification));
+}
+
+/** Забираем доставленные при закрытом приложении сообщения из центра уведомлений. */
+export async function restorePresentedNotificationsToInbox(): Promise<void> {
+  if (Constants.executionEnvironment === 'storeClient' || Platform.OS === 'web') return;
+  const Notifications = await import('expo-notifications');
+  const presented = await Notifications.getPresentedNotificationsAsync();
+  for (const notification of presented) await recordNotificationToInbox(notification);
 }

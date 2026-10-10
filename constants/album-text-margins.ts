@@ -165,8 +165,31 @@ export const DIARY_LINE_FONT_OFFSET = 0.78;
 /**
  * Доп. опускание Amatic на line-слотах дневника (доля fontSize).
  * Математический baseline ≈ штрих, но низ глифов визуально выше — sink выравнивает.
+ * Только diary_interior_* — pregnancy/birthday держат свои константы с тем же числом.
  */
 export const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
+
+/**
+ * pregnancy_60 p4 «Постановка на учёт»: то же визуальное опускание Amatic,
+ * что раньше бралось из diary-константы. Отдельное имя, чтобы правки дневника
+ * не двигали «Ожидание чуда».
+ */
+export const PREGNANCY_AMATIC_VISUAL_SINK_RATIO = 0.08;
+
+/**
+ * holidays_birthday_60: то же число, отдельная константа от дневника.
+ */
+export const BIRTHDAY_AMATIC_VISUAL_SINK_RATIO = 0.08;
+
+/**
+ * Fallback stroke-baseline offset для альбомов без своей ветки.
+ * Исторически совпадал с KIDS_MONTH_LINE_FONT_OFFSET; копия, чтобы смена kids
+ * не двигала остальные альбомы.
+ */
+export const GENERIC_STROKE_BASELINE_FONT_OFFSET = 0.86;
+
+/** Печатный штрих даты «Мой день» в коричневом дневнике (PDF y1). */
+export const DIARY_BROWN_MYDAY_DATE_STROKE_Y = 0.1419;
 
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
 export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;

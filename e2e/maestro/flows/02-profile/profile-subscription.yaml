@@ -10,4 +10,16 @@ appId: com.tihshkel.x018BY
     id: export-subscription-screen
 - assertVisible:
     text: 'Экспорт для печати'
+- assertVisible:
+    text: 'Разовая покупка'
+- assertVisible:
+    text: 'Навсегда на этом Apple ID, без ежемесячных списаний.'
+- scrollUntilVisible:
+    element:
+      id: print-unlock-restore
+    direction: DOWN
+- assertVisible:
+    id: print-unlock-restore
+- assertVisible:
+    text: 'История покупок Apple ID'
 - back

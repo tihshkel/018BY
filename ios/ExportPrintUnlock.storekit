@@ -1,0 +1,29 @@
+{
+  "identifier": "018BY-PRINT-UNLOCK",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "018B0001",
+      "localizations": [
+        {
+          "description": "Разовая покупка: PDF для печати в твёрдой и мягкой обложке навсегда.",
+          "displayName": "Экспорт для печати",
+          "locale": "ru"
+        }
+      ],
+      "productID": "com.tihshkel.x018BY.export_print_unlock",
+      "referenceName": "Print PDF Export Unlock",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_askToBuyEnabled": false,
+    "_failTransactionsEnabled": false,
+    "_locale": "ru",
+    "_storefront": "USA"
+  },
+  "subscriptionGroups": [],
+  "version": { "major": 2, "minor": 0 }
+}

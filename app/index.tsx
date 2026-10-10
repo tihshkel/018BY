@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
 import { ensureDefaultAvatar } from '@/utils/user-avatar';
+import { getPostAuthRoute } from '@/utils/auth-onboarding';
 
 const ONBOARDING_KEY = '@has_seen_onboarding';
 
@@ -26,7 +27,7 @@ export default function Index() {
           return;
         }
         if (!userName || !userName.trim()) {
-          router.replace('/login');
+          router.replace(await getPostAuthRoute() as never);
           return;
         }
         router.replace('/(tabs)');

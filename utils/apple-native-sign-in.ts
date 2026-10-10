@@ -1,5 +1,6 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
+import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
 
 import { getSupabase } from '@/lib/supabase';
@@ -27,7 +28,10 @@ export async function signInWithAppleNative(): Promise<{ success: boolean; error
   }
 
   try {
+    const nonce = Crypto.randomUUID();
+    const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, nonce);
     const credential = await AppleAuthentication.signInAsync({
+      nonce: hashedNonce,
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
@@ -41,6 +45,7 @@ export async function signInWithAppleNative(): Promise<{ success: boolean; error
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'apple',
       token: credential.identityToken,
+      nonce,
     });
     if (error) {
       return { success: false, error: error.message || 'APPLE_SUPABASE_FAILED' };
@@ -54,21 +59,29 @@ export async function signInWithAppleNative(): Promise<{ success: boolean; error
         credential.fullName.familyName,
       ].filter((part): part is string => Boolean(part?.trim()));
       if (nameParts.length > 0) {
-        await supabase.auth.updateUser({
-          data: {
-            full_name: nameParts.join(' '),
-            given_name: credential.fullName.givenName ?? undefined,
-            family_name: credential.fullName.familyName ?? undefined,
-            user_name: nameParts.join(' '),
-          },
-        });
+        try {
+          const { error: metadataError } = await supabase.auth.updateUser({
+            data: {
+              full_name: nameParts.join(' '),
+              given_name: credential.fullName.givenName ?? undefined,
+              family_name: credential.fullName.familyName ?? undefined,
+              user_name: nameParts.join(' '),
+            },
+          });
+          if (metadataError && __DEV__)
+            console.warn('[apple-native-sign-in] Name was not saved:', metadataError.message);
+        } catch {
+          // The session is already established; optional name metadata must not fail sign-in.
+        }
       }
     }
 
     return { success: true };
   } catch (err) {
     const code =
-      err && typeof err === 'object' && 'code' in err ? String((err as { code?: string }).code) : '';
+      err && typeof err === 'object' && 'code' in err
+        ? String((err as { code?: string }).code)
+        : '';
     if (code === 'ERR_REQUEST_CANCELED' || code === 'ERR_CANCELED') {
       return { success: false, error: 'OAUTH_CANCELLED' };
     }

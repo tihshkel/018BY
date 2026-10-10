@@ -2,13 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { getRemindersStorageKey, pushCoreOnlyToCloud, setLocalRemindersJsonForSyncId } from '@/utils/account-sync';
 import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinator';
-import { cancelAllKidsNotifications, loadKidsInfo, saveKidsInfo } from '@/utils/kidsNotificationScheduler';
+import { loadKidsInfo, saveKidsInfo } from '@/utils/kidsNotificationScheduler';
 import {
-  cancelAllPregnancyNotifications,
   loadPregnancyInfo,
   savePregnancyInfo,
 } from '@/utils/pregnancyNotificationScheduler';
 import { cancelScheduledNotification } from '@/utils/notifications';
+import { isAlbumNotificationReminder, linkAlbumNotificationPreferences } from '@/utils/albumNotificationPreferences';
+import { cancelUserReminder } from '@/utils/localNotificationSchedule';
 
 export function sameLocalCalendarDay(isoA: string, isoB: string): boolean {
   try {
@@ -64,56 +65,21 @@ export async function removeRemindersAndScheduledNotificationsForProject(
   const kidsLinked = kidsInfo != null && String(kidsInfo.projectId) === pid;
 
   if (pregnancyLinked) {
-    await cancelAllPregnancyNotifications();
     await AsyncStorage.removeItem('@pregnancy_info');
   }
   if (kidsLinked) {
-    await cancelAllKidsNotifications();
     await AsyncStorage.removeItem('@kids_info');
   }
-
-  const clearPregnancyBundle = category === 'pregnancy' || pregnancyLinked;
-  const clearKidsBundle = category === 'kids' || kidsLinked;
 
   const syncId = await getAccountSyncId();
   const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
 
   const shouldRemoveReminder = (r: any): boolean => {
-    if (r && String(r.projectId) === pid) return true;
-    if (category && reminderDate && r?.categoryId === category && r?.date) {
-      if (sameLocalCalendarDay(String(r.date), reminderDate)) return true;
-    }
-    const idStr = String(r?.id ?? '');
-    if (clearPregnancyBundle) {
-      if (pregnancyLinked) {
-        if (idStr.startsWith('pregnancy_')) return true;
-      } else if (category === 'pregnancy' && reminderDate && r?.date) {
-        if (idStr.startsWith('pregnancy_due') && sameLocalCalendarDay(String(r.date), reminderDate)) {
-          return true;
-        }
-        if (idStr.startsWith('pregnancy_week')) return true;
-      }
-      const title = typeof r?.title === 'string' ? r.title : '';
-      if (
-        category === 'pregnancy' &&
-        title.includes('ПДР') &&
-        reminderDate &&
-        r?.date &&
-        sameLocalCalendarDay(String(r.date), reminderDate)
-      ) {
-        return true;
-      }
-    }
-    if (clearKidsBundle) {
-      if (kidsLinked) {
-        if (idStr.startsWith('kids_')) return true;
-      } else if (category === 'kids' && reminderDate && r?.date) {
-        if (idStr.startsWith('kids_birth') && sameLocalCalendarDay(String(r.date), reminderDate)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    if (r?.projectId) return String(r.projectId) === pid;
+    // Старый шаблон без привязки удаляем только по его дате; личные записи остаются.
+    return Boolean(category && reminderDate && r?.date &&
+      /^(pregnancy|kids)_\d+_1$/.test(String(r.id ?? '')) &&
+      r.categoryId === category && sameLocalCalendarDay(String(r.date), reminderDate));
   };
 
   let rawList = await AsyncStorage.getItem(remindersKey);
@@ -132,6 +98,7 @@ export async function removeRemindersAndScheduledNotificationsForProject(
   const kept: any[] = [];
   for (const r of list) {
     if (shouldRemoveReminder(r)) {
+      if (!isAlbumNotificationReminder(r)) await cancelUserReminder(r);
       const nid = r?.notificationId;
       if (typeof nid === 'string' && nid.length > 0 && !cancelledIds.has(nid)) {
         cancelledIds.add(nid);
@@ -148,6 +115,8 @@ export async function removeRemindersAndScheduledNotificationsForProject(
   } else {
     await AsyncStorage.setItem('@reminders', json);
   }
+
+  await refreshAllAlbumNotifications({ skipCloudSync: true, force: true });
 
   try {
     await pushCoreOnlyToCloud({ remindersAuthoritativeLocal: true });
@@ -179,6 +148,7 @@ export async function attachProjectIdToTemplateReminders(
   let changed = false;
   const next = list.map((r) => {
     if (!r || r.projectId) return r;
+    if (!/^(pregnancy|kids)_\d+_1$/.test(String(r.id ?? ''))) return r;
     if (r.categoryId !== category || !r.date) return r;
     if (!sameLocalCalendarDay(String(r.date), reminderDateISO)) return r;
     changed = true;
@@ -215,17 +185,18 @@ export async function linkNewProjectToEventReminders(
 
   if (cat === 'pregnancy') {
     const info = await loadPregnancyInfo();
-    if (info) await savePregnancyInfo(info.dueDate, pid);
+    if (info && info.projectId.startsWith('pregnancy_') && sameLocalCalendarDay(info.dueDate.toISOString(), eventDateISO)) await savePregnancyInfo(info.dueDate, pid);
   } else if (cat === 'kids') {
     const info = await loadKidsInfo();
-    if (info) await saveKidsInfo(info.birthDate, pid);
+    if (info && info.projectId.startsWith('kids_') && sameLocalCalendarDay(info.birthDate.toISOString(), eventDateISO)) await saveKidsInfo(info.birthDate, pid);
   }
 
   await attachProjectIdToTemplateReminders(pid, cat, eventDateISO);
 
   if (cat === 'pregnancy' || cat === 'kids') {
+    await linkAlbumNotificationPreferences(pid, cat, eventDateISO);
     try {
-      await refreshAllAlbumNotifications({ skipCloudSync: true });
+      await refreshAllAlbumNotifications({ skipCloudSync: true, force: true });
     } catch (error) {
       console.warn('[ProjectReminders] Failed to refresh album notifications after link:', error);
     }

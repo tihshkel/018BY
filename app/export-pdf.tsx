@@ -4,7 +4,7 @@ import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { Annotation } from '@/components/pdf-annotations';
 import { SubscriptionPaywallModal } from '@/components/subscription-paywall-modal';
-import { requiresPrintSubscription } from '@/constants/subscription';
+import { requiresPrintUnlock } from '@/constants/subscription';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
@@ -478,12 +478,12 @@ export default function ExportPdfScreen() {
   const [paywallVisible, setPaywallVisible] = useState(false);
   const pendingFormatRef = useRef<FormatOption | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { isSubscribed, isIapEnabled, priceLabel } = useExportSubscription();
+  const { isUnlocked, isIapEnabled, priceLabel } = useExportSubscription();
 
   const isFormatLocked = useCallback(
     (format: FormatOption) =>
-      isIapEnabled && requiresPrintSubscription(format.type) && !isSubscribed,
-    [isIapEnabled, isSubscribed]
+      isIapEnabled && requiresPrintUnlock(format.type) && !isUnlocked,
+    [isIapEnabled, isUnlocked]
   );
 
   const openPaywall = useCallback((format?: FormatOption) => {
@@ -638,8 +638,8 @@ export default function ExportPdfScreen() {
 
     if (
       isIapEnabled &&
-      requiresPrintSubscription(formatToUse.type) &&
-      !isSubscribed
+      requiresPrintUnlock(formatToUse.type) &&
+      !isUnlocked
     ) {
       openPaywall(formatToUse);
       return;
@@ -3333,7 +3333,7 @@ export default function ExportPdfScreen() {
             <>
               {exportMode !== 'electronic'
                 ? formatOptions.map((format) => {
-                const showPremium = requiresPrintSubscription(format.type);
+                const showPremium = requiresPrintUnlock(format.type);
                 const locked = isFormatLocked(format);
                 const isSelected = selectedFormat?.id === format.id;
                 const formatIconName =
@@ -3348,6 +3348,7 @@ export default function ExportPdfScreen() {
                 return (
                   <TouchableOpacity
                     key={format.id}
+                    testID={`export-pdf-format-${format.type}`}
                     style={[styles.formatCard, isSelected && styles.formatCardSelected]}
                     onPress={() => handleFormatPress(format)}
                     activeOpacity={0.85}
@@ -3409,7 +3410,7 @@ export default function ExportPdfScreen() {
                                   isSelected && styles.formatPremiumBadgeTextSelected,
                                 ]}
                               >
-                                Премиум
+                                Разовая покупка
                               </Text>
                             </View>
                           ) : null}

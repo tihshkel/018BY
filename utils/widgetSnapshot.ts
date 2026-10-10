@@ -3,38 +3,27 @@ import { Platform } from 'react-native';
 
 import { getAccountSyncId, getRemindersStorageKey } from '@/utils/account-sync';
 import { resolveLineGuideId } from '@/utils/albumImages';
-import {
-  computeAlbumProgress,
-  findNextPageToContinue,
-} from '@/utils/albumProgress';
+import { computeAlbumProgress, findNextPageToContinue } from '@/utils/albumProgress';
 import { getInstanceTitle, getSchemaForInstance } from '@/utils/albumProjectInit';
-import {
-  getNotificationInbox,
-  type NotificationInboxItem,
-} from '@/utils/notificationInbox';
-import { loadPageInstances, loadPageValuesMap } from '@/utils/pageStorage';
-import {
-  getPregnancyDay,
-  getWeeklyInsightForWeek,
-  loadPregnancyInfo,
-} from '@/utils/pregnancyNotificationScheduler';
-import {
-  getProjectCategoryLabel,
-  loadUserProjects,
-  type UserProject,
-} from '@/utils/userProjects';
+import { resolveFormPathname } from '@/utils/albumPageNavigation';
+import { getNotificationInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
+import { isAlbumNotificationReminder, type NotificationReminder } from '@/utils/albumNotificationPreferences';
+import { addCalendarMonths, nextReminderDate } from '@/utils/localNotificationSchedule';
+import { loadPageInstances, loadPageValuesMapMerged } from '@/utils/pageStorage';
+import { computePageStatus } from '@/utils/pageStatus';
+import { loadPregnancyInfo } from '@/utils/pregnancyNotificationScheduler';
+import { getProjectCategoryLabel, loadUserProjects, type UserProject } from '@/utils/userProjects';
 
 export const WIDGET_DATA_KEY = 'WidgetSnapshot';
 export const WIDGET_APP_GROUP = 'group.com.tihshkel.x018BY.expowidgets';
 
-/** Calendar days from local midnight today until ISO date (can be negative). */
+/** Local calendar days, including daylight-saving transitions. */
 export function daysUntil(isoDate: string, now: Date = new Date()): number {
   const target = new Date(isoDate);
   if (Number.isNaN(target.getTime())) return 0;
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-  return Math.ceil((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const targetDay = Date.UTC(target.getFullYear(), target.getMonth(), target.getDate());
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((targetDay - today) / 86_400_000);
 }
 
 export type WidgetProjectSnapshot = {
@@ -45,9 +34,12 @@ export type WidgetProjectSnapshot = {
   percent: number;
   celebration?: string;
   coverType?: string;
+  interiorType?: string;
   pagesCount: number;
   photosCount: number;
   unfinishedPages?: number;
+  filledPages?: number;
+  progressKnown?: boolean;
 };
 
 export type WidgetContinueSnapshot = {
@@ -58,14 +50,15 @@ export type WidgetContinueSnapshot = {
   percent: number;
   celebration?: string;
   coverType?: string;
+  interiorType?: string;
+  editorPath?: string;
+  unfinishedPages?: number;
+  filledPages?: number;
+  totalPages?: number;
+  actionHint?: string;
 };
 
-export type WidgetReminderSnapshot = {
-  title: string;
-  dateISO: string;
-  daysLeft: number;
-};
-
+export type WidgetReminderSnapshot = { title: string; dateISO: string; daysLeft: number };
 export type WidgetPregnancySnapshot = {
   week: number;
   day: number;
@@ -77,18 +70,10 @@ export type WidgetPregnancySnapshot = {
   projectTitle: string;
   projectId: string;
 };
-
-export type WidgetInboxNotification = {
-  id: string;
-  title: string;
-  body: string;
-  receivedAt: string;
-};
-
+export type WidgetInboxNotification = { id: string; title: string; body: string; receivedAt: string };
 export type WidgetSnapshot = {
   updatedAt: string;
   userName?: string;
-  /** Full album count (not capped by projects[] preview). */
   albumsCount: number;
   projects: WidgetProjectSnapshot[];
   continueProject?: WidgetContinueSnapshot;
@@ -97,70 +82,42 @@ export type WidgetSnapshot = {
   pregnancy?: WidgetPregnancySnapshot;
   todayNotifications: WidgetInboxNotification[];
   latestNotification?: WidgetInboxNotification;
+  /** Legacy key: inbox has no read state; this is the full number received today. */
   unreadTodayCount: number;
 };
 
-type StoredReminder = {
-  id?: string;
-  title?: string;
-  date?: string;
-  enabled?: boolean;
-};
-
+type StoredReminder = Partial<NotificationReminder>;
 const MAX_PROJECTS = 5;
-const MAX_PROGRESS_PROJECTS = 3;
 const MAX_TODAY_NOTIFICATIONS = 3;
-
 let syncInFlight: Promise<void> | null = null;
+let syncRequested = false;
+let snapshotGeneration = 0;
+let lastPayload: string | undefined;
 
 function sanitizePercent(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.min(100, Math.round(value)));
+  return Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : 0;
 }
 
 function writeWidgetData(payload: string): void {
-  if (Platform.OS !== 'ios') return;
+  if (Platform.OS !== 'ios' || payload === lastPayload) return;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const widgets = require('@bittingz/expo-widgets') as {
-      setWidgetData?: (value: string) => void;
-    };
-    if (typeof widgets.setWidgetData !== 'function') {
-      if (__DEV__) {
-        console.warn(
-          '[WidgetSnapshot] setWidgetData unavailable — нужна нативная сборка (не Expo Go)',
-        );
-      }
-      return;
-    }
+    const widgets = require('@bittingz/expo-widgets') as { setWidgetData?: (value: string) => void };
+    if (typeof widgets.setWidgetData !== 'function') return;
     widgets.setWidgetData(payload);
-    if (__DEV__) {
-      console.log('[WidgetSnapshot] synced payload', payload.length, 'bytes');
-    }
+    lastPayload = payload;
   } catch (error) {
-    if (__DEV__) {
-      console.warn('[WidgetSnapshot] write failed:', error);
-    }
+    if (__DEV__) console.warn('[WidgetSnapshot] write failed:', error);
   }
 }
 
 function isSameLocalDay(isoDate: string, reference: Date = new Date()): boolean {
   const parsed = new Date(isoDate);
-  if (Number.isNaN(parsed.getTime())) return false;
-  return (
-    parsed.getFullYear() === reference.getFullYear() &&
-    parsed.getMonth() === reference.getMonth() &&
-    parsed.getDate() === reference.getDate()
-  );
+  return !Number.isNaN(parsed.getTime()) && daysUntil(isoDate, reference) === 0;
 }
 
 function mapInboxNotification(item: NotificationInboxItem): WidgetInboxNotification {
-  return {
-    id: item.id,
-    title: item.title,
-    body: item.body,
-    receivedAt: item.receivedAt,
-  };
+  return { id: item.id, title: item.title, body: item.body, receivedAt: item.receivedAt };
 }
 
 function buildNotificationSnapshot(inbox: NotificationInboxItem[]): {
@@ -168,283 +125,197 @@ function buildNotificationSnapshot(inbox: NotificationInboxItem[]): {
   latestNotification?: WidgetInboxNotification;
   unreadTodayCount: number;
 } {
-  const sorted = [...inbox].sort(
-    (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime(),
-  );
-  const todayNotifications = sorted
-    .filter((item) => isSameLocalDay(item.receivedAt))
-    .slice(0, MAX_TODAY_NOTIFICATIONS)
-    .map(mapInboxNotification);
-
-  const latestNotification =
-    todayNotifications[0] ??
-    (sorted[0] ? mapInboxNotification(sorted[0]) : undefined);
-
+  const sorted = inbox.filter((item) => Number.isFinite(Date.parse(item.receivedAt)))
+    .sort((a, b) => Date.parse(b.receivedAt) - Date.parse(a.receivedAt));
+  const today = sorted.filter((item) => isSameLocalDay(item.receivedAt));
   return {
-    todayNotifications,
-    latestNotification,
-    unreadTodayCount: todayNotifications.length,
+    todayNotifications: today.slice(0, MAX_TODAY_NOTIFICATIONS).map(mapInboxNotification),
+    latestNotification: sorted[0] ? mapInboxNotification(sorted[0]) : undefined,
+    unreadTodayCount: today.length,
   };
 }
 
 async function loadReminders(): Promise<StoredReminder[]> {
   const syncId = await getAccountSyncId();
-  const keys = syncId
-    ? [getRemindersStorageKey(syncId), '@reminders']
-    : ['@reminders'];
-
-  for (const key of keys) {
-    const raw = await AsyncStorage.getItem(key);
-    if (!raw) continue;
-    try {
-      const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
-        return parsed as StoredReminder[];
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-  return [];
+  // An account's empty calendar must not pick up another account's legacy data.
+  const raw = await AsyncStorage.getItem(syncId ? getRemindersStorageKey(syncId) : '@reminders');
+  try {
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
 }
 
 function mapReminderRows(rows: StoredReminder[]): WidgetReminderSnapshot[] {
-  return rows
-    .filter((row) => row.enabled !== false && row.title && row.date)
-    .map((row) => ({
-      title: String(row.title),
-      dateISO: String(row.date),
-      daysLeft: daysUntil(String(row.date)),
-    }))
-    .filter((row) => row.daysLeft >= 0)
-    .sort((a, b) => a.daysLeft - b.daysLeft)
-    .slice(0, 3);
+  return rows.flatMap((row) => {
+    if (!row || row.enabled === false || row.deleted === true || typeof row.title !== 'string' ||
+      !row.title.trim() || typeof row.date !== 'string' || !Number.isFinite(Date.parse(row.date))) return [];
+    let title = row.title.trim();
+    let date = new Date(row.date);
+    if (isAlbumNotificationReminder(row)) {
+      if (row.albumNotificationGroup !== 'events') return [];
+      if (row.categoryId === 'pregnancy') title = 'Предварительная дата родов';
+      else if (row.categoryId === 'kids') {
+        const birthday = new Date(row.date);
+        let year = Math.max(new Date().getFullYear(), birthday.getFullYear() + 1);
+        date = addCalendarMonths(birthday, (year - birthday.getFullYear()) * 12);
+        if (daysUntil(date.toISOString()) < 0) date = addCalendarMonths(birthday, (++year - birthday.getFullYear()) * 12);
+        if (year - birthday.getFullYear() > 7) return [];
+        title = 'День рождения ребёнка';
+      }
+    } else if (row.repeats) {
+      const next = nextReminderDate({ date: row.date, repeats: true });
+      if (!next) return [];
+      date = next;
+    }
+    const dateISO = date.toISOString();
+    const daysLeft = daysUntil(dateISO);
+    return daysLeft >= 0 ? [{ title, dateISO, daysLeft }] : [];
+  }).filter((row, index, all) => all.findIndex((other) => other.title === row.title && other.dateISO === row.dateISO) === index)
+    .sort((a, b) => Date.parse(a.dateISO) - Date.parse(b.dateISO));
 }
 
 async function loadProjectMeta(projectId: string): Promise<Record<string, unknown>> {
   const raw = await AsyncStorage.getItem(`@project_${projectId}`);
-  if (!raw) return {};
   try {
-    const parsed = JSON.parse(raw) as unknown;
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : {};
-  } catch {
-    return {};
-  }
+    const parsed: unknown = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  } catch { return {}; }
 }
 
-async function computeProjectProgress(
-  project: UserProject,
-): Promise<{ percent: number; unfinishedPages?: number }> {
+/** Same schema and merged per-page storage as the album editor. No photo-count estimates. */
+export async function readWidgetProject(project: UserProject): Promise<{
+  project: WidgetProjectSnapshot;
+  next?: WidgetContinueSnapshot;
+  lastEditedAt: number;
+}> {
   const meta = await loadProjectMeta(project.id);
   const category = String(meta.category ?? project.category ?? '');
-  const coverType = (meta.coverType as string) ?? project.coverType ?? null;
-  const albumId = (meta.albumId as string) ?? project.albumId ?? null;
-  const lineGuideId = resolveLineGuideId(coverType ?? albumId ?? '', category);
-
-  const instances = await loadPageInstances(
-    (key) => AsyncStorage.getItem(key),
-    project.id,
-  );
-  if (instances.length === 0) {
-    if (project.pagesCount > 0 && project.photosCount > 0) {
-      return {
-        percent: sanitizePercent(
-          Math.min(100, Math.round((project.photosCount / project.pagesCount) * 100)),
-        ),
-      };
-    }
-    return { percent: 0 };
+  const coverType = typeof meta.coverType === 'string' ? meta.coverType : project.coverType ?? undefined;
+  const interiorType = String(meta.interiorType ?? meta.albumId ?? project.albumId ?? '');
+  const lineGuideId = resolveLineGuideId(interiorType, category);
+  const title = typeof meta.title === 'string' && meta.title.trim() ? meta.title.trim() : project.title;
+  const instances = await loadPageInstances((key) => AsyncStorage.getItem(key), project.id);
+  const values = await loadPageValuesMapMerged((key) => AsyncStorage.getItem(key), project.id, instances.map((item) => item.instanceId));
+  const getSchema = (instance: Parameters<typeof getSchemaForInstance>[0]) => getSchemaForInstance(instance, lineGuideId);
+  // Locked decorations and pages excluded by the user are not unfinished work.
+  const editable = instances.filter((instance) => {
+    const schema = getSchema(instance);
+    if (!schema) return false;
+    const status = computePageStatus(schema, values[instance.instanceId]);
+    return status !== 'locked' && status !== 'excluded';
+  });
+  const progress = computeAlbumProgress(editable, values, getSchema);
+  const remaining = progress.totalCount - progress.filledCount;
+  const progressKnown = instances.length > 0 && instances.every((instance) => Boolean(getSchema(instance)));
+  const percent = !progressKnown ? 0 : progress.totalCount === 0 ? 100 : sanitizePercent(progress.percent);
+  const flow = { celebration: category, coverType, interiorType: interiorType || undefined };
+  const snapshot: WidgetProjectSnapshot = {
+    id: project.id, title, category, categoryLabel: getProjectCategoryLabel(category), percent, ...flow,
+    pagesCount: progress.totalCount, photosCount: project.photosCount ?? 0,
+    unfinishedPages: progressKnown ? remaining : undefined, filledPages: progress.filledCount, progressKnown,
+  };
+  const lastEditedAt = Object.values(values).reduce((latest, value) => Math.max(latest, Date.parse(value.updatedAt ?? '') || 0), Date.parse(project.dateStarted) || 0);
+  const nextPage = findNextPageToContinue(editable, values, getSchema);
+  if (!nextPage) {
+    return {
+      project: snapshot, lastEditedAt,
+      next: !progressKnown ? {
+        projectId: project.id, instanceId: '', projectTitle: title, pageTitle: 'Первая страница вашей истории',
+        percent: 0, ...flow, actionHint: 'Откройте альбом и начните с одного воспоминания',
+      } : undefined,
+    };
   }
-
-  const pageValuesMap = await loadPageValuesMap(
-    (key) => AsyncStorage.getItem(key),
-    project.id,
-  );
-  const progress = computeAlbumProgress(instances, pageValuesMap, (instance) =>
-    getSchemaForInstance(instance, lineGuideId),
-  );
-  const unfinishedPages = progress.totalCount - progress.filledCount;
+  const schema = getSchema(nextPage);
+  const hasPhotos = (schema?.photoBlocks?.length ?? 0) > 0;
+  const hasText = (schema?.fields?.length ?? 0) > 0 || schema?.captionEnabled;
+  const actionHint = hasPhotos && hasText ? 'Добавьте фото и несколько слов об этом моменте'
+    : hasPhotos ? 'Выберите фото, которое хочется сохранить'
+    : 'Сохраните детали, пока они ещё свежи в памяти';
   return {
-    percent: sanitizePercent(progress.percent),
-    unfinishedPages: unfinishedPages > 0 ? unfinishedPages : undefined,
+    project: snapshot, lastEditedAt,
+    next: {
+      projectId: project.id, instanceId: nextPage.instanceId, projectTitle: title,
+      pageTitle: getInstanceTitle(nextPage, lineGuideId), percent, ...flow,
+      editorPath: resolveFormPathname(schema), unfinishedPages: remaining,
+      filledPages: progress.filledCount, totalPages: progress.totalCount, actionHint,
+    },
   };
 }
 
-/** Used by home widgets and iOS snapshot. */
-export async function buildContinueSnapshotForHome(
-  projects: UserProject[],
-): Promise<WidgetContinueSnapshot | undefined> {
-  for (const project of projects.slice(0, MAX_PROJECTS)) {
-    const meta = await loadProjectMeta(project.id);
-    const category = String(meta.category ?? project.category ?? '');
-    const coverType = (meta.coverType as string) ?? project.coverType ?? null;
-    const albumId = (meta.albumId as string) ?? project.albumId ?? null;
-    const lineGuideId = resolveLineGuideId(coverType ?? albumId ?? '', category);
-
-    const instances = await loadPageInstances(
-      (key) => AsyncStorage.getItem(key),
-      project.id,
-    );
-
-    if (instances.length === 0) {
-      const roughPercent =
-        project.pagesCount > 0
-          ? sanitizePercent(Math.round((project.photosCount / project.pagesCount) * 100))
-          : 0;
-      if (roughPercent > 0 && roughPercent < 100) {
-        return {
-          projectId: project.id,
-          instanceId: '',
-          projectTitle: project.title,
-          pageTitle: 'Продолжить заполнение',
-          percent: roughPercent,
-          celebration: category,
-          coverType: coverType ?? undefined,
-        };
-      }
-      continue;
-    }
-
-    const pageValuesMap = await loadPageValuesMap(
-      (key) => AsyncStorage.getItem(key),
-      project.id,
-    );
-    const getSchema = (instance: Parameters<typeof getSchemaForInstance>[0]) =>
-      getSchemaForInstance(instance, lineGuideId);
-    const progress = computeAlbumProgress(instances, pageValuesMap, getSchema);
-    if (sanitizePercent(progress.percent) >= 100) continue;
-
-    const nextPage = findNextPageToContinue(instances, pageValuesMap, getSchema);
-    if (!nextPage) continue;
-
-    const pageTitle = getInstanceTitle(nextPage, lineGuideId);
-
-    return {
-      projectId: project.id,
-      instanceId: nextPage.instanceId,
-      projectTitle: project.title,
-      pageTitle,
-      percent: sanitizePercent(progress.percent),
-      celebration: category,
-      coverType: coverType ?? undefined,
-    };
+async function readProjects(projects: UserProject[]) {
+  const results: Awaited<ReturnType<typeof readWidgetProject>>[] = [];
+  // Keep memory bounded for large libraries while considering every album.
+  for (let offset = 0; offset < projects.length; offset += 3) {
+    results.push(...await Promise.all(projects.slice(offset, offset + 3).map(readWidgetProject)));
   }
-  return undefined;
+  return results.sort((a, b) => b.lastEditedAt - a.lastEditedAt);
+}
+
+/** Shared with the home screen; prioritizes the most recently edited unfinished album. */
+export async function buildContinueSnapshotForHome(projects: UserProject[]): Promise<WidgetContinueSnapshot | undefined> {
+  return (await readProjects(projects)).find((item) => item.next)?.next;
 }
 
 async function buildSnapshot(): Promise<WidgetSnapshot> {
   const [userName, projects, pregnancyInfo, reminderRows, inbox] = await Promise.all([
-    AsyncStorage.getItem('@user_name'),
-    loadUserProjects(),
-    loadPregnancyInfo(),
-    loadReminders(),
-    getNotificationInbox(),
+    AsyncStorage.getItem('@user_name'), loadUserProjects(), loadPregnancyInfo(), loadReminders(), getNotificationInbox(),
   ]);
-
   const reminders = mapReminderRows(reminderRows);
-  const nextReminder = reminders[0];
-  const notificationSnapshot = buildNotificationSnapshot(inbox);
-
-  const projectsWithProgress = await Promise.all(
-    projects.slice(0, MAX_PROJECTS).map(async (project, index) => {
-      const progress =
-        index < MAX_PROGRESS_PROJECTS
-          ? await computeProjectProgress(project)
-          : {
-              percent:
-                project.pagesCount > 0
-                  ? Math.min(
-                      100,
-                      Math.round((project.photosCount / project.pagesCount) * 100),
-                    )
-                  : 0,
-            };
-
-      const meta = await loadProjectMeta(project.id);
-      const category = String(meta.category ?? project.category ?? '');
-
-      return {
-        id: project.id,
-        title: project.title,
-        category,
-        categoryLabel: getProjectCategoryLabel(category),
-        percent: sanitizePercent(progress.percent),
-        celebration: category,
-        coverType: project.coverType ?? undefined,
-        pagesCount: project.pagesCount ?? 0,
-        photosCount: project.photosCount ?? 0,
-        unfinishedPages: progress.unfinishedPages,
-      } satisfies WidgetProjectSnapshot;
-    }),
-  );
-
+  const results = await readProjects(projects);
+  const next = results.find((item) => item.next);
+  // Put the active album first, while preserving each other album's own progress.
+  const ordered = next ? [next, ...results.filter((item) => item !== next)] : results;
   let pregnancy: WidgetPregnancySnapshot | undefined;
-  if (pregnancyInfo) {
-    const dayInfo = getPregnancyDay(pregnancyInfo.dueDate);
-    const project = projects.find((p) => p.id === pregnancyInfo.projectId);
+  const pregnancyProject = pregnancyInfo && projects.find((project) => project.id === pregnancyInfo.projectId);
+  if (pregnancyInfo && pregnancyProject && Number.isFinite(pregnancyInfo.dueDate.getTime()) && daysUntil(pregnancyInfo.dueDate.toISOString()) >= -14) {
+    const daysLeft = daysUntil(pregnancyInfo.dueDate.toISOString());
+    const day = Math.max(1, Math.min(294, 281 - daysLeft));
+    const week = Math.max(1, Math.min(42, 40 - Math.floor(daysLeft / 7)));
     pregnancy = {
-      week: dayInfo.week,
-      day: dayInfo.day,
-      dayInWeek: dayInfo.dayInWeek,
-      trimester: dayInfo.trimester,
-      weeklyInsight: getWeeklyInsightForWeek(dayInfo.week),
-      daysLeft: daysUntil(pregnancyInfo.dueDate.toISOString()),
-      pdrISO: pregnancyInfo.dueDate.toISOString(),
-      projectTitle: project?.title ?? 'Беременность',
-      projectId: pregnancyInfo.projectId,
+      day, week, dayInWeek: ((day - 1) % 7) + 1,
+      trimester: week <= 13 ? 1 : week <= 27 ? 2 : 3,
+      daysLeft, pdrISO: pregnancyInfo.dueDate.toISOString(),
+      projectTitle: pregnancyProject.title, projectId: pregnancyInfo.projectId,
     };
   }
-
-  const continueProject = await buildContinueSnapshotForHome(projects);
-
   return {
-    updatedAt: new Date().toISOString(),
-    userName: userName?.trim() || undefined,
-    albumsCount: projects.length,
-    projects: projectsWithProgress,
-    continueProject,
-    nextReminder,
-    reminders,
-    pregnancy,
-    ...notificationSnapshot,
+    updatedAt: new Date().toISOString(), userName: userName?.trim() || undefined,
+    albumsCount: projects.length, projects: ordered.slice(0, MAX_PROJECTS).map((item) => item.project),
+    continueProject: next?.next, nextReminder: reminders[0], reminders, pregnancy,
+    ...buildNotificationSnapshot(inbox),
   };
-}
-
-async function doSync(): Promise<void> {
-  const snapshot = await buildSnapshot();
-  writeWidgetData(JSON.stringify(snapshot));
 }
 
 export async function syncWidgetSnapshot(): Promise<void> {
   if (Platform.OS !== 'ios') return;
-  if (syncInFlight) {
-    await syncInFlight;
-    return;
-  }
-  syncInFlight = doSync().finally(() => {
-    syncInFlight = null;
-  });
-  await syncInFlight;
+  syncRequested = true;
+  if (syncInFlight) return syncInFlight;
+  syncInFlight = (async () => {
+    try {
+      do {
+        syncRequested = false;
+        const generation = snapshotGeneration;
+        const snapshot = await buildSnapshot();
+        // A sign-out during an in-flight read must never restore the previous account's data.
+        if (generation === snapshotGeneration) writeWidgetData(JSON.stringify(snapshot));
+      } while (syncRequested);
+    } catch (error) {
+      if (__DEV__) console.warn('[WidgetSnapshot] sync failed:', error);
+    }
+  })().finally(() => { syncInFlight = null; });
+  return syncInFlight;
 }
 
 export async function clearWidgetSnapshot(): Promise<void> {
   if (Platform.OS !== 'ios') return;
+  snapshotGeneration += 1;
+  syncRequested = false;
   const empty: WidgetSnapshot = {
-    updatedAt: new Date().toISOString(),
-    albumsCount: 0,
-    projects: [],
-    reminders: [],
-    todayNotifications: [],
-    unreadTodayCount: 0,
+    updatedAt: new Date().toISOString(), albumsCount: 0, projects: [], reminders: [],
+    todayNotifications: [], unreadTodayCount: 0,
   };
   writeWidgetData(JSON.stringify(empty));
 }
 
-/** @internal exported for regression tests */
-export const widgetSnapshotTestUtils = {
-  isSameLocalDay,
-  buildNotificationSnapshot,
-  daysUntil,
-};
+/** @internal */
+export const widgetSnapshotTestUtils = { isSameLocalDay, buildNotificationSnapshot, daysUntil };

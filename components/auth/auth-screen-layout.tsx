@@ -1,165 +1,122 @@
-import { Image } from 'expo-image';
-import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import { Image, type ImageProps } from 'expo-image';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Keyboard, Platform, Pressable, StyleSheet, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppHeader, AppScreen, AppText } from '@/components/ui';
-import { colors, spacing } from '@/constants/design-tokens';
-import {
-  AUTH_CONTENT_MAX_WIDTH,
-  getTabletContentShell,
-  getTabletSectionWrap,
-  useResponsiveLayout,
-} from '@/utils/responsive';
+import { AppScreen, AppText } from '@/components/ui';
+import { colors } from '@/constants/design-tokens';
+import { AuthModeSwitch, type AuthMode } from '@/components/auth/auth-mode-switch';
 
 type AuthScreenLayoutProps = {
   title: string;
   subtitle?: string;
   showBack?: boolean;
   onBack?: () => void;
+  mode?: AuthMode;
+  onModeChange?: (mode: AuthMode) => void;
+  modeSwitchDisabled?: boolean;
+  illustration?: ImageProps['source'];
   children: React.ReactNode;
   footer?: React.ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
 };
+
+export const authInputStyle = { borderRadius: 14, backgroundColor: '#F8F6F7', minHeight: 52 };
+export const authSubmitStyle = { borderRadius: 14, minHeight: 52, shadowOpacity: 0, elevation: 0 };
 
 export function AuthScreenLayout({
   title,
   subtitle,
   showBack = false,
   onBack,
+  mode,
+  onModeChange,
+  modeSwitchDisabled,
+  illustration,
   children,
   footer,
   contentStyle,
 }: AuthScreenLayoutProps) {
-  const layout = useResponsiveLayout(AUTH_CONTENT_MAX_WIDTH);
-  const shellStyle = getTabletContentShell(layout) ?? getTabletSectionWrap(layout, spacing.md);
-  const opacity = useSharedValue(0);
-
+  const { height, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const availableHeight = height - insets.top - Math.max(24, insets.bottom + 24);
+  const illustrationHeight = Math.max(64, Math.min(180, availableHeight - (mode ? 560 : 520) * Math.max(1, fontScale)));
+  const compact = availableHeight < 700 || fontScale > 1.15;
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.cubic) });
-  }, [opacity]);
-
-  const fadeStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
   return (
-    <AppScreen scroll keyboardAware style={styles.screen} edges={['top', 'bottom']}>
-      <Animated.View style={[styles.wrap, shellStyle, fadeStyle]}>
-        <AppHeader showBack={showBack} onBack={onBack} style={styles.header} />
-
-        <View style={styles.brandRow}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            contentFit="contain"
-            accessibilityLabel="018BY"
-          />
-          <AppText variant="caption" style={styles.brandMark}>
-            018BY
-          </AppText>
-        </View>
-
+    <AppScreen scroll keyboardAware style={styles.screen} contentContainerStyle={styles.scrollContent}>
+      <View style={[styles.wrap, compact && styles.wrapCompact]}>
+        {showBack ? (
+          <View style={styles.header}>
+            <Pressable
+              onPress={onBack ?? (() => router.back())}
+              style={styles.back}
+              accessibilityRole="button"
+              accessibilityLabel="Назад"
+            >
+              <Ionicons name="arrow-back" size={21} color={colors.textPrimary} />
+            </Pressable>
+          </View>
+        ) : null}
         <View style={styles.hero}>
-          <AppText variant="title" style={styles.title}>
+          {illustration && !keyboardVisible ? (
+            <Image
+              source={illustration}
+              contentFit="contain"
+              transition={0}
+              style={[styles.illustration, { height: illustrationHeight }]}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+          ) : null}
+          <AppText accessibilityRole="header" style={styles.title}>
             {title}
           </AppText>
-          {subtitle ? (
-            <AppText variant="bodySm" style={styles.subtitle}>
-              {subtitle}
-            </AppText>
-          ) : null}
+          {subtitle ? <AppText style={styles.subtitle}>{subtitle}</AppText> : null}
         </View>
-
-        <View style={[styles.content, contentStyle]}>{children}</View>
-
+        <View>
+          {mode && onModeChange ? (
+            <AuthModeSwitch value={mode} onChange={onModeChange} disabled={modeSwitchDisabled} />
+          ) : null}
+          <View style={[styles.content, contentStyle]}>{children}</View>
+        </View>
         {footer ? <View style={styles.footer}>{footer}</View> : null}
-      </Animated.View>
+      </View>
     </AppScreen>
   );
 }
 
-type AuthFooterLinkProps = {
-  prefix: string;
-  actionLabel: string;
-  onPress: () => void;
-};
-
-export function AuthFooterLink({ prefix, actionLabel, onPress }: AuthFooterLinkProps) {
-  return (
-    <View style={styles.footerRow}>
-      <AppText variant="bodySm" style={styles.footerPrefix}>
-        {prefix}
-      </AppText>
-      <Pressable onPress={onPress} hitSlop={10}>
-        <AppText variant="bodySm" style={styles.footerAction}>
-          {actionLabel}
-        </AppText>
-      </Pressable>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: {
-    backgroundColor: colors.white,
-  },
+  screen: { backgroundColor: '#FFFFFF' },
+  scrollContent: { justifyContent: 'center' },
   wrap: {
-    flexGrow: 1,
-    paddingBottom: spacing.lg,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
-  header: {
-    paddingHorizontal: 0,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: spacing.md,
-  },
-  logo: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-  },
-  brandMark: {
-    color: colors.textPrimary,
-    fontWeight: '600',
-    letterSpacing: 1.4,
-    fontSize: 11,
-  },
-  hero: {
-    gap: 4,
-    marginBottom: spacing.lg,
-  },
-  title: {
-    letterSpacing: -0.3,
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  content: {
-    gap: spacing.md,
-  },
-  footer: {
-    marginTop: 'auto',
-    paddingTop: spacing.lg,
-    alignItems: 'center',
-  },
-  footerRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  wrapCompact: { paddingVertical: 12 },
+  illustration: { width: 320, maxWidth: '100%', alignSelf: 'center', marginBottom: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14 },
+  back: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    borderRadius: 22,
+    backgroundColor: colors.white,
   },
-  footerPrefix: {
-    color: colors.textSecondary,
-  },
-  footerAction: {
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
+  hero: { paddingBottom: 16 },
+  title: { fontSize: 30, lineHeight: 36, letterSpacing: -0.8, fontWeight: '700', color: '#40343B' },
+  subtitle: { fontSize: 15, lineHeight: 23, color: '#887780', maxWidth: 360 },
+  content: { gap: 12 },
+  footer: { paddingTop: 18 },
 });

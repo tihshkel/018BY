@@ -58,7 +58,6 @@ import {
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 // Функция для безопасной загрузки expo-notifications (только при необходимости)
-let notificationHandlerInitialized = false;
 let notificationsModule: typeof import('expo-notifications') | null = null;
 
 const getNotifications = (): typeof import('expo-notifications') | null => {
@@ -76,18 +75,6 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
     // Используем require только внутри функции, чтобы избежать загрузки при импорте файла
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Notifications = require('expo-notifications');
-
-    // Настраиваем обработчик только один раз
-    if (Notifications && !notificationHandlerInitialized) {
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: true,
-        }),
-      });
-      notificationHandlerInitialized = true;
-    }
 
     notificationsModule = Notifications;
     return Notifications;
@@ -516,6 +503,7 @@ export default function SelectCoverScreen() {
 
   // Универсальная функция для сохранения напоминаний
   const scheduleReminder = async (eventDate: Date, categoryId: string) => {
+    if (categoryId === 'kids' || categoryId === 'pregnancy') return;
     try {
       const categoryInfo = getCategoryInfo(categoryId);
 

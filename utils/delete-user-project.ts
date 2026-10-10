@@ -63,6 +63,9 @@ export async function deleteUserProjectLocally(project: UserProject): Promise<vo
     await AsyncStorage.setItem('@user_projects', updatedJson);
   }
 
+  const { syncWidgetSnapshot } = await import('@/utils/widgetSnapshot');
+  void syncWidgetSnapshot();
+
   try {
     const syncId = await getAccountSyncId();
     if (syncId && isSupabaseConfigured()) {

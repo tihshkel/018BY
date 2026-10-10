@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
+import { OfflineGate } from '@/components/offline-gate';
 import { AppUpdateBootstrap } from '@/components/app-update-bootstrap';
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
 import { ExportSubscriptionProvider } from '@/contexts/export-subscription-context';
@@ -72,6 +73,7 @@ export default function RootLayout() {
     const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
       if (state === 'background' || state === 'inactive') {
         syncToCloudNow();
+        if (state === 'background') void syncWidgetSnapshot();
       }
       if (state === 'active') {
         syncToCloudNow();
@@ -109,7 +111,8 @@ export default function RootLayout() {
               <Stack.Screen name="login" />
               <Stack.Screen name="forgot-password" />
               <Stack.Screen name="reset-password" />
-              <Stack.Screen name="register" />
+              <Stack.Screen name="register" options={{ animation: 'none' }} />
+              <Stack.Screen name="referral-survey" />
               <Stack.Screen
                 name="name-input"
                 options={{
@@ -121,6 +124,7 @@ export default function RootLayout() {
               <Stack.Screen name="select-album" />
               <Stack.Screen name="edit-album" />
               <Stack.Screen name="album-pages" />
+              <Stack.Screen name="widget-open" />
               <Stack.Screen name="album-page-preview" />
               <Stack.Screen name="album-page-form" />
               <Stack.Screen name="album-page-photos" />
@@ -132,6 +136,7 @@ export default function RootLayout() {
               <Stack.Screen name="export-history" />
               <Stack.Screen name="(tabs)" />
             </Stack>
+            <OfflineGate />
             <StatusBar style="auto" />
             </ThemeProvider>
           </MediaLibraryPermissionProvider>

@@ -1,11 +1,12 @@
 {
   "name": "018by",
   "main": "expo-router/entry",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "verify-project-save": "node ./scripts/verify-project-save.js",
+    "test:iap": "node scripts/test-export-unlock-iap.cjs",
     "test:project-sync": "node ./scripts/test-project-sync-merge.js && node ./scripts/test-prune-ghost-score.js && node ./scripts/test-field-text-align.js && node ./scripts/test-normalize-album-user-text.js && node ./scripts/test-pregnancy-plans-capacity.js && node ./scripts/test-pregnancy-feelings-capacity.js && node ./scripts/test-export-preview-distribute-parity.js && node ./scripts/test-export-weekly-legacy-branch.js && node ./scripts/test-typography-font-picker.js && node ./scripts/test-ios-russian-localization.js && node ./scripts/test-widget-visual-design.js && node ./scripts/test-widget-snapshot-payload.js && node ./scripts/test-home-widget-stats.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -65,7 +66,8 @@
     "audit:diary-stroke-alignment:fail": "FAIL_ON_ERROR=1 .venv/bin/python3 ./scripts/audit-diary-stroke-alignment.py",
     "audit:diary-font-size-parity": "node ./scripts/audit-diary-font-size-parity.js",
     "audit:diary-font-size-parity:fail": "FAIL_ON_ERROR=1 node ./scripts/audit-diary-font-size-parity.js",
-    "audit:diary-all": "npm run audit:diary-brown-text-baseline:fail && npm run audit:diary-purple-text-baseline:fail && npm run audit:diary-field-semantic:fail && npm run audit:diary-stroke-alignment:fail && npm run audit:diary-font-size-parity:fail && ALBUM_ID=diary_interior_brown node ./scripts/verify-diary-field-slot-map.js && ALBUM_ID=diary_interior_purple node ./scripts/verify-diary-field-slot-map.js && node ./scripts/diary-full-page-audit.js && FAIL_ON_ERROR=1 node ./scripts/audit-diary-field-token-placement.js"
+    "audit:diary-all": "npm run audit:diary-brown-text-baseline:fail && npm run audit:diary-purple-text-baseline:fail && npm run audit:diary-field-semantic:fail && npm run audit:diary-stroke-alignment:fail && npm run audit:diary-font-size-parity:fail && ALBUM_ID=diary_interior_brown node ./scripts/verify-diary-field-slot-map.js && ALBUM_ID=diary_interior_purple node ./scripts/verify-diary-field-slot-map.js && node ./scripts/diary-full-page-audit.js && FAIL_ON_ERROR=1 node ./scripts/audit-diary-field-token-placement.js",
+    "test:auth": "node scripts/test-auth-connectivity.cjs"
   },
   "dependencies": {
     "@bittingz/expo-widgets": "^3.0.2",
@@ -85,6 +87,7 @@
     "expo-build-properties": "~1.0.10",
     "expo-clipboard": "^8.0.8",
     "expo-constants": "~18.0.10",
+    "expo-crypto": "~15.0.9",
     "expo-dev-client": "~6.0.21",
     "expo-document-picker": "~14.0.8",
     "expo-file-system": "^19.0.17",
@@ -96,6 +99,7 @@
     "expo-image-picker": "~17.0.11",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.12",
+    "expo-network": "~8.0.8",
     "expo-notifications": "~0.32.17",
     "expo-print": "~15.0.8",
     "expo-router": "~6.0.23",
@@ -129,6 +133,7 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.10.38",
     "pngjs": "^7.0.0",
+    "react-test-renderer": "19.1.0",
     "sharp": "^0.34.5",
     "typescript": "~5.9.2"
   },

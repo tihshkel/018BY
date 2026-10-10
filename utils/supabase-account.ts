@@ -37,7 +37,7 @@ async function requireSupabaseAuthUserId(
       };
     }
     return { ok: true };
-  } catch (e) {
+  } catch {
     return {
       ok: false,
       error:
@@ -126,7 +126,10 @@ export async function saveAccountToSupabase(
  * Профиль из `profiles` по id пользователя (UUID Auth).
  * Поле `accessCode` в ответе = тот же userId (совместимость со старым кодом).
  */
-export async function getAccountFromSupabase(userId: string): Promise<{
+export async function getAccountFromSupabase(
+  userId: string,
+  options?: { throwOnError?: boolean }
+): Promise<{
   accessCode: string;
   userName: string;
   avatarUrl?: string | null;
@@ -141,9 +144,13 @@ export async function getAccountFromSupabase(userId: string): Promise<{
       .from('profiles')
       .select('id, user_name, avatar_url, login_username, referral_source')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      if (options?.throwOnError) throw new Error(error.message);
+      return null;
+    }
+    if (!data) return null;
 
     return {
       accessCode: data.id,
@@ -154,6 +161,7 @@ export async function getAccountFromSupabase(userId: string): Promise<{
     };
   } catch (e) {
     console.warn('[Supabase] Ошибка загрузки profiles:', e);
+    if (options?.throwOnError) throw e;
     return null;
   }
 }

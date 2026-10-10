@@ -106,8 +106,8 @@ export default function ProfileScreen() {
   const opacity = useSharedValue(0);
   const isInitialMount = useRef(true);
   const {
-    isSubscribed,
-    isLoading: isSubscriptionLoading,
+    isUnlocked,
+    isLoading: isUnlockLoading,
     isIapEnabled,
     refresh,
   } = useExportSubscription();
@@ -281,7 +281,7 @@ export default function ProfileScreen() {
   };
 
   const navigateAfterSignOut = (target: 'login' | 'register') => {
-    router.replace(target === 'register' ? '/register' : '/login');
+    router.replace({ pathname: '/login', params: { mode: target } });
   };
 
   const completeSignOut = async (target: 'login' | 'register') => {
@@ -329,9 +329,11 @@ export default function ProfileScreen() {
   }));
 
   const avatarSource = resolveAvatarImageSource(avatarUri);
-  const subscriptionHint = isSubscribed
+  const subscriptionHint = !isIapEnabled
+    ? 'Экспорт для печати доступен бесплатно'
+    : isUnlocked
     ? 'PDF для печати доступен навсегда'
-    : 'Разблокируйте экспорт для печати';
+    : 'Разовая покупка — доступ к экспорту для печати';
 
   const renderMenuCard = (items: MenuItem[]) => (
     <AppCard style={styles.menuCard}>
@@ -411,8 +413,9 @@ export default function ProfileScreen() {
 
             <View testID="profile-subscription-badge">
               <ProfileSubscriptionStatusBadge
-                isPremium={isSubscribed}
-                isLoading={isIapEnabled && isSubscriptionLoading}
+                isPremium={isUnlocked}
+                isIapEnabled={isIapEnabled}
+                isLoading={isIapEnabled && isUnlockLoading}
                 onPress={handleOpenExportSubscription}
               />
             </View>

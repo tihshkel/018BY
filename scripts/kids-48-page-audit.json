@@ -3,8 +3,8 @@
     "albumId": "kids_48",
     "pageCount": 48,
     "pagesOk": 47,
-    "pagesWarn": 1,
-    "pagesFail": 0,
+    "pagesWarn": 0,
+    "pagesFail": 1,
     "needsCalibration": [
       1
     ]
@@ -35,10 +35,10 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.484525,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.38567319999999994,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.43158667619047614,
             "aspectRatio": [
               4,
               3
@@ -46,19 +46,19 @@
           }
         ],
         "worstCaseVariant": "two_horizontal",
-        "primaryGapMm": 1
+        "primaryGapMm": 0
       },
-      "photoDescription": "≈103×81 мм, горизонталь 4:3, 61–142 мм от верха (центр)",
+      "photoDescription": "≈112×91 мм, горизонталь 4:3, 56–147 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 37–197 мм",
-        "photoZone": "61–142 мм от верха",
-        "minGapToTextMm": 1,
+        "photoZone": "56–147 мм от верха",
+        "minGapToTextMm": 0,
         "overlapIssues": [
           {
-            "severity": "warn",
-            "code": "PHOTO_TEXT_GAP_SMALL",
-            "detail": "line slot 0 gap 1 mm < 4 mm"
+            "severity": "fail",
+            "code": "PHOTO_TEXT_OVERLAP",
+            "detail": "line slot 0 overlaps photo (y=0.236)"
           },
           {
             "severity": "warn",
@@ -67,7 +67,7 @@
           }
         ]
       },
-      "status": "warn"
+      "status": "fail"
     },
     {
       "page": 2,
@@ -128,25 +128,25 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.3801,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.29996399999999995,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.335674,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "two_vertical",
-        "primaryGapMm": 18
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 14
       },
-      "photoDescription": "≈103×63 мм, горизонталь 4:3, 48–111 мм от верха (центр)",
+      "photoDescription": "≈112×70 мм, горизонталь 4:3, 45–115 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 128–145 мм",
-        "photoZone": "48–111 мм от верха",
-        "minGapToTextMm": 18,
+        "photoZone": "45–115 мм от верха",
+        "minGapToTextMm": 14,
         "overlapIssues": []
       },
       "status": "ok"
@@ -176,25 +176,25 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.7177,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.29996399999999995,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.335674,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "two_vertical",
-        "primaryGapMm": 48
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 45
       },
-      "photoDescription": "≈103×63 мм, горизонталь 4:3, 119–182 мм от верха (низ)",
+      "photoDescription": "≈112×70 мм, горизонталь 4:3, 115–186 мм от верха (низ)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 66–72 мм",
-        "photoZone": "119–182 мм от верха",
-        "minGapToTextMm": 48,
+        "photoZone": "115–186 мм от верха",
+        "minGapToTextMm": 45,
         "overlapIssues": []
       },
       "status": "ok"
@@ -228,7 +228,7 @@
       "photoDescription": "—",
       "photoSummary": "—",
       "layout": {
-        "textZone": "верх 53–197 мм",
+        "textZone": "верх 59–205 мм",
         "photoZone": "нет фото",
         "minGapToTextMm": null,
         "overlapIssues": [
@@ -268,24 +268,24 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.4263,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.29996399999999995,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.335674,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "two_vertical",
+        "worstCaseVariant": "one_large",
         "primaryGapMm": null
       },
-      "photoDescription": "≈103×63 мм, горизонталь 4:3, 58–121 мм от верха (центр)",
+      "photoDescription": "≈112×70 мм, горизонталь 4:3, 54–125 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "58–121 мм от верха",
+        "photoZone": "54–125 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -318,24 +318,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -368,25 +368,25 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.581,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.29996399999999995,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.335674,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "two_vertical",
-        "primaryGapMm": 25
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 22
       },
-      "photoDescription": "≈103×63 мм, горизонталь 4:3, 91–154 мм от верха (центр)",
+      "photoDescription": "≈112×70 мм, горизонталь 4:3, 87–157 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 178–183 мм",
-        "photoZone": "91–154 мм от верха",
-        "minGapToTextMm": 25,
+        "photoZone": "87–157 мм от верха",
+        "minGapToTextMm": 22,
         "overlapIssues": []
       },
       "status": "ok"
@@ -418,25 +418,25 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.4989,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.29996399999999995,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.335674,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "two_vertical",
-        "primaryGapMm": 37
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 34
       },
-      "photoDescription": "≈103×63 мм, горизонталь 4:3, 73–136 мм от верха (центр)",
+      "photoDescription": "≈112×70 мм, горизонталь 4:3, 70–140 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–37 мм",
-        "photoZone": "73–136 мм от верха",
-        "minGapToTextMm": 37,
+        "photoZone": "70–140 мм от верха",
+        "minGapToTextMm": 34,
         "overlapIssues": []
       },
       "status": "ok"
@@ -502,7 +502,7 @@
       "photoDescription": "—",
       "photoSummary": "нет",
       "layout": {
-        "textZone": "верх 48–204 мм",
+        "textZone": "верх 49–202 мм",
         "photoZone": "нет фото",
         "minGapToTextMm": null,
         "overlapIssues": []
@@ -534,25 +534,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5542261904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5480599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.613305238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×115 мм, горизонталь 4:3, 59–174 мм от верха (центр)",
+      "photoDescription": "≈180×129 мм, горизонталь 4:3, 52–181 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "59–174 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–181 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -582,25 +582,25 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.253528,
+            "xNorm": 0.2321,
             "yNorm": 0.7322,
-            "widthNorm": 0.492844,
-            "heightNorm": 0.29996399999999995,
+            "widthNorm": 0.5357,
+            "heightNorm": 0.335674,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "two_vertical",
-        "primaryGapMm": 25
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 21
       },
-      "photoDescription": "≈103×63 мм, горизонталь 4:3, 122–185 мм от верха (низ)",
+      "photoDescription": "≈112×70 мм, горизонталь 4:3, 119–189 мм от верха (низ)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 30–99 мм",
-        "photoZone": "122–185 мм от верха",
-        "minGapToTextMm": 25,
+        "photoZone": "119–189 мм от верха",
+        "minGapToTextMm": 21,
         "overlapIssues": []
       },
       "status": "ok"
@@ -632,25 +632,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5542261904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5480599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.613305238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×115 мм, горизонталь 4:3, 59–174 мм от верха (центр)",
+      "photoDescription": "≈180×129 мм, горизонталь 4:3, 52–181 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "59–174 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–181 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -682,25 +682,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5542261904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5480599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.613305238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×115 мм, горизонталь 4:3, 59–174 мм от верха (центр)",
+      "photoDescription": "≈180×129 мм, горизонталь 4:3, 52–181 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "59–174 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–181 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -732,25 +732,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
-            "yNorm": 0.5593238095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5051359999999999,
+            "xNorm": 0.07142857142857142,
+            "yNorm": 0.5593238095238094,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5652712380952379,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 19
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 13
       },
-      "photoDescription": "≈174×106 мм, горизонталь 4:3, 64–170 мм от верха (центр)",
+      "photoDescription": "≈180×119 мм, горизонталь 4:3, 58–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 41–47 мм",
-        "photoZone": "64–170 мм от верха",
-        "minGapToTextMm": 19,
+        "photoZone": "58–177 мм от верха",
+        "minGapToTextMm": 13,
         "overlapIssues": []
       },
       "status": "ok"
@@ -782,25 +782,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5542261904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5480599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.613305238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×115 мм, горизонталь 4:3, 59–174 мм от верха (центр)",
+      "photoDescription": "≈180×129 мм, горизонталь 4:3, 52–181 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "59–174 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–181 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -832,25 +832,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5542261904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5480599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.613305238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×115 мм, горизонталь 4:3, 59–174 мм от верха (центр)",
+      "photoDescription": "≈180×129 мм, горизонталь 4:3, 52–181 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "59–174 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–181 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -882,25 +882,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5542261904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5480599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.613305238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×115 мм, горизонталь 4:3, 59–174 мм от верха (центр)",
+      "photoDescription": "≈180×129 мм, горизонталь 4:3, 52–181 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "59–174 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–181 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -932,25 +932,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5719238095238095,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.483968,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5415832380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 19
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 13
       },
-      "photoDescription": "≈174×102 мм, горизонталь 4:3, 69–171 мм от верха (центр)",
+      "photoDescription": "≈180×114 мм, горизонталь 4:3, 63–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 47–53 мм",
-        "photoZone": "69–171 мм от верха",
-        "minGapToTextMm": 19,
+        "photoZone": "63–177 мм от верха",
+        "minGapToTextMm": 13,
         "overlapIssues": []
       },
       "status": "ok"
@@ -980,24 +980,24 @@
         "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.148472,
+            "xNorm": 0.1179,
             "yNorm": 0.557,
-            "widthNorm": 0.703156,
-            "heightNorm": 0.42797999999999997,
+            "widthNorm": 0.7643,
+            "heightNorm": 0.4789299999999999,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "one_large",
         "primaryGapMm": null
       },
-      "photoDescription": "≈148×90 мм, горизонталь 4:3, 72–162 мм от верха (центр)",
+      "photoDescription": "≈161×101 мм, горизонталь 4:3, 67–167 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 101–109 мм",
-        "photoZone": "72–162 мм от верха",
+        "photoZone": "67–167 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1030,25 +1030,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1080,25 +1080,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1130,25 +1130,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1180,25 +1180,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1230,25 +1230,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1280,25 +1280,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1330,25 +1330,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1380,25 +1380,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1430,25 +1430,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1480,25 +1480,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1530,25 +1530,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5562738095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.5102599999999999,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.571005238095238,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 16
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 10
       },
-      "photoDescription": "≈174×107 мм, горизонталь 4:3, 63–170 мм от верха (центр)",
+      "photoDescription": "≈180×120 мм, горизонталь 4:3, 57–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 31–49 мм",
-        "photoZone": "63–170 мм от верха",
-        "minGapToTextMm": 16,
+        "photoZone": "57–177 мм от верха",
+        "minGapToTextMm": 10,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1580,25 +1580,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
-            "yNorm": 0.6004238095238096,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.436088,
+            "xNorm": 0.07142857142857142,
+            "yNorm": 0.6004238095238095,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.48800323809523805,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 15
+        "worstCaseVariant": "one_large",
+        "primaryGapMm": 9
       },
-      "photoDescription": "≈174×92 мм, горизонталь 4:3, 80–172 мм от верха (центр)",
+      "photoDescription": "≈180×102 мм, горизонталь 4:3, 75–177 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 50–68 мм",
-        "photoZone": "80–172 мм от верха",
-        "minGapToTextMm": 15,
+        "photoZone": "75–177 мм от верха",
+        "minGapToTextMm": 9,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1630,24 +1630,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1680,25 +1680,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1730,24 +1730,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1780,24 +1780,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1830,24 +1830,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1880,24 +1880,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1930,24 +1930,24 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.45696000000000003,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.51136,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
+        "worstCaseVariant": "two_horizontal",
         "primaryGapMm": null
       },
-      "photoDescription": "≈174×96 мм, горизонталь 4:3, 57–153 мм от верха (центр)",
+      "photoDescription": "≈180×107 мм, горизонталь 4:3, 51–159 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–153 мм от верха",
+        "photoZone": "51–159 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1980,25 +1980,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2030,25 +2030,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2080,25 +2080,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2130,25 +2130,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2180,25 +2180,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2230,25 +2230,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2280,25 +2280,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2330,25 +2330,25 @@
         "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.08599999999999997,
+            "xNorm": 0.07142857142857142,
             "yNorm": 0.5464761904761904,
-            "widthNorm": 0.8280000000000001,
-            "heightNorm": 0.53504,
+            "widthNorm": 0.8571428571428572,
+            "heightNorm": 0.5987352380952381,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 17
+        "worstCaseVariant": "two_horizontal",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈174×112 мм, горизонталь 4:3, 59–171 мм от верха (центр)",
+      "photoDescription": "≈180×126 мм, горизонталь 4:3, 52–178 мм от верха (центр)",
       "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 186–192 мм",
-        "photoZone": "59–171 мм от верха",
-        "minGapToTextMm": 17,
+        "photoZone": "52–178 мм от верха",
+        "minGapToTextMm": 11,
         "overlapIssues": []
       },
       "status": "ok"

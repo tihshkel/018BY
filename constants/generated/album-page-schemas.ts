@@ -21506,30 +21506,30 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 4,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p22_classmateFriends",
           "label": "С кем из одноклассников дружишь?",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 2
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p22_schoolEvents",
           "label": "Какие школьные мероприятия тебе нравятся?",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p22_recessActivity",
           "label": "Чем лучше всего ты занимаешься на перемене?",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -21538,7 +21538,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 3
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui';
-import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
+import { colors, radii, surfaces } from '@/constants/design-tokens';
 import { getReferralSourceLabel, type ReferralSource } from '@/utils/auth-session';
 
 const REFERRAL_OPTIONS: ReferralSource[] = ['physical_album', 'instagram', 'organic'];
@@ -24,7 +24,11 @@ export function AuthReferralPicker({ value, onChange }: AuthReferralPickerProps)
       <AppText variant="caption" style={styles.label}>
         Откуда узнали
       </AppText>
-      <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="Откуда вы о нас узнали">
+      <View
+        style={styles.chips}
+        accessibilityRole="radiogroup"
+        accessibilityLabel="Откуда вы о нас узнали"
+      >
         {REFERRAL_OPTIONS.map((option) => {
           const selected = option === value;
           return (
@@ -72,14 +76,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 40,
     paddingHorizontal: 8,
-    borderRadius: radii.xs,
+    borderRadius: radii.sm,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.white,
   },
   chipSelected: {
-    borderColor: colors.textPrimary,
-    backgroundColor: surfaces.muted,
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySurface,
   },
   chipPressed: {
     backgroundColor: surfaces.muted,

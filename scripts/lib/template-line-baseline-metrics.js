@@ -472,17 +472,17 @@ function getRnAscentRatioAt16(fontId, fontTable) {
   return null;
 }
 
-const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
+const PREGNANCY_AMATIC_VISUAL_SINK_RATIO = 0.08;
 
-function applyDiaryAmaticVisualSink(fontOffsetRatio) {
-  return Math.max(0.68, fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO);
+function applyPregnancyAmaticVisualSink(fontOffsetRatio) {
+  return Math.max(0.68, fontOffsetRatio - PREGNANCY_AMATIC_VISUAL_SINK_RATIO);
 }
 
 function resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId, fontTable) {
   const ascent = getRnAscentRatioAt16(fontId, fontTable);
   // pregnancy_60 «Постановка на учёт»: Amatic floats above printed underlines.
   if (lineGuideId === 'pregnancy_60' && slot?.page === 4 && ascent != null) {
-    return applyDiaryAmaticVisualSink(Math.min(ascent, 0.96));
+    return applyPregnancyAmaticVisualSink(Math.min(ascent, 0.96));
   }
   return ascent ?? getStrokeBaselineFontOffset(slot, lineGuideId);
 }
@@ -492,7 +492,7 @@ function usesPregnancyAlbumRnLineHeightAscent(slot, lineGuideId, allSlots) {
   if ((slot.inputKind ?? 'line') !== 'line') return false;
   if (isPregnancyRuledNotebookPage(lineGuideId, slot.page)) return false;
   if (shouldClipPregnancyWeeklyFieldRow(slot, lineGuideId, allSlots)) return false;
-  // p4 preview uses diary Amatic sink — PDF ascent must match that offset.
+  // p4 preview uses pregnancy Amatic sink — PDF ascent must match that offset.
   if (lineGuideId === 'pregnancy_60' && slot.page === 4) return false;
   return true;
 }

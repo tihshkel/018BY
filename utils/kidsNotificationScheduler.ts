@@ -3,17 +3,9 @@
  * Расчёт дат на основе дня рождения и планирование push-уведомлений
  */
 
-import { getAccountSyncId } from '@/utils/account-identity';
-import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
-import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
-import {
-    SchedulableTriggerInputTypes,
-    type DailyTriggerInput,
-    type DateTriggerInput,
-} from 'expo-notifications';
+import { addCalendarMonths } from '@/utils/localNotificationSchedule';
 import { KIDS_NOTIFICATIONS } from './kidsNotificationsData';
 
 // Проверяем, находимся ли мы в Expo Go
@@ -42,88 +34,6 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
         return null;
     }
 };
-
-const KIDS_DAILY_REMINDER_HOUR = 9;
-const KIDS_DAILY_REMINDER_MINUTE = 30;
-
-async function scheduleDailyNotification(
-    title: string,
-    body: string,
-    hour: number,
-    minute: number,
-    identifier: string
-): Promise<string | null> {
-    const Notifications = getNotifications();
-    if (!Notifications) return null;
-
-    try {
-        const trigger: DailyTriggerInput = {
-            type: SchedulableTriggerInputTypes.DAILY,
-            hour,
-            minute,
-        };
-
-        const notificationId = await Notifications.scheduleNotificationAsync({
-            content: {
-                title,
-                body,
-                sound: true,
-                data: OPEN_NOTIFICATIONS_INBOX_DATA,
-            },
-            trigger,
-            identifier,
-        });
-
-        console.log(`[KidsNotifications] Scheduled daily: ${title} at ${hour}:${String(minute).padStart(2, '0')}`);
-        return notificationId;
-    } catch (error) {
-        console.error(`[KidsNotifications] Failed to schedule daily: ${title}`, error);
-        return null;
-    }
-}
-
-/**
- * Запланировать одно уведомление
- */
-async function scheduleNotification(
-    title: string,
-    body: string,
-    triggerDate: Date,
-    identifier?: string
-): Promise<string | null> {
-    const Notifications = getNotifications();
-    if (!Notifications) return null;
-
-    const now = new Date();
-    if (triggerDate <= now) {
-        console.log(`[KidsNotifications] Skipping past notification: ${title}`);
-        return null;
-    }
-
-    try {
-        const trigger: DateTriggerInput = {
-            type: SchedulableTriggerInputTypes.DATE,
-            date: triggerDate,
-        };
-
-        const notificationId = await Notifications.scheduleNotificationAsync({
-            content: {
-                title,
-                body,
-                sound: true,
-                data: OPEN_NOTIFICATIONS_INBOX_DATA,
-            },
-            trigger,
-            identifier,
-        });
-
-        console.log(`[KidsNotifications] Scheduled: ${title} at ${triggerDate.toLocaleString()}`);
-        return notificationId;
-    } catch (error) {
-        console.error(`[KidsNotifications] Failed to schedule: ${title}`, error);
-        return null;
-    }
-}
 
 /**
  * Отменить все уведомления детей
@@ -211,28 +121,28 @@ function getFirstSeasonDate(birthDate: Date, seasonMonth: number): Date {
     return seasonDate;
 }
 
-type KidsNotificationCandidate = {
+export type KidsNotificationCandidate = {
     title: string;
     body: string;
     date: Date;
     identifier: string;
 };
 
-function buildKidsNotificationCandidates(birthDate: Date, now: Date): KidsNotificationCandidate[] {
+export function buildKidsNotificationCandidates(birthDate: Date, now: Date): KidsNotificationCandidate[] {
     const baseDate = new Date(birthDate);
     baseDate.setHours(0, 0, 0, 0);
 
     const candidates: KidsNotificationCandidate[] = [];
 
     for (const item of KIDS_NOTIFICATIONS) {
-        const notificationDate = new Date(baseDate);
+        let notificationDate = new Date(baseDate);
 
         if (item.triggerType === 'days') {
             notificationDate.setDate(baseDate.getDate() + item.triggerValue);
         } else if (item.triggerType === 'months') {
-            notificationDate.setMonth(baseDate.getMonth() + item.triggerValue);
+            notificationDate = addCalendarMonths(baseDate, item.triggerValue);
         } else if (item.triggerType === 'years') {
-            notificationDate.setFullYear(baseDate.getFullYear() + item.triggerValue);
+            notificationDate = addCalendarMonths(baseDate, item.triggerValue * 12);
         }
 
         if (item.id === 'first_new_year') {
@@ -267,131 +177,16 @@ function buildKidsNotificationCandidates(birthDate: Date, now: Date): KidsNotifi
     return candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
-/**
- * Главная функция: запланировать все уведомления для детей
- */
+/** Подключение совместимо с прежними вызовами; бюджет всех альбомов считается вместе. */
 export async function scheduleKidsNotifications(
     birthDate: Date,
     projectId: string,
     options?: { skipCloudSync?: boolean; maxNotifications?: number }
 ): Promise<void> {
-    // Всегда сохраняем дату рождения в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
-    await saveKidsInfo(birthDate, projectId);
-
-    const Notifications = getNotifications();
-    if (!Notifications) {
-        console.log('[KidsNotifications] Notifications not available, saving birth date and reminders only');
-        await saveNotificationsAsReminders(birthDate, options?.skipCloudSync);
-        return;
-    }
-
-    try {
-        // Запрашиваем разрешения
-        // Проверяем текущие разрешения
-        let permissions = await Notifications.getPermissionsAsync();
-        let hasPermission = permissions.granted;
-        
-        // Для iOS также проверяем provisional статус
-        if (Platform.OS === 'ios' && !hasPermission) {
-            hasPermission = permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
-        }
-        
-        // Если разрешений нет, запрашиваем
-        if (!hasPermission) {
-            const requestResult = await Notifications.requestPermissionsAsync();
-            hasPermission = requestResult.status === 'granted';
-            
-            // Для iOS также проверяем provisional после запроса
-            if (Platform.OS === 'ios' && !hasPermission) {
-                hasPermission = requestResult.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
-            }
-        }
-        
-        if (!hasPermission) {
-            console.log('[KidsNotifications] Permission not granted. Birth date and reminders saved.');
-            await saveNotificationsAsReminders(birthDate, options?.skipCloudSync);
-            return;
-        }
-        
-        console.log('[KidsNotifications] Permission granted, proceeding with scheduling');
-
-        // Отменяем старые уведомления
-        await cancelAllKidsNotifications();
-
-        const now = new Date();
-        const maxNotifications = options?.maxNotifications ?? 56;
-
-        await scheduleDailyNotification(
-            'Доброе утро! 🌼',
-            'Загляните в альбом малыша — сохраните маленький момент сегодняшнего дня.',
-            KIDS_DAILY_REMINDER_HOUR,
-            KIDS_DAILY_REMINDER_MINUTE,
-            'kids_daily_morning'
-        );
-
-        const candidates = buildKidsNotificationCandidates(birthDate, now).slice(0, maxNotifications - 1);
-
-        console.log(
-            `[KidsNotifications] Scheduling ${candidates.length}/${maxNotifications} nearest notifications for Birth Date: ${birthDate.toLocaleDateString()}`
-        );
-
-        for (const candidate of candidates) {
-            await scheduleNotification(
-                candidate.title,
-                candidate.body,
-                candidate.date,
-                candidate.identifier
-            );
-        }
-
-        // Сохраняем все уведомления как напоминания в AsyncStorage для отображения в списке
-        await saveNotificationsAsReminders(birthDate, options?.skipCloudSync);
-
-        console.log('[KidsNotifications] All notifications scheduled successfully');
-    } catch (error) {
-        console.error('[KidsNotifications] Failed to schedule notifications:', error);
-    }
+    const { setupAlbumNotificationsForCelebration } = await import('@/utils/albumNotificationCoordinator');
+    await setupAlbumNotificationsForCelebration(birthDate, 'kids', projectId);
 }
 
-/**
- * Сохранить уведомления как напоминания для отображения в списке
- */
-async function saveNotificationsAsReminders(birthDate: Date, skipCloudSync?: boolean): Promise<void> {
-    try {
-        const syncId = await getAccountSyncId();
-        const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
-        const existingReminders = await AsyncStorage.getItem(remindersKey);
-        let allReminders: any[] = [];
-        try {
-            allReminders = existingReminders ? JSON.parse(existingReminders) : [];
-            if (!Array.isArray(allReminders)) allReminders = [];
-        } catch {
-            allReminders = [];
-        }
-
-        allReminders = allReminders.filter(
-            (r: any) => r?.categoryId !== 'kids' && !String(r?.id || '').startsWith('kids_')
-        );
-
-        const reminders = [
-            { id: `kids_birth_${Date.now()}`, title: 'День рождения ребёнка', date: birthDate.toISOString(), enabled: true },
-            { id: `kids_monthly_${Date.now()}`, title: 'Ежемесячные уведомления', date: new Date().toISOString(), enabled: true },
-        ];
-
-        allReminders.push(...reminders);
-        await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
-        if (!skipCloudSync) {
-            await pushCoreOnlyToCloud();
-        }
-        console.log('[KidsNotifications] Saved reminders to list and cloud');
-    } catch (error) {
-        console.error('[KidsNotifications] Failed to save reminders:', error);
-    }
-}
-
-/**
- * Перепланировать уведомления (вызывать при открытии приложения)
- */
 export async function refreshKidsNotifications(): Promise<void> {
     const { refreshAllAlbumNotifications } = await import('@/utils/albumNotificationCoordinator');
     await refreshAllAlbumNotifications({ skipCloudSync: true });

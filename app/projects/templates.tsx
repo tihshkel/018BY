@@ -451,6 +451,7 @@ export default function ProjectTemplatesScreen() {
 
   // Save reminder to AsyncStorage
   const scheduleReminder = async (eventDate: Date, catId: string) => {
+    if (catId === 'kids' || catId === 'pregnancy') return;
     try {
       const categoryInfo = getCategoryInfo(catId);
 

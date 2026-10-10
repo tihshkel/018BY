@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SubscriptionPaywallModal } from '@/components/subscription-paywall-modal';
 import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { AppButton, AppCard, AppHeader, AppScreen, AppText } from '@/components/ui';
-import { requiresPrintSubscription } from '@/constants/subscription';
+import { requiresPrintUnlock } from '@/constants/subscription';
 import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { useAlbumProject } from '@/hooks/use-album-project';
@@ -76,9 +77,11 @@ export default function ExportReviewScreen() {
   const layout = useResponsiveLayout(640);
   const shellStyle =
     getTabletContentShell(layout) ?? getTabletSectionWrap(layout, spacing.md);
-  const { isSubscribed, isIapEnabled, priceLabel } = useExportSubscription();
+  const { isUnlocked, isIapEnabled, priceLabel } = useExportSubscription();
 
   const [selectedFormat, setSelectedFormat] = useState<ExportFormatType>('electronic');
+  const [paywallVisible, setPaywallVisible] = useState(false);
+  const pendingFormatRef = useRef<ExportFormatType | null>(null);
 
   const project = useAlbumProject({
     projectId: id,
@@ -111,11 +114,16 @@ export default function ExportReviewScreen() {
 
   const isPrintLocked =
     isIapEnabled &&
-    requiresPrintSubscription(selectedFormat) &&
-    !isSubscribed;
+    requiresPrintUnlock(selectedFormat) &&
+    !isUnlocked;
 
   const handleDownload = async () => {
     if (!project.projectId || !selectedFormatOption) return;
+    if (isPrintLocked) {
+      pendingFormatRef.current = selectedFormat;
+      setPaywallVisible(true);
+      return;
+    }
 
     await AsyncStorage.setItem(
       getExportSelectionStorageKey(project.projectId),
@@ -192,15 +200,20 @@ export default function ExportReviewScreen() {
             <View style={styles.formatList}>
               {formatOptions.map((option) => {
                 const selected = option.type === selectedFormat;
-                const isPremium = requiresPrintSubscription(option.type);
-                const locked = isIapEnabled && isPremium && !isSubscribed;
+                const isPremium = requiresPrintUnlock(option.type);
+                const locked = isIapEnabled && isPremium && !isUnlocked;
 
                 return (
                   <AppCard
                     key={option.id}
                     testID={`export-format-${option.type}`}
                     selected={selected}
-                    onPress={() => setSelectedFormat(option.type)}
+                    onPress={() => {
+                      if (locked) {
+                        pendingFormatRef.current = option.type;
+                        setPaywallVisible(true);
+                      } else setSelectedFormat(option.type);
+                    }}
                     style={styles.formatCard}
                   >
                     <View style={styles.formatRow}>
@@ -221,7 +234,7 @@ export default function ExportReviewScreen() {
                                 color={colors.primary}
                               />
                               <AppText variant="caption" style={styles.premiumBadgeText}>
-                                {locked && priceLabel ? priceLabel : 'Премиум'}
+                                {locked ? (priceLabel ?? 'Разовая покупка') : 'Доступно'}
                               </AppText>
                             </View>
                           ) : null}
@@ -344,7 +357,7 @@ export default function ExportReviewScreen() {
           <View style={[styles.footerInner, shellStyle]}>
             {isPrintLocked ? (
               <AppText variant="caption" style={styles.paywallHint}>
-                Для печати потребуется разовая покупка на следующем шаге
+                Для печати требуется разовая покупка
                 {priceLabel ? ` (${priceLabel})` : ''}.
               </AppText>
             ) : null}
@@ -357,6 +370,16 @@ export default function ExportReviewScreen() {
           </View>
         </View>
       </AppScreen>
+      <SubscriptionPaywallModal
+        visible={paywallVisible}
+        onClose={() => {
+          pendingFormatRef.current = null;
+          setPaywallVisible(false);
+        }}
+        onSubscribed={() => {
+          if (pendingFormatRef.current) setSelectedFormat(pendingFormatRef.current);
+        }}
+      />
     </View>
   );
 }

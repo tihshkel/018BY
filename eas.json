@@ -16,16 +16,25 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "859323039358-l1ua1j8aph9rt5jqapin536qgltaqovg.apps.googleusercontent.com"
       },
       "ios": {
+        "scheme": "018BY",
         "simulator": true
       },
       "android": {
         "buildType": "apk"
       }
     },
+    "development-device": {
+      "extends": "development",
+      "ios": {
+        "scheme": "018BY",
+        "simulator": false
+      }
+    },
     "preview": {
       "channel": "preview",
       "distribution": "internal",
       "ios": {
+        "scheme": "018BY",
         "simulator": false,
         "buildConfiguration": "Release"
       },
@@ -45,6 +54,7 @@
       "channel": "production",
       "autoIncrement": true,
       "ios": {
+        "scheme": "018BY",
         "simulator": false,
         "buildConfiguration": "Release"
       },

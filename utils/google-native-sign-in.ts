@@ -1,4 +1,8 @@
-import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
@@ -22,7 +26,8 @@ function ensureConfigured(): void {
 export function canUseNativeGoogleSignIn(): boolean {
   if (Platform.OS === 'web') return false;
   if (isExpoGo) return false;
-  return isGoogleNativeSignInConfigured();
+  const { iosClientId } = readGoogleAuthConfig();
+  return isGoogleNativeSignInConfigured() && (Platform.OS !== 'ios' || !!iosClientId);
 }
 
 export async function signInWithGoogleNative(): Promise<{ success: boolean; error?: string }> {

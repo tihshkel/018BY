@@ -1,6 +1,9 @@
 import {
+  BIRTHDAY_AMATIC_VISUAL_SINK_RATIO,
   DIARY_AMATIC_VISUAL_SINK_RATIO,
   DIARY_LINE_FONT_OFFSET,
+  GENERIC_STROKE_BASELINE_FONT_OFFSET,
+  PREGNANCY_AMATIC_VISUAL_SINK_RATIO,
   getTemplateTypographyProfile,
   isKidsMonthPage,
   KIDS_MONTH_LINE_FONT_OFFSET,
@@ -766,7 +769,7 @@ function resolveStrokeBaselinePreviewFontOffset(
   const ascent = getRnAscentRatioAt16(fontId);
   // pregnancy_60 «Постановка на учёт»: Amatic floats above printed underlines.
   if (lineGuideId === 'pregnancy_60' && slot.page === 4 && ascent != null) {
-    return applyDiaryAmaticVisualSink(Math.min(ascent, 0.96));
+    return applyPregnancyAmaticVisualSink(Math.min(ascent, 0.96));
   }
   return ascent ?? getStrokeBaselineFontOffset(slot, lineGuideId);
 }
@@ -824,9 +827,12 @@ function getStrokeBaselineFontOffset(
     return applyDiaryAmaticVisualSink(DIARY_LINE_FONT_OFFSET);
   }
   if (lineGuideId === 'holidays_birthday_60') {
-    return applyDiaryAmaticVisualSink(0.98);
+    return applyBirthdayAmaticVisualSink(0.98);
   }
-  return KIDS_MONTH_LINE_FONT_OFFSET;
+  if (lineGuideId === 'kids_48') {
+    return KIDS_MONTH_LINE_FONT_OFFSET;
+  }
+  return GENERIC_STROKE_BASELINE_FONT_OFFSET;
 }
 
 /** Baseline прямо на штрихе линии — kids_48, pregnancy A5 p44, дневники. */
@@ -1058,6 +1064,14 @@ function resolveDiaryBrownBlockRatios(
 
 function applyDiaryAmaticVisualSink(fontOffsetRatio: number): number {
   return Math.max(0.68, fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO);
+}
+
+function applyPregnancyAmaticVisualSink(fontOffsetRatio: number): number {
+  return Math.max(0.68, fontOffsetRatio - PREGNANCY_AMATIC_VISUAL_SINK_RATIO);
+}
+
+function applyBirthdayAmaticVisualSink(fontOffsetRatio: number): number {
+  return Math.max(0.68, fontOffsetRatio - BIRTHDAY_AMATIC_VISUAL_SINK_RATIO);
 }
 
 function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number | null {

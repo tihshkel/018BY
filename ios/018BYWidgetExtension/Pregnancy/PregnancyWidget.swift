@@ -9,144 +9,125 @@ struct PregnancyEntryView: View {
     var body: some View {
         Group {
             if let item = entry.snapshot.pregnancy {
-                content(item)
+                content(item).widgetURL(WidgetDeepLinks.pregnancyProject(item))
             } else {
-                WidgetEmptyState(
-                    title: "До ПДР",
-                    subtitle: "Укажите дату — здесь появится обратный отсчёт дней"
-                )
-                .widgetURL(WidgetDeepLinks.setPdr)
+                WidgetEmptyState(title: "В ожидании встречи", subtitle: "Укажите ПДР — здесь появятся срок и подсказки для дневника.", action: "Указать дату", icon: "heart")
+                    .widgetURL(WidgetDeepLinks.setPdr)
             }
         }
     }
 
-    @ViewBuilder
-    private func content(_ item: WidgetPregnancyItem) -> some View {
+    @ViewBuilder private func content(_ item: WidgetPregnancyItem) -> some View {
         switch family {
-        case .systemSmall:
-            smallView(item)
-        case .systemMedium:
-            mediumView(item)
-        case .systemLarge:
-            largeView(item)
         case .accessoryCircular:
             ZStack {
                 AccessoryWidgetBackground()
                 VStack(spacing: 0) {
-                    Text("\(max(item.daysLeft, 0))")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                    Text("ПДР")
-                        .font(.system(size: 8, weight: .medium))
+                    Text("\(item.week)").font(.system(size: 20, weight: .semibold))
+                    Text("неделя").font(.system(size: 8))
                 }
             }
-            .widgetURL(WidgetDeepLinks.pregnancyProject(item))
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
-                Text(WidgetFormatters.daysUntilPdrLabel(item.daysLeft))
-                    .font(.system(size: 12, weight: .semibold))
-                Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                    .font(.system(size: 11))
+                Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek)).font(.system(size: 12, weight: .semibold))
+                Text(dueLabel(item)).font(.system(size: 11)).lineLimit(1)
+                Text("Сохранить момент ожидания").font(.system(size: 10)).lineLimit(1)
             }
-            .widgetURL(WidgetDeepLinks.pregnancyProject(item))
-        default:
-            smallView(item)
+        case .systemMedium: medium(item)
+        case .systemLarge: large(item)
+        default: small(item)
         }
     }
 
-    private func smallView(_ item: WidgetPregnancyItem) -> some View {
+    private func dueLabel(_ item: WidgetPregnancyItem) -> String {
+        if item.daysLeft == 0 { return "ПДР сегодня" }
+        if item.daysLeft < 0 { return "ПДР · \(WidgetFormatters.shortDate(item.pdrISO))" }
+        return "До ПДР · \(WidgetFormatters.daysUntilPdrLabel(item.daysLeft))"
+    }
+
+    private func week(_ item: WidgetPregnancyItem, size: CGFloat = 40) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            WidgetHeroNumber(text: "\(item.week)", size: size)
+            Text("неделя").font(.system(size: 13, weight: .medium)).foregroundStyle(palette.textPrimary)
+        }
+    }
+
+    private func small(_ item: WidgetPregnancyItem) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            WidgetHeader(title: "В ожидании тебя", icon: "moon.stars")
+            Spacer(minLength: 0)
+            HStack {
+                week(item, size: 32)
+                Spacer(minLength: 0)
+                WidgetKeepsakeStamp(symbol: "moon.stars", category: "pregnancy", size: 28)
+            }
+            Text("\(item.dayInWeek)-й день · \(item.trimester)-й триместр").font(.system(size: 10)).foregroundStyle(palette.textSecondary).lineLimit(1)
+            WidgetAccentPill(text: dueLabel(item))
+            Spacer(minLength: 0)
+            WidgetCallToAction(title: "Открыть дневник")
+        }.widgetCardBackground()
+    }
+
+    private func medium(_ item: WidgetPregnancyItem) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            WidgetMetricLabel(text: "До ПДР")
-            WidgetHeroNumber(text: "\(max(item.daysLeft, 0))", size: 40)
-            Text("дней")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(palette.textPrimary)
-            Spacer(minLength: 0)
-            Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(palette.textSecondary)
-        }
-        .widgetCardBackground()
-        .widgetURL(WidgetDeepLinks.pregnancyProject(item))
-    }
-
-    private func mediumView(_ item: WidgetPregnancyItem) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 6) {
-                WidgetMetricLabel(text: "До ПДР")
-                WidgetHeroNumber(text: "\(max(item.daysLeft, 0))", size: 40)
-                Text(WidgetFormatters.daysUntilPdrLabel(item.daysLeft).replacingOccurrences(of: "\(max(item.daysLeft, 0)) ", with: ""))
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(palette.textPrimary)
-            }
-            Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 8) {
-                Text("\(item.trimester)-й триместр")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(palette.textSecondary)
-                Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(palette.textPrimary)
-                    .multilineTextAlignment(.trailing)
-                Text(WidgetFormatters.shortDate(item.pdrISO))
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundStyle(palette.textSecondary)
-                ProgressView(value: Double(min(max(item.week, 0), 42)), total: 42)
-                    .tint(WidgetColors.primary)
-                    .frame(width: 120)
-            }
-        }
-        .widgetCardBackground()
-        .widgetURL(WidgetDeepLinks.pregnancyProject(item))
-    }
-
-    private func largeView(_ item: WidgetPregnancyItem) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            WidgetMetricLabel(text: "До предварительной даты родов")
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                WidgetHeroNumber(text: "\(max(item.daysLeft, 0))", size: 52)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("дней")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(palette.textPrimary)
-                    Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundStyle(palette.textSecondary)
-                    Text("\(item.trimester)-й триместр · \(WidgetFormatters.shortDate(item.pdrISO))")
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(palette.textSecondary)
+            WidgetHeader(title: "В ожидании тебя", icon: "moon.stars")
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 2) {
+                    week(item, size: 34)
+                    Text("\(item.dayInWeek)-й день · \(item.trimester)-й триместр").font(.system(size: 11)).foregroundStyle(palette.textSecondary)
+                }
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 5) {
+                    WidgetAccentPill(text: dueLabel(item))
+                    Text(WidgetFormatters.shortDate(item.pdrISO)).font(.system(size: 11)).foregroundStyle(palette.textSecondary)
                 }
             }
-            ProgressView(value: Double(min(max(item.week, 0), 42)), total: 42)
-                .tint(WidgetColors.primary)
-            if let insight = item.weeklyInsight, !insight.isEmpty {
-                Text(WidgetFormatters.trimText(insight, maxLength: 160))
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(palette.textSecondary)
-                    .lineLimit(3)
+            WidgetTrimesterTrail(current: item.trimester)
+            Spacer(minLength: 0)
+            WidgetCallToAction(title: "Сохранить момент ожидания")
+        }.widgetCardBackground()
+    }
+
+    private func large(_ item: WidgetPregnancyItem) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            WidgetHeader(title: "В ожидании тебя", icon: "moon.stars")
+            HStack(spacing: 16) {
+                WidgetKeepsakeStamp(symbol: "moon.stars", category: "pregnancy", size: 56)
+                VStack(alignment: .leading, spacing: 3) {
+                    week(item, size: 44)
+                    Text("\(item.dayInWeek)-й день · \(item.trimester)-й триместр").font(.system(size: 12)).foregroundStyle(palette.textSecondary)
+                }
+                Spacer(minLength: 0)
             }
-        }
-        .widgetCardBackground()
-        .widgetURL(WidgetDeepLinks.pregnancyProject(item))
+            HStack {
+                Text(dueLabel(item)).font(.system(size: 12, weight: .medium)).foregroundStyle(palette.accentText)
+                Spacer(minLength: 4)
+                Text(WidgetFormatters.shortDate(item.pdrISO)).font(.system(size: 11)).foregroundStyle(palette.textSecondary)
+            }
+            WidgetTrimesterTrail(current: item.trimester)
+            VStack(alignment: .leading, spacing: 7) {
+                WidgetMetricLabel(text: "Строчка в дневник")
+                Text(WidgetMemoryPrompts.text(for: entry.date, category: "pregnancy"))
+                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(palette.textPrimary).lineLimit(2)
+                Text("Маленькая запись о большом ожидании.")
+                    .font(.system(size: 12)).foregroundStyle(palette.textSecondary).lineLimit(1)
+            }.frame(maxWidth: .infinity, alignment: .leading).widgetSectionCard()
+            Spacer(minLength: 0)
+            WidgetCallToAction(title: "Открыть «\(item.projectTitle)»", filled: true)
+        }.widgetCardBackground()
     }
 }
 
 struct PregnancyWidget: Widget {
     let kind = "PregnancyWidget"
-
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: WidgetSnapshotProvider()) { entry in
-            PregnancyEntryView(entry: entry)
-                .widgetHomeScreenContainer()
+            PregnancyEntryView(entry: entry).widgetHomeScreenContainer()
         }
-        .configurationDisplayName("До ПДР")
-        .description("Обратный отсчёт дней до предварительной даты родов.")
-        .supportedFamilies([
-            .systemSmall,
-            .systemMedium,
-            .systemLarge,
-            .accessoryCircular,
-            .accessoryRectangular,
-        ])
+        .configurationDisplayName("В ожидании тебя")
+        .description("Неделя беременности, дни до ПДР и повод сохранить момент в дневнике.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular])
+        .contentMarginsDisabled()
         .containerBackgroundRemovable(true)
     }
 }
