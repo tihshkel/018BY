@@ -10,8 +10,10 @@ export type ExportSubscriptionContextValue = {
   /** @deprecated Compatibility alias for isUnlocked; this is a one-time purchase. */
   isSubscribed: boolean;
   isLoading: boolean;
+  loadingAction?: 'refresh' | 'purchase' | 'restore' | null;
   isIapEnabled: boolean;
   priceLabel: string | null;
+  purchaseEnvironment?: 'Production' | 'Sandbox' | 'Xcode' | null;
   storeError: string | null;
   purchaseBlocked?: boolean;
   purchaseBlockReason?: 'legacy-purchase' | 'other-account' | 'sign-in-required';

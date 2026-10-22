@@ -9,7 +9,7 @@ import { AppButton, AppScreen, AppText } from '@/components/ui';
 import { AuthErrorBanner } from '@/components/auth/auth-error-banner';
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 import { colors } from '@/constants/design-tokens';
-import { APPLE_PURCHASE_HISTORY_URL } from '@/constants/subscription';
+import { APPLE_PURCHASE_HISTORY_URL, PURCHASE_SUPPORT_URL } from '@/constants/subscription';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -39,15 +39,18 @@ export default function ExportSubscriptionScreen() {
   const {
     isUnlocked,
     isLoading,
+    loadingAction,
     isIapEnabled,
     priceLabel,
+    purchaseEnvironment,
     storeError,
     purchaseBlocked,
+    purchaseBlockReason,
     purchase,
     restore,
     refresh,
   } = useExportSubscription();
-  const [action, setAction] = useState<'purchase' | 'restore' | null>(null);
+  const [action, setAction] = useState<'purchase' | 'restore' | 'support' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const lock = useRef(false);
   useFocusEffect(
@@ -56,20 +59,29 @@ export default function ExportSubscriptionScreen() {
     }, [isIapEnabled, refresh]),
   );
   const busy = isLoading || action !== null;
+  const checking = isLoading && (!loadingAction || loadingAction === 'refresh');
+  const restoring = action === 'restore' || loadingAction === 'restore';
+  const purchasing = action === 'purchase' || loadingAction === 'purchase';
+  const legacy = purchaseBlockReason === 'legacy-purchase';
+  const otherAccount = purchaseBlockReason === 'other-account';
+  const needsLogin = purchaseBlockReason === 'sign-in-required';
+  const ownershipIssue = legacy || otherAccount;
+  const testPurchase = purchaseEnvironment === 'Sandbox' || purchaseEnvironment === 'Xcode';
   const available = isUnlocked || !isIapEnabled;
-  const runAction = async (kind: 'purchase' | 'restore') => {
+  const runAction = async (kind: 'purchase' | 'restore' | 'support') => {
     if (lock.current || isLoading) return;
     lock.current = true;
     setAction(kind);
     setActionError(null);
     try {
-      if (kind === 'restore') await restore();
+      if (kind === 'support') await Linking.openURL(PURCHASE_SUPPORT_URL);
+      else if (kind === 'restore') await restore();
       else if (await purchase()) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         Alert.alert('Всё готово', 'Экспорт для печати теперь доступен для ваших альбомов.');
       }
     } catch {
-      setActionError('Не удалось связаться с магазином. Попробуйте ещё раз.');
+      setActionError(kind === 'support' ? 'Не удалось открыть поддержку. Попробуйте ещё раз.' : 'Не удалось связаться с магазином. Попробуйте ещё раз.');
     } finally {
       lock.current = false;
       setAction(null);
@@ -105,24 +117,32 @@ export default function ExportSubscriptionScreen() {
               contentFit="contain"
             />
           </View>
-          <ProfileSubscriptionStatusBadge
-            isPremium={available}
-            isIapEnabled={isIapEnabled}
-            isLoading={isLoading}
-          />
+          {ownershipIssue && !checking ? (
+            <AppText style={styles.accessDescription}>{testPurchase ? 'Найдена тестовая покупка' : 'Покупка найдена в App Store'}</AppText>
+          ) : (
+            <ProfileSubscriptionStatusBadge
+              isPremium={available}
+              isIapEnabled={isIapEnabled}
+              isLoading={checking}
+            />
+          )}
           <AppText accessibilityRole="header" style={styles.title}>
-            {isLoading
+            {checking
               ? 'Ваши воспоминания\nближе, чем кажется'
               : available
                 ? 'Истории, которые\nможно обнять'
                 : 'Из любимых моментов —\nв настоящий альбом'}
           </AppText>
           <AppText style={styles.subtitle}>
-            {isLoading
-              ? 'Проверяем доступ к экспорту для печати…'
-              : available
-                ? 'Экспорт для печати открыт. Превратите ваши воспоминания в альбом, который всегда рядом.'
-                : 'Оформляйте страницы в приложении и сохраняйте готовый PDF для печати.'}
+            {restoring
+              ? 'Восстанавливаем доступ через App Store…'
+              : purchasing
+                ? 'Ожидаем подтверждение покупки от Apple…'
+                : checking
+                  ? 'Проверяем доступ к экспорту для печати…'
+                  : available
+                    ? 'Экспорт для печати открыт. Превратите ваши воспоминания в альбом, который всегда рядом.'
+                    : 'Оформляйте страницы в приложении и сохраняйте готовый PDF для печати.'}
           </AppText>
         </View>
         <View style={styles.details}>
@@ -152,11 +172,15 @@ export default function ExportSubscriptionScreen() {
               <AppText style={styles.accessTitle}>
                 {!isIapEnabled
                   ? 'Доступно бесплатно'
-                  : isLoading
+                  : checking
                     ? 'Проверяем покупку'
-                    : isUnlocked
-                      ? 'Ваш доступ активен'
-                      : 'Одна покупка. Навсегда.'}
+                    : legacy
+                      ? 'Подтвердите вашу покупку'
+                      : otherAccount
+                        ? 'Покупка уже есть'
+                        : isUnlocked
+                          ? 'Ваш доступ активен'
+                          : 'Одна покупка. Навсегда.'}
               </AppText>
               <AppText style={styles.accessDescription}>
                 {isIapEnabled
@@ -164,23 +188,34 @@ export default function ExportSubscriptionScreen() {
                   : 'PDF для твёрдой и мягкой обложки'}
               </AppText>
             </View>
-            {isLoading ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : available ? (
+            {available ? (
               <Ionicons name="checkmark-circle" size={28} color="#668576" />
             ) : null}
           </View>
-          {isIapEnabled && !isUnlocked && !isLoading ? (
+          {isIapEnabled && !isUnlocked && !checking && !purchaseBlocked ? (
             <AppText style={styles.price}>{priceLabel ?? 'Цена пока недоступна'}</AppText>
           ) : null}
-          {storeError || actionError ? (
+          {ownershipIssue && storeError && !actionError ? (
+            <AppText accessibilityRole="alert" style={styles.accessDescription}>
+              {testPurchase
+                ? `Это тестовая транзакция ${purchaseEnvironment}; реальные деньги за неё не списываются. Она не привязана к текущему аккаунту 018BY. Для новой тестовой покупки используйте чистый Sandbox аккаунт в TestFlight или сбросьте историю в соответствующей тестовой среде.`
+                : storeError}
+            </AppText>
+          ) : storeError || actionError ? (
             <AuthErrorBanner message={actionError ?? storeError ?? ''} />
           ) : null}
-          {isIapEnabled && !isUnlocked ? (
+          {isIapEnabled && !isUnlocked && (legacy || otherAccount || needsLogin) ? (
+            <AppButton
+              title={legacy ? 'Связаться с поддержкой' : otherAccount ? 'Войти в аккаунт покупки' : 'Войти в аккаунт'}
+              loading={action === 'support'}
+              disabled={busy}
+              onPress={() => legacy ? void runAction('support') : router.push('/login')}
+            />
+          ) : isIapEnabled && !isUnlocked ? (
             <AppButton
               testID="print-unlock-purchase"
-              title={priceLabel ? `Открыть доступ · ${priceLabel}` : 'Загрузка цены…'}
-              loading={action === 'purchase' || isLoading}
+              title={priceLabel ? `Открыть доступ · ${priceLabel}` : checking ? 'Загрузка цены…' : 'Покупка пока недоступна'}
+              loading={purchasing}
               disabled={busy || !priceLabel || purchaseBlocked}
               onPress={() => void runAction('purchase')}
             />
@@ -196,7 +231,7 @@ export default function ExportSubscriptionScreen() {
               }}
             />
           ) : null}
-          {available && !isLoading ? (
+          {available && !checking ? (
             <AppText style={styles.activeNote}>
               {isIapEnabled
                 ? 'Покупка привязана к вашему аккаунту 018BY. Выбирайте альбом и переходите к экспорту.'
@@ -216,9 +251,9 @@ export default function ExportSubscriptionScreen() {
             >
               <Ionicons name="refresh-outline" size={20} color="#8D7781" />
               <AppText style={styles.actionText}>
-                {action === 'restore' ? 'Восстанавливаем…' : 'Восстановить покупки'}
+                {restoring ? 'Восстанавливаем…' : 'Восстановить покупки'}
               </AppText>
-              {action === 'restore' ? (
+              {restoring ? (
                 <ActivityIndicator color={colors.primary} />
               ) : (
                 <Ionicons name="chevron-forward" size={17} color="#B5A3AA" />
@@ -242,8 +277,8 @@ export default function ExportSubscriptionScreen() {
         ) : null}
         {Platform.OS === 'ios' && isIapEnabled ? (
           <AppText style={styles.legal}>
-            Разовая оплата через Apple ID. При смене устройства войдите с тем же Apple ID и нажмите
-            «Восстановить покупки».
+            Разовая оплата через Apple ID. При смене устройства войдите с тем же Apple ID и в тот же
+            аккаунт 018BY, затем нажмите «Восстановить покупки».
           </AppText>
         ) : null}
       </View>

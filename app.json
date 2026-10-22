@@ -3,7 +3,7 @@
     "name": "018BY",
     "slug": "018by",
     "scheme": "app018by",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -23,7 +23,7 @@
       "supportsTablet": true,
       "requireFullScreen": false,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "48",
+      "buildNumber": "49",
       "runtimeVersion": {
         "policy": "appVersion"
       },
@@ -129,6 +129,9 @@
     ],
     "updates": {
       "url": "https://u.expo.dev/cb0b872b-bcbb-450d-aee7-e2c3148df391",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      },
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
     },
