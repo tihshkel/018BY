@@ -45,6 +45,18 @@
 
 Источники: [StoreKit AppStore.sync](https://developer.apple.com/documentation/storekit/appstore/sync()), [StoreKit currentEntitlements](https://developer.apple.com/documentation/storekit/transaction/currententitlements), [EAS build channels](https://docs.expo.dev/build/updates/).
 
+## Запуск схемы StoreKit без Metro — 22.10.2026
+
+На скриншоте IMG_0075 открыт Expo Development Build launcher. В журнале — `Connection refused` / `NSURLErrorDomain -1004` для `/status` на портах Metro, включая `127.0.0.1:8081` и `192.168.1.1:8081`. Это сбой подключения development client до загрузки JavaScript приложения, а не отказ покупки StoreKit. Предупреждение UIScene не объясняет показанный launcher.
+
+У схемы `018BY-StoreKit` действие Run переключено с Debug на Release. Native bundle phase включает JavaScript в Release, AppDelegate читает `main.jsbundle`. Ссылка на `ExportPrintUnlock.storekit` сохранена в LaunchAction. Поэтому после новой сборки и запуска этой схемы из Xcode Metro не требуется. Это локальная среда Xcode StoreKit, платежи в ней тестовые; обычный пароль Apple ID для локальной покупки не нужен. Такой запуск проверяет клиентскую логику, но не подтверждает готовность production продукта App Store Connect.
+
+Для запуска уже установленного Debug development client без пересборки: в корне проекта выполнить `npx expo start --dev-client --lan`, подключить Mac и iPhone к одной локальной сети и открыть сервер с экрана launcher (либо QR из терминала). Это инструкция пользователю: сервер, сборка и тесты в этой сессии не запускались.
+
+Порядок самостоятельной проверки: открыть `ios/018BY.xcworkspace`, выбрать `018BY-StoreKit` и iPhone, запустить Run; для повторения новой локальной покупки удалить только её тестовую транзакцию через Xcode → Debug → StoreKit → Manage Transactions. Для App Store/TestFlight использовать обычную схему `018BY`, без локальной конфигурации StoreKit.
+
+Документация: [Expo development client](https://docs.expo.dev/develop/development-builds/use-development-builds/), [Expo Release configuration](https://docs.expo.dev/guides/local-app-development/), [Apple StoreKit testing in Xcode](https://developer.apple.com/documentation/xcode/setting-up-storekit-testing-in-xcode).
+
 ## Контракт продукта
 
 - Bundle ID: `com.tihshkel.x018BY`, ASC app ID: `6761551531`.
