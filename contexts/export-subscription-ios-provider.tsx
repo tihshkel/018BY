@@ -21,6 +21,11 @@ const DISCONNECTED = 'Не удалось подключиться к App Store.
 const ACTIVE_PURCHASES = { onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false };
 const OTHER_ACCOUNT = 'Эта покупка Apple ID связана с другим аккаунтом 018BY. Войдите в аккаунт, в котором покупали доступ. Повторная оплата не нужна.';
 const LEGACY_PURCHASE = 'App Store вернул покупку без привязки к аккаунту 018BY. Восстановление не может определить её владельца в приложении. Обратитесь в поддержку с квитанцией Apple; повторно платить не нужно.';
+const RESTORE_REQUIRED = 'Покупка найдена. Нажмите «Восстановить доступ», чтобы использовать её в этом аккаунте. Повторная оплата не потребуется.';
+
+// Only unlinked, native-verified test transactions use this installation-local
+// association. It never substitutes for an Apple appAccountToken in production.
+let testOwnershipQueue: Promise<unknown> = Promise.resolve();
 
 type PendingPurchase = { resolve: (ok: boolean) => void; timer: ReturnType<typeof setTimeout> };
 
@@ -45,6 +50,27 @@ function getPurchaseEnvironment(purchase: Purchase): ExportSubscriptionContextVa
   return environment === 'production' ? 'Production' : environment === 'sandbox' ? 'Sandbox' : environment === 'xcode' ? 'Xcode' : null;
 }
 
+function testPurchaseOwner(purchase: Purchase, accountId: string, claim: boolean, active: () => boolean): Promise<string | null> {
+  const environment = getPurchaseEnvironment(purchase);
+  const token = 'appAccountToken' in purchase ? purchase.appAccountToken : null;
+  if (token || (environment !== 'Sandbox' && environment !== 'Xcode')) return Promise.resolve(null);
+  const originalId = 'originalTransactionIdentifierIOS' in purchase ? purchase.originalTransactionIdentifierIOS : null;
+  const transactionId = originalId || purchase.transactionId || purchase.id;
+  if (!transactionId) return Promise.resolve(null);
+  const key = `iap:${EXPORT_PRINT_UNLOCK_SKU}:test-owner:v1:${environment}:${encodeURIComponent(transactionId)}`;
+  // Serialize read/claim across provider remounts when the app account changes.
+  // Await ownership writes: a timeout cannot cancel a native storage write.
+  const task = testOwnershipQueue.then(async () => {
+    const owner = await AsyncStorage.getItem(key);
+    if (owner || !claim || !active()) return owner;
+    const nextOwner = accountId.toLowerCase();
+    await AsyncStorage.setItem(key, nextOwner);
+    return nextOwner;
+  });
+  testOwnershipQueue = task.catch(() => {});
+  return task;
+}
+
 function errorCode(error: unknown): unknown {
   return error && typeof error === 'object' && 'code' in error ? error.code : undefined;
 }
@@ -65,7 +91,7 @@ function purchaseErrorMessage(error: unknown): string {
 }
 
 export function ExportSubscriptionIosProvider({ children, accountId }: { children: React.ReactNode; accountId: string }) {
-  const cacheKey = `iap:${EXPORT_PRINT_UNLOCK_SKU}:v2:${accountId.toLowerCase()}`;
+  const cacheKey = `iap:${EXPORT_PRINT_UNLOCK_SKU}:v3:${accountId.toLowerCase()}`;
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [loadingAction, setLoadingAction] = useState<'refresh' | 'purchase' | 'restore' | null>('refresh');
   const isLoading = loadingAction !== null;
@@ -80,21 +106,29 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
   const cacheWrite = useRef(Promise.resolve());
   const cacheRead = useRef<Promise<void> | null>(null);
   const ownershipError = useRef<string | null>(null);
+  const ownedPurchase = useRef<Purchase | null>(null);
   const processingTransactions = useRef(new Set<string>());
   const finishedTransactions = useRef(new Set<string>());
-  const belongsToAccount = useCallback((purchase: Purchase) =>
-    'appAccountToken' in purchase && purchase.appAccountToken?.toLowerCase() === accountId.toLowerCase(), [accountId]);
-  const ownershipMessage = useCallback((purchase: Purchase) =>
-    'appAccountToken' in purchase && purchase.appAccountToken ? OTHER_ACCOUNT : LEGACY_PURCHASE, []);
+  const ownershipMessage = useCallback(async (purchase: Purchase, claimTestPurchase = false) => {
+    const token = 'appAccountToken' in purchase ? purchase.appAccountToken : null;
+    if (token) return token.toLowerCase() === accountId.toLowerCase() ? null : OTHER_ACCOUNT;
+    const environment = getPurchaseEnvironment(purchase);
+    if (environment === 'Sandbox' || environment === 'Xcode') {
+      const owner = await testPurchaseOwner(purchase, accountId, claimTestPurchase, () => mounted.current);
+      return owner === accountId.toLowerCase() ? null : owner ? OTHER_ACCOUNT : RESTORE_REQUIRED;
+    }
+    return LEGACY_PURCHASE;
+  }, [accountId]);
 
-  const saveUnlock = useCallback((value: boolean) => {
+  const saveUnlock = useCallback((value: boolean, environment?: ExportSubscriptionContextValue['purchaseEnvironment']) => {
     if (!mounted.current) return;
     revision.current += 1;
     unlocked.current = value;
     setIsUnlocked(value);
     // Serialize writes so an older refresh cannot overwrite a new purchase on disk.
     cacheWrite.current = cacheWrite.current.then(() =>
-      withTimeout(AsyncStorage.setItem(cacheKey, value ? '1' : '0'), 1000)
+      // A test entitlement is restored from StoreKit, never an offline production grant.
+      withTimeout(AsyncStorage.setItem(cacheKey, value && environment === 'Production' ? '1' : '0'), 1000)
     ).catch(() => {});
   }, [cacheKey]);
 
@@ -107,23 +141,33 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
     action.resolve(ok);
   }, []);
 
-  const loadOwned = useCallback(async () => {
+  const loadOwned = useCallback(async (claimTestPurchase = false) => {
     const startRevision = revision.current;
     const purchases = await withTimeout(getAvailablePurchases(ACTIVE_PURCHASES));
+    let owned: Purchase | undefined;
+    let other: Purchase | undefined;
+    let conflict: string | null = null;
+    for (const purchase of purchases.filter(unlocksExport)) {
+      const message = await ownershipMessage(purchase, claimTestPurchase && !owned);
+      if (!message) owned ??= purchase;
+      else if (!other || message === RESTORE_REQUIRED) {
+        other = purchase;
+        conflict = message;
+      }
+    }
     if (mounted.current && startRevision === revision.current) {
-      const owned = purchases.find((purchase) => unlocksExport(purchase) && belongsToAccount(purchase));
-      const other = purchases.find((purchase) => unlocksExport(purchase) && !belongsToAccount(purchase));
-      ownershipError.current = !owned && other ? ownershipMessage(other) : null;
+      ownershipError.current = owned ? null : conflict;
+      ownedPurchase.current = owned ?? null;
       const matched = owned ?? other;
       setPurchaseEnvironment(matched ? getPurchaseEnvironment(matched) : null);
       if (other && !owned) console.info('[PrintUnlock] Purchase ownership unresolved', {
         environment: getPurchaseEnvironment(other) ?? 'unknown',
         accountTokenPresent: 'appAccountToken' in other && !!other.appAccountToken,
       });
-      saveUnlock(!!owned);
+      saveUnlock(!!owned, owned ? getPurchaseEnvironment(owned) : null);
     }
     return unlocked.current;
-  }, [saveUnlock, belongsToAccount, ownershipMessage]);
+  }, [saveUnlock, ownershipMessage]);
 
   const handlePurchaseError = useCallback(async (error: unknown, action = pending.current) => {
     if (!action || action !== pending.current) return;
@@ -133,7 +177,7 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
     }
     if (errorCode(error) === ErrorCode.AlreadyOwned || errorCode(error) === ErrorCode.DuplicatePurchase) {
       try {
-        if (await loadOwned()) {
+        if (await loadOwned(true)) {
           completePurchase(true, action);
           return;
         }
@@ -149,9 +193,21 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
     onPurchaseSuccess: async (purchase) => {
       if (!mounted.current || !isOurPurchase(purchase)) return;
       setPurchaseEnvironment(getPurchaseEnvironment(purchase));
-      if (!belongsToAccount(purchase)) {
+      let conflict: string | null;
+      try {
+        // A replay without a pending purchase only reads an existing association.
+        conflict = await ownershipMessage(purchase, !!pending.current && unlocksExport(purchase));
+      } catch {
+        if (mounted.current) {
+          setStoreError('Не удалось сохранить доступ. Нажмите «Восстановить покупки». Повторная оплата не нужна.');
+          completePurchase(false);
+        }
+        return;
+      }
+      if (!mounted.current) return;
+      if (conflict) {
         if (unlocksExport(purchase)) {
-          ownershipError.current = ownershipMessage(purchase);
+          ownershipError.current = conflict;
           setStoreError(ownershipError.current);
           if (pending.current) Alert.alert('Доступ не открыт', ownershipError.current);
           completePurchase(false);
@@ -176,7 +232,9 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
       // Grant before finishing, including transactions replayed after a previous crash/timeout.
       const action = pending.current;
       ownershipError.current = null;
-      saveUnlock(true);
+      setStoreError(null);
+      ownedPurchase.current = purchase;
+      saveUnlock(true, getPurchaseEnvironment(purchase));
       try {
         await withTimeout(finishTransaction({ purchase, isConsumable: false }));
         finishedTransactions.current.add(transactionId);
@@ -228,14 +286,18 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
         ? catalogue.value?.find((item) => item.id === EXPORT_PRINT_UNLOCK_SKU && item.type === 'in-app')
         : undefined;
       setPriceLabel(product?.displayPrice || null);
-      if (catalogue.status === 'rejected') {
+      if (results[1].status === 'fulfilled' && unlocked.current) {
+        setStoreError(null);
+      } else if (ownershipError.current) {
+        setStoreError(ownershipError.current);
+      } else if (catalogue.status === 'rejected') {
         const code = errorCode(catalogue.reason);
         setStoreError(code === ErrorCode.ItemUnavailable || code === ErrorCode.SkuNotFound
           ? UNAVAILABLE : PRICE_LOAD_FAILED);
       } else if (!product?.displayPrice) setStoreError(UNAVAILABLE);
       else if (results[1].status === 'rejected') {
         setStoreError('Не удалось проверить покупки. Повторите проверку с интернетом; сохранённый статус не изменён.');
-      } else if (ownershipError.current) setStoreError(ownershipError.current);
+      }
     } catch {
       if (mounted.current) {
         setPriceLabel(null);
@@ -285,7 +347,7 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
     try {
       // Detect ownership on this Apple ID before showing a sheet: a non-consumable
       // already linked elsewhere cannot be bought again for a second app account.
-      const owned = await loadOwned();
+      const owned = await loadOwned(true);
       if (!mounted.current) return false;
       if (owned || ownershipError.current) {
         operation.current = null;
@@ -335,13 +397,29 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
       if (!connected && !await withTimeout(reconnect())) throw new Error('not-connected');
       // StoreKit keeps current entitlements locally. A known ownership conflict
       // needs account recovery, not another Apple password prompt.
-      let restored = await loadOwned();
+      let restored = await loadOwned(true);
       if (!restored && !ownershipError.current) {
         // Sync exactly once. useIAP.restorePurchases also syncs and hides errors.
         // Authentication is user-controlled: timing it out cannot dismiss Apple's
         // sheet and would allow a second sync while the first is still pending.
         if (!await syncIOS()) throw new Error('sync-failed');
-        restored = await loadOwned();
+        restored = await loadOwned(true);
+      }
+      const transaction = ownedPurchase.current;
+      if (restored && transaction && mounted.current) {
+        const id = transaction.transactionId || transaction.id;
+        if (!finishedTransactions.current.has(id) && !processingTransactions.current.has(id)) {
+          processingTransactions.current.add(id);
+          try {
+            await withTimeout(finishTransaction({ purchase: transaction, isConsumable: false }));
+            finishedTransactions.current.add(id);
+          } catch {
+            // Verified access stays open; StoreKit can replay the unfinished transaction.
+            if (mounted.current) setStoreError('Доступ восстановлен. Обработка покупки завершится при следующем подключении к App Store.');
+          } finally {
+            processingTransactions.current.delete(id);
+          }
+        }
       }
       if (mounted.current) Alert.alert(
         restored ? 'Готово' : ownershipError.current ? 'Доступ не открыт' : 'Покупки не найдены',
@@ -361,7 +439,7 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
       operation.current = null;
       if (mounted.current) setLoadingAction(null);
     }
-  }, [connected, reconnect, loadOwned]);
+  }, [connected, reconnect, loadOwned, finishTransaction]);
 
   const value = useMemo<ExportSubscriptionContextValue>(() => ({
     isUnlocked,
@@ -373,7 +451,8 @@ export function ExportSubscriptionIosProvider({ children, accountId }: { childre
     purchaseEnvironment,
     storeError,
     purchaseBlocked: ownershipError.current !== null,
-    purchaseBlockReason: ownershipError.current === LEGACY_PURCHASE ? 'legacy-purchase' :
+    purchaseBlockReason: ownershipError.current === RESTORE_REQUIRED ? 'restore-required' :
+      ownershipError.current === LEGACY_PURCHASE ? 'legacy-purchase' :
       ownershipError.current === OTHER_ACCOUNT ? 'other-account' : undefined,
     purchase,
     restore,

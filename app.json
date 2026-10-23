@@ -23,10 +23,8 @@
       "supportsTablet": true,
       "requireFullScreen": false,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "49",
-      "runtimeVersion": {
-        "policy": "appVersion"
-      },
+      "buildNumber": "50",
+      "runtimeVersion": "1.2.1-50",
       "infoPlist": {
         "CFBundleDevelopmentRegion": "ru",
         "CFBundleLocalizations": ["ru", "en"],

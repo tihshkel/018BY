@@ -42,7 +42,6 @@ export default function ExportSubscriptionScreen() {
     loadingAction,
     isIapEnabled,
     priceLabel,
-    purchaseEnvironment,
     storeError,
     purchaseBlocked,
     purchaseBlockReason,
@@ -63,10 +62,10 @@ export default function ExportSubscriptionScreen() {
   const restoring = action === 'restore' || loadingAction === 'restore';
   const purchasing = action === 'purchase' || loadingAction === 'purchase';
   const legacy = purchaseBlockReason === 'legacy-purchase';
+  const restoreRequired = purchaseBlockReason === 'restore-required';
   const otherAccount = purchaseBlockReason === 'other-account';
   const needsLogin = purchaseBlockReason === 'sign-in-required';
-  const ownershipIssue = legacy || otherAccount;
-  const testPurchase = purchaseEnvironment === 'Sandbox' || purchaseEnvironment === 'Xcode';
+  const ownershipIssue = legacy || otherAccount || restoreRequired;
   const available = isUnlocked || !isIapEnabled;
   const runAction = async (kind: 'purchase' | 'restore' | 'support') => {
     if (lock.current || isLoading) return;
@@ -118,7 +117,7 @@ export default function ExportSubscriptionScreen() {
             />
           </View>
           {ownershipIssue && !checking ? (
-            <AppText style={styles.accessDescription}>{testPurchase ? 'Найдена тестовая покупка' : 'Покупка найдена в App Store'}</AppText>
+            <AppText style={styles.accessDescription}>Покупка найдена в App Store</AppText>
           ) : (
             <ProfileSubscriptionStatusBadge
               isPremium={available}
@@ -174,13 +173,15 @@ export default function ExportSubscriptionScreen() {
                   ? 'Доступно бесплатно'
                   : checking
                     ? 'Проверяем покупку'
-                    : legacy
-                      ? 'Подтвердите вашу покупку'
-                      : otherAccount
-                        ? 'Покупка уже есть'
-                        : isUnlocked
-                          ? 'Ваш доступ активен'
-                          : 'Одна покупка. Навсегда.'}
+                    : restoreRequired
+                      ? 'Верните доступ к печати'
+                      : legacy
+                        ? 'Поможем восстановить доступ'
+                        : otherAccount
+                          ? 'Покупка уже есть'
+                          : isUnlocked
+                            ? 'Ваш доступ активен'
+                            : 'Одна покупка. Навсегда.'}
               </AppText>
               <AppText style={styles.accessDescription}>
                 {isIapEnabled
@@ -197,14 +198,20 @@ export default function ExportSubscriptionScreen() {
           ) : null}
           {ownershipIssue && storeError && !actionError ? (
             <AppText accessibilityRole="alert" style={styles.accessDescription}>
-              {testPurchase
-                ? `Это тестовая транзакция ${purchaseEnvironment}; реальные деньги за неё не списываются. Она не привязана к текущему аккаунту 018BY. Для новой тестовой покупки используйте чистый Sandbox аккаунт в TestFlight или сбросьте историю в соответствующей тестовой среде.`
-                : storeError}
+              {storeError}
             </AppText>
           ) : storeError || actionError ? (
             <AuthErrorBanner message={actionError ?? storeError ?? ''} />
           ) : null}
-          {isIapEnabled && !isUnlocked && (legacy || otherAccount || needsLogin) ? (
+          {isIapEnabled && !isUnlocked && restoreRequired ? (
+            <AppButton
+              testID="print-unlock-restore-access"
+              title="Восстановить доступ"
+              loading={restoring}
+              disabled={busy}
+              onPress={() => void runAction('restore')}
+            />
+          ) : isIapEnabled && !isUnlocked && (legacy || otherAccount || needsLogin) ? (
             <AppButton
               title={legacy ? 'Связаться с поддержкой' : otherAccount ? 'Войти в аккаунт покупки' : 'Войти в аккаунт'}
               loading={action === 'support'}
@@ -222,7 +229,7 @@ export default function ExportSubscriptionScreen() {
           ) : null}
           {isIapEnabled && (storeError || (!priceLabel && !isLoading && !isUnlocked)) ? (
             <AppButton
-              title="Обновить статус и цену"
+              title={ownershipIssue ? 'Обновить статус' : 'Обновить статус и цену'}
               variant="outline"
               disabled={busy}
               onPress={() => {
@@ -253,7 +260,7 @@ export default function ExportSubscriptionScreen() {
               <AppText style={styles.actionText}>
                 {restoring ? 'Восстанавливаем…' : 'Восстановить покупки'}
               </AppText>
-              {restoring ? (
+              {restoring && !restoreRequired ? (
                 <ActivityIndicator color={colors.primary} />
               ) : (
                 <Ionicons name="chevron-forward" size={17} color="#B5A3AA" />

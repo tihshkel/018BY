@@ -16,7 +16,7 @@ export type ExportSubscriptionContextValue = {
   purchaseEnvironment?: 'Production' | 'Sandbox' | 'Xcode' | null;
   storeError: string | null;
   purchaseBlocked?: boolean;
-  purchaseBlockReason?: 'legacy-purchase' | 'other-account' | 'sign-in-required';
+  purchaseBlockReason?: 'restore-required' | 'legacy-purchase' | 'other-account' | 'sign-in-required';
   purchase: () => Promise<boolean>;
   restore: () => Promise<boolean>;
   refresh: () => Promise<void>;

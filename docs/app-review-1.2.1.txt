@@ -1,0 +1,12 @@
+018BY 1.2.1 — Print Export
+
+Product: com.tihshkel.x018BY.export_print_unlock (Non-Consumable).
+This is a one-time purchase without recurring charges. It unlocks print-ready PDF export for hard and soft covers across the albums in the purchasing 018BY account. Electronic PDF export remains free.
+
+Use the review account provided in App Review Information. Open Profile → My Access (Мой доступ), or choose a locked hard/soft format when exporting an album. The price is supplied by StoreKit. Purchase confirmation is handled by Apple.
+
+New purchases send the signed-in 018BY user UUID as appAccountToken. A verified transaction with another account token requires signing into the original 018BY account. Restore Purchases is available on the My Access screen and the export paywall.
+
+In Apple's test environments, a previously purchased non-consumable may have no appAccountToken. For an active native-verified Sandbox or Xcode transaction without a token, the Restore Access action associates the test transaction with the currently signed-in app account on that installation and restores access without a second charge. This recovery does not override an existing Apple account token and does not migrate unlinked Production transactions. Test purchases are not persisted as offline Production access.
+
+Please review this first Non-Consumable together with app version 1.2.1. The review screenshot belongs in the product's Review Information → Screenshot field.

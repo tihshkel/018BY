@@ -15,7 +15,7 @@ type SubscriptionPaywallModalProps = {
 };
 
 export function SubscriptionPaywallModal({ visible, onClose, onSubscribed }: SubscriptionPaywallModalProps) {
-  const { priceLabel, purchaseEnvironment, purchase, restore, refresh, storeError, isLoading, loadingAction, isUnlocked, purchaseBlocked, purchaseBlockReason } = useExportSubscription();
+  const { priceLabel, purchase, restore, refresh, storeError, isLoading, loadingAction, isUnlocked, purchaseBlocked, purchaseBlockReason } = useExportSubscription();
   const [busy, setBusy] = useState<'purchase' | 'restore' | 'refresh' | 'support' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const lock = useRef(false);
@@ -52,13 +52,13 @@ export function SubscriptionPaywallModal({ visible, onClose, onSubscribed }: Sub
   };
 
   const legacy = purchaseBlockReason === 'legacy-purchase';
+  const restoreRequired = purchaseBlockReason === 'restore-required';
   const otherAccount = purchaseBlockReason === 'other-account';
   const needsLogin = purchaseBlockReason === 'sign-in-required';
-  const ownershipIssue = legacy || otherAccount;
-  const testPurchase = purchaseEnvironment === 'Sandbox' || purchaseEnvironment === 'Xcode';
+  const ownershipIssue = legacy || otherAccount || restoreRequired;
   const blocked = !!purchaseBlocked;
-  const statusText = ownershipIssue && testPurchase
-    ? `Найдена тестовая транзакция ${purchaseEnvironment}; реальные деньги за неё не списываются. Она не привязана к текущему аккаунту 018BY. Для новой проверки используйте чистый Sandbox аккаунт в TestFlight или сбросьте историю в соответствующей тестовой среде.`
+  const statusText = restoreRequired
+    ? 'Покупка найдена. Восстановите доступ в этом аккаунте и продолжайте оформлять альбом. Повторная оплата не потребуется.'
     : legacy
     ? 'App Store вернул покупку без привязки к аккаунту 018BY. Для подтверждения владельца обратитесь в поддержку с квитанцией Apple. Повторно платить не нужно.'
     : otherAccount
@@ -79,7 +79,7 @@ export function SubscriptionPaywallModal({ visible, onClose, onSubscribed }: Sub
     <AppCenterModal
       visible={visible}
       onClose={close}
-      title={ownershipIssue ? testPurchase ? 'Тестовая покупка' : 'Покупка уже есть' : needsLogin ? 'Нужен вход' : 'Экспорт Pro'}
+      title={restoreRequired ? 'Восстановить доступ' : ownershipIssue ? 'Покупка уже есть' : needsLogin ? 'Нужен вход' : 'Экспорт Pro'}
       dismissOnBackdrop={!isBusy}
       showClose={!isBusy}
       scroll
@@ -87,16 +87,16 @@ export function SubscriptionPaywallModal({ visible, onClose, onSubscribed }: Sub
       footer={
         <View style={styles.footer}>
           <AppButton
-            title={needsLogin ? 'Войти в аккаунт' : otherAccount ? 'Войти в другой аккаунт' : legacy ? 'Связаться с поддержкой' : blocked || !priceLabel ? isLoading ? 'Загружаем цену…' : 'Проверить доступ' : `Открыть Pro · ${priceLabel}`}
-            onPress={needsLogin || otherAccount ? openLogin : () => void run(legacy ? 'support' : blocked || !priceLabel ? 'refresh' : 'purchase')}
-            loading={busy === 'purchase' || busy === 'refresh' || busy === 'support' || (isLoading && loadingAction !== 'restore')}
+            title={restoreRequired ? 'Восстановить доступ' : needsLogin ? 'Войти в аккаунт' : otherAccount ? 'Войти в другой аккаунт' : legacy ? 'Связаться с поддержкой' : blocked || !priceLabel ? isLoading ? 'Загружаем цену…' : 'Проверить доступ' : `Открыть Pro · ${priceLabel}`}
+            onPress={needsLogin || otherAccount ? openLogin : () => void run(restoreRequired ? 'restore' : legacy ? 'support' : blocked || !priceLabel ? 'refresh' : 'purchase')}
+            loading={busy === 'purchase' || busy === 'refresh' || busy === 'support' || (restoreRequired && (busy === 'restore' || loadingAction === 'restore')) || (isLoading && loadingAction !== 'restore')}
             disabled={isBusy}
             style={styles.primary}
-            testID={needsLogin || otherAccount ? 'print-unlock-login' : legacy ? 'print-unlock-support' : blocked || !priceLabel ? 'print-unlock-retry' : 'print-unlock-purchase'}
+            testID={restoreRequired ? 'print-unlock-restore-access' : needsLogin || otherAccount ? 'print-unlock-login' : legacy ? 'print-unlock-support' : blocked || !priceLabel ? 'print-unlock-retry' : 'print-unlock-purchase'}
           />
           {!blocked && priceLabel ? <AppText style={styles.paymentHint}>Разовая оплата · Без подписки</AppText> : null}
           <View style={styles.secondaryActions}>
-            <AppButton
+            {!restoreRequired ? <AppButton
               testID="print-unlock-restore"
               title={ownershipIssue ? 'Проверить покупку' : 'Уже покупали?'}
               variant="ghost"
@@ -105,7 +105,7 @@ export function SubscriptionPaywallModal({ visible, onClose, onSubscribed }: Sub
               disabled={isBusy}
               fullWidth={false}
               style={styles.secondary}
-            />
+            /> : null}
             <AppButton testID="print-unlock-later" title="Позже" variant="ghost" onPress={close} disabled={isBusy} fullWidth={false} style={styles.secondary} />
           </View>
         </View>

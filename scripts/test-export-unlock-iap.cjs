@@ -18,9 +18,9 @@ const root = path.resolve(__dirname, '..');
 const SKU = 'com.tihshkel.x018BY.export_print_unlock';
 const ACCOUNT_A = '550e8400-e29b-41d4-a716-446655440000';
 const ACCOUNT_B = 'a50e8400-e29b-41d4-a716-446655440001';
-const cacheKey = (account) => `iap:${SKU}:v2:${account.toLowerCase()}`;
+const cacheKey = (account) => `iap:${SKU}:v3:${account.toLowerCase()}`;
 const item = { id: SKU, type: 'in-app', displayPrice: '4,99 $' };
-const owned = { id: 'transaction-1', productId: SKU, purchaseState: 'purchased', platform: 'ios', appAccountToken: ACCOUNT_A };
+const owned = { id: 'transaction-1', productId: SKU, purchaseState: 'purchased', platform: 'ios', environmentIOS: 'Production', appAccountToken: ACCOUNT_A };
 const deferred = () => {
   let resolve, reject;
   const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -226,8 +226,8 @@ test('already-owned callback reconciles entitlements', async (h) => {
 test('restore reports done and requests active entitlements', async (h) => {
   h.native.purchases = [owned];
   assert.equal(await h.run(() => h.value.restore()), true);
-  assert.equal(h.calls.sync, 1);
-  assert.equal(h.calls.restore, 1);
+  assert.equal(h.calls.sync, 0);
+  assert.equal(h.calls.restore, 0);
   assert.equal(h.calls.alerts[0][0], 'Готово');
   assert.equal(h.storage.value, '1');
   same(h.calls.available.at(-1), { onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false });
@@ -238,7 +238,7 @@ test('empty restore is different from a network failure', async (h) => {
   h.native.sync = async () => { throw { code: 'network-error' }; };
   assert.equal(await h.run(() => h.value.restore()), false);
   assert.equal(h.calls.alerts[1][0], 'Не удалось восстановить покупки');
-  assert.equal(h.calls.restore, 1);
+  assert.equal(h.calls.restore, 0);
 });
 test('cancelled restore authentication is silent', async (h) => {
   h.native.sync = async () => { throw { code: 'user-cancelled' }; };
@@ -249,7 +249,7 @@ test('restore remains available with a missing catalogue', async (h) => {
   h.native.catalogue = [];
   await h.run(() => h.value.refresh());
   assert.equal(h.value.priceLabel, null);
-  assert.match(h.value.storeError, /Продукт недоступен/);
+  assert.match(h.value.storeError, /недоступна/);
   assert.equal(await h.run(() => h.value.purchase()), false);
   assert.equal(h.calls.request.length, 0);
   h.native.purchases = [owned];
@@ -285,14 +285,20 @@ test('finish failure keeps entitlement and exposes a retry notice', async (h) =>
   assert.equal(h.value.isUnlocked, true);
   assert.match(h.value.storeError, /Доступ открыт/);
 });
-test('hanging restore releases loading and does not report no purchases', async (h) => {
-  h.native.restore = () => new Promise(() => {});
+test('Apple authentication stays serialized until its sheet completes', async (h) => {
+  const authentication = deferred();
+  h.native.sync = () => authentication.promise;
   let restore;
   await h.run(() => { restore = h.value.restore(); });
   await h.tick(15_000);
+  assert.equal(h.value.isLoading, true);
+  assert.equal(h.value.loadingAction, 'restore');
+  assert.equal(await h.run(() => h.value.restore()), false);
+  assert.equal(h.calls.sync, 1);
+  await h.run(() => authentication.reject({ code: 'user-cancelled' }));
   assert.equal(await restore, false);
   assert.equal(h.value.isLoading, false);
-  assert.equal(h.calls.alerts.at(-1)[0], 'Не удалось восстановить покупки');
+  assert.equal(h.calls.alerts.length, 0);
 });
 test('pending and revoked success events never grant entitlement', async (h) => {
   const p = await h.startPurchase();
@@ -386,13 +392,56 @@ test('unbound old transaction never automatically grants access or gets finished
   h.native.purchases = [legacy];
   await h.run(() => h.value.refresh());
   assert.equal(h.value.isUnlocked, false);
-  assert.match(h.value.storeError, /прежней версии/);
+  assert.match(h.value.storeError, /без привязки/);
   assert.equal(await h.run(() => h.value.restore()), false);
-  assert.match(h.calls.alerts.at(-1)[1], /повторно оплачивать/i);
+  assert.match(h.calls.alerts.at(-1)[1], /повторно платить/i);
   assert.equal(await h.run(() => h.value.purchase()), false);
   await h.success(legacy);
   assert.equal(h.value.isUnlocked, false);
   assert.equal(h.calls.request.length, 0);
+  assert.equal(h.calls.finish.length, 0);
+});
+
+test('an unlinked verified sandbox purchase restores without Apple authentication or another charge', async (h) => {
+  const sandbox = { ...owned, environmentIOS: 'Sandbox', appAccountToken: null };
+  h.native.purchases = [sandbox];
+  await h.run(() => h.value.refresh());
+  assert.equal(h.value.isUnlocked, false);
+  assert.equal(h.value.purchaseBlockReason, 'restore-required');
+  await h.success(sandbox);
+  assert.equal(h.value.isUnlocked, false, 'a passive replay must not claim a test purchase');
+  assert.equal(await h.run(() => h.value.restore()), true);
+  assert.equal(h.value.purchaseBlocked, false);
+  assert.equal(h.calls.sync, 0);
+  assert.equal(h.calls.request.length, 0);
+  assert.equal(h.calls.finish.length, 1);
+  assert.equal(h.storage.value, '0', 'sandbox access must not become an offline production grant');
+  await h.run(() => h.value.refresh());
+  assert.equal(h.value.isUnlocked, true, 'the same account restores its persisted test association');
+  await h.switchAccount(ACCOUNT_B);
+  assert.equal(h.value.isUnlocked, false);
+  assert.equal(h.value.purchaseBlockReason, 'other-account');
+  assert.equal(await h.run(() => h.value.restore()), false);
+  await h.switchAccount(ACCOUNT_A);
+  assert.equal(h.value.isUnlocked, true);
+});
+
+test('an unlinked Xcode purchase can be delivered after an explicit purchase request', async (h) => {
+  const buyer = await h.startPurchase();
+  const local = { ...owned, environmentIOS: 'Xcode', appAccountToken: null };
+  await h.success(local);
+  assert.equal(await buyer.promise, true);
+  assert.equal(h.value.isUnlocked, true);
+  assert.equal(h.storage.value, '0');
+  assert.equal(h.calls.finish.length, 1);
+});
+
+test('sandbox never overrides a foreign Apple account token', async (h) => {
+  h.native.purchases = [{ ...owned, environmentIOS: 'Sandbox', appAccountToken: ACCOUNT_B }];
+  await h.run(() => h.value.refresh());
+  assert.equal(h.value.purchaseBlockReason, 'other-account');
+  assert.equal(await h.run(() => h.value.restore()), false);
+  assert.equal(h.value.isUnlocked, false);
   assert.equal(h.calls.finish.length, 0);
 });
 
@@ -467,7 +516,7 @@ test('unbound old transaction never automatically grants access or gets finished
   h = await setup({ native: { fetch: () => new Promise(() => {}) } });
   await h.tick(15_000);
   assert.equal(h.value.isLoading, false);
-  assert.match(h.value.storeError, /Продукт недоступен/);
+  assert.match(h.value.storeError, /загрузить цену/);
   await h.close();
   console.log('ok - hanging catalogue is bounded');
 
